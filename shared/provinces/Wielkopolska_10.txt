@@ -1,0 +1,8 @@
+province {
+    name: ' Wielkopolska '
+    rgb: ' 255 222 0 '
+    development: ' 3 '
+    unitPosition: ' 981 441 '
+    country: ' Poland '
+    population: ' 300000 '
+}

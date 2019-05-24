@@ -1,0 +1,8 @@
+province {
+    name: ' Wesfalen '
+    rgb: ' 139 233 241 '
+    development: ' 2 '
+    unitPosition: ' 795 405 '
+    country: ' East Francia '
+    population: ' 200000 '
+}

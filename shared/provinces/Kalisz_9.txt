@@ -1,0 +1,8 @@
+province {
+    name: ' Kalisz '
+    rgb: ' 19 99 92 '
+    development: ' 1 '
+    unitPosition: ' 1038 413 '
+    country: ' Poland '
+    population: ' 100000 '
+}

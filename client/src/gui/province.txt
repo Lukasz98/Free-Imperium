@@ -1,0 +1,135 @@
+window {
+    type: ' province '
+    position: ' 5 10 0 '
+    size: ' 500 600 '
+    bgColor: ' 25 25 25 255 '
+    priority: ' low '
+    
+    label {
+        position: ' 20 550 0.1 '
+        size: ' 460 30 '
+        bgColor: ' 200 200 200 255 '
+        contentAlign: ' center '
+        text {
+             position: ' 5 0 0.1 '
+             height: ' 30 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' '
+             valueName: ' provName '
+        }
+    }
+
+    label {
+        position: ' 20 515 0.1 '
+        size: ' 200 30 '
+        bgColor: ' 200 200 200 255 '
+        contentAlign: ' center '
+        text {
+             position: ' 200 0 0.1 '
+             height: ' 20 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' '
+             valueName: ' countryName '
+             clickEvent: ' openCountry '
+        }
+    }
+
+    label {
+        position: ' 20 420 0.1 '
+        size: ' 400 90 '
+        bgColor: ' 200 200 200 255 '
+
+        text {
+             position: ' 5 60 0.1 '
+             height: ' 20 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' Population: '
+        }
+        text {
+             position: ' 180 60 0.1 '
+             height: ' 20 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' '
+             valueName: ' population '
+        }
+
+        text {
+             position: ' 5 30 0.1 '
+             height: ' 20 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' Manpower: '
+        }
+        text {
+             position: ' 180 30 0.1 '
+             height: ' 20 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' '
+             valueName: ' manpower '
+        }
+
+        text {
+             position: ' 5 0 0.1 '
+             height: ' 20 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' Income: '
+        }
+        text {
+             position: ' 180 0 0.1 '
+             height: ' 20 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' '
+             valueName: ' monthIncome '
+        }
+        
+    }
+
+
+    label {
+        position: ' 20 220 0.1 '
+        size: ' 400 90 '
+        bgColor: ' 200 200 200 255 '
+
+        text {
+             position: ' 5 60 0.1 '
+             height: ' 20 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' 1000 '
+             valueName: ' newUnitSize  '
+        }
+        icon {
+             position: ' 150 60 0.1 '
+             size: ' 20 20 '
+             color: ' 100 0 0 255 '
+             texturePath: ' src/img/minus.png '
+             clickEvent: ' decreaseValue '
+             impact: ' newUnitSize '
+        }
+        icon {
+             position: ' 175 60 0.1 '
+             size: ' 20 20 '
+             texturePath: ' src/img/plus.png '
+             clickEvent: ' increaseValue '
+             impact: ' newUnitSize '
+        }
+        text {
+             position: ' 5 30 0.1 '
+             height: ' 20 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' create unit '
+             clickEvent: ' newUnit '
+        }
+
+    }
+
+
+}

@@ -1,0 +1,8 @@
+province {
+    name: ' Meclenburg '
+    rgb: ' 255 112 112 '
+    development: ' 2 '
+    unitPosition: ' 906 460 '
+    country: ' Pomerania '
+    population: ' 200000 '
+}

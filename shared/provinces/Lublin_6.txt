@@ -1,0 +1,8 @@
+province {
+    name: ' Lublin '
+    rgb: ' 80 255 241 '
+    development: ' 1 '
+    unitPosition: ' 1117 417 '
+    country: ' Poland '
+    population: ' 100000 '
+}

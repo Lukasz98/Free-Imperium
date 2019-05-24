@@ -1,0 +1,6 @@
+country {
+    name: ' Bohemia '
+    rgb: ' 150 100 50 '
+    culture: ' czech '
+    religion:  ' Catholic '
+}

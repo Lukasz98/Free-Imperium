@@ -1,0 +1,8 @@
+province {
+    name: ' Holstein '
+    rgb: ' 56 241 7 '
+    development: ' 3 '
+    unitPosition: ' 857 472 '
+    country: ' Pomerania '
+    population: ' 300000 '
+}

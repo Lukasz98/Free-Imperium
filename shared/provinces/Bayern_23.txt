@@ -1,0 +1,8 @@
+province {
+    name: ' Bayern '
+    rgb: ' 246 24 24 '
+    development: ' 5 '
+    unitPosition: ' 878 325 '
+    country: ' East Francia '
+    population: ' 500000 '
+}

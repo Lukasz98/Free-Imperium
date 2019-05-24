@@ -1,0 +1,6 @@
+country {
+    name: ' Atlandyda '
+    rgb: ' 1 1 1 '
+    culture: ' water '
+    religion:  ' Ufo '
+}

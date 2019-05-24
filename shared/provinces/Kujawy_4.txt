@@ -1,0 +1,8 @@
+province {
+    name: ' Kujawy '
+    rgb: ' 248 163 125 '
+    development: ' 1 '
+    unitPosition: ' 1033 456 '
+    country: ' Poland '
+    population: ' 100000 '
+}

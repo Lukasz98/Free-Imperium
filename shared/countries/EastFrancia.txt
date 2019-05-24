@@ -1,0 +1,6 @@
+country {
+    name: ' East Francia '
+    rgb: ' 20 20 100 '
+    culture: ' german '
+    religion: ' Catholic '
+}

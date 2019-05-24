@@ -1,0 +1,8 @@
+province {
+    name: ' Prussia '
+    rgb: ' 106 114 109 '
+    development: ' 1 '
+    unitPosition: ' 1075 491 '
+    country: ' Prussia '
+    population: ' 100000 '
+}

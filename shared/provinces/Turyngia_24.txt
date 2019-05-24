@@ -1,0 +1,8 @@
+province {
+    name: ' Turyngia '
+    rgb: ' 123 118 38 '
+    development: ' 2 '
+    unitPosition: ' 860 376 '
+    country: ' East Francia '
+    population: ' 200000 '
+}

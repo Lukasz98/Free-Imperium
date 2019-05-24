@@ -1,0 +1,8 @@
+province {
+    name: ' Anchalt '
+    rgb: ' 211 244 131 '
+    development: ' 2 '
+    unitPosition: ' 866 411 '
+    country: ' East Francia '
+    population: ' 200000 '
+}

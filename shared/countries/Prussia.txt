@@ -1,0 +1,6 @@
+country {
+    name: ' Prussia '
+    rgb: ' 100 100 100 '
+    culture: ' baltic '
+    religion: ' Slavic '
+}

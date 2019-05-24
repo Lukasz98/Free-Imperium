@@ -1,0 +1,8 @@
+province {
+    name: ' Hradec '
+    rgb: ' 201 91 36 '
+    development: ' 1 '
+    unitPosition: ' 974 375 '
+    country: ' Bohemia '
+    population: ' 100000 '
+}

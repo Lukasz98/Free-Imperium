@@ -1,0 +1,8 @@
+province {
+    name: ' Budejovice '
+    rgb: ' 99 241 153 '
+    development: ' 2 '
+    unitPosition: ' 952 345 '
+    country: ' Bohemia '
+    population: ' 200000 '
+}

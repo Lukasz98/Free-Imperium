@@ -1,0 +1,8 @@
+province {
+    name: ' Pomorze '
+    rgb: ' 0 229 75 '
+    development: ' 1 '
+    unitPosition: ' 966 477 '
+    country: ' Pomerania '
+    population: ' 100000 '
+}

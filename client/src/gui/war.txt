@@ -1,0 +1,82 @@
+window {
+    type: ' war '
+    position: ' 300 20 0.1 '
+    size: ' 650 500 '
+    bgColor: ' 20 15 90 255 '
+    priority: ' high '
+
+    label {
+        position: ' 615 465 0.2 '
+        size: ' 30 30 '
+        icon {
+            position: ' 0 0 0 '
+            size: ' 30 30 '
+            texturePath: ' src/img/minus.png '
+            clickEvent: ' close '
+        }
+    }
+
+    label {
+        position: ' 25 450 0.1 '
+        size: ' 400 20 '
+        bgColor: ' 200 200 200 255 '
+        text {
+             position: ' 3 0 0.1 '
+             height: ' 20 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' Attacker war score: '
+        }
+        text {
+             position: ' 300 0 0.1 '
+             height: ' 20 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' '
+             valueName: ' attackerWarScore '
+        }
+    }
+
+    label {
+        position: ' 52.5 350 0.1 '
+        size: ' 237.5 35 '
+        bgColor: ' 200 200 200 255 '
+        contentAlign: ' center '
+        text {
+             position: ' 0 0 0.1 '
+             height: ' 35 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' Defenders: '
+        }
+    }
+    regularList {
+        name: ' defenders '
+        position: ' 25 20 0.1 '
+        size: ' 292.5 350 '
+        bgColor: ' 255 25 25 255 '
+        frameColor: ' 100 25 25 255 '    
+    }
+
+    label {
+        position: ' 352.5 350 0.1 '
+        size: ' 237.5 35 '
+        bgColor: ' 200 200 200 255 '
+        contentAlign: ' center '
+        text {
+             position: ' 0 0 0.1 '
+             height: ' 35 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' Attackers: '
+        }
+    }
+    regularList {
+        name: ' attackers '
+        position: ' 325 20 0.1 '
+        size: ' 292.5 350 '
+        bgColor: ' 255 25 25 255 '
+        frameColor: ' 100 25 25 255 '    
+    }
+
+}

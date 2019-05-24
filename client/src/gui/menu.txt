@@ -1,0 +1,82 @@
+window {
+    type: ' menu '
+    position: ' 100 100 0 '
+    size: ' 900 600 '
+    bgColor: ' 25 25 25 255 '
+    priority: ' high '
+    
+    label {
+        position: ' 20 540 0.1 '
+        size: ' 350 50 '
+        bgColor: ' 255 0 0 255 '
+        contentAlign: ' center '
+        text {
+             position: ' 5 0 0.1 '
+             height: ' 20 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' Room '
+        }
+    }
+
+    label {
+        position: ' 530 540 0.1 '
+        size: ' 350 50 '
+        bgColor: ' 0 100 250 255 '
+        contentAlign: ' center '
+        text {
+             position: ' 5 0 0.1 '
+             height: ' 20 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' Play '
+             clickEvent: ' play '
+        }
+    }
+
+
+    label {
+        position: ' 30 320 0.1 '
+        size: ' 350 50 '
+        bgColor: ' 255 0 0 255 '
+        contentAlign: ' center '
+        text {
+             position: ' 5 0 0.1 '
+             height: ' 20 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' Players '
+        }
+    }
+    regularList {
+        name: ' players '
+        position: ' 20 10 0.1 '
+        size: ' 380 300 '
+        bgColor: ' 255 25 25 255 '
+        frameColor: ' 100 25 25 255 '    
+    }
+
+
+    label {
+        position: ' 500 320 0.1 '
+        size: ' 350 50 '
+        bgColor: ' 255 0 0 255 '
+        contentAlign: ' center '
+        text {
+             position: ' 5 0 0.1 '
+             height: ' 20 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' Countries '
+        }
+    }
+    regularList {
+        name: ' countries '
+        position: ' 490 10 0.1 '
+        size: ' 380 300 '
+        bgColor: ' 255 25 25 255 '
+        frameColor: ' 100 25 25 255 '
+    }
+
+
+}

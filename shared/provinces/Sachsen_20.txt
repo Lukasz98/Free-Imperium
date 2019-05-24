@@ -1,0 +1,8 @@
+province {
+    name: ' Sachsen '
+    rgb: ' 135 148 103 '
+    development: ' 1 '
+    unitPosition: ' 930 397 '
+    country: ' East Francia '
+    population: ' 100000 '
+}

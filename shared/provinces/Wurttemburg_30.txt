@@ -1,0 +1,8 @@
+province {
+    name: ' Wurttemburg '
+    rgb: ' 142 91 91 '
+    development: ' 5 '
+    unitPosition: ' 824 327 '
+    country: ' East Francia '
+    population: ' 500000 '
+}

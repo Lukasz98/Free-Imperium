@@ -1,0 +1,205 @@
+window {
+    type: ' topBar '
+    position: ' 0.0 100 0.0 '
+    size: ' 500 100 '
+    bgColor: ' 25 25 25 255 '
+    priority: ' high '
+    
+    label {
+        position: ' 20 60 0.1 '
+        size: ' 215 30 '
+        bgColor: ' 200 200 200 255 '
+        text {
+             position: ' 5 0 0.1 '
+             height: ' 30 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' Gold: '
+        }
+        text {
+             position: ' 85 0 0.1 '
+             height: ' 30 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' '
+             valueName: ' countryGold '
+        }
+    }
+    label {
+        position: ' 20.0 60 0.5 '
+        size: ' 120 30 '
+        bgColor: ' 200 200 200 0 '
+        hover: ' true '
+        label {
+            position: ' 0.0 -90 0.1 '
+            size: ' 320 90 '
+            bgColor: ' 150 150 150 255 '
+            text {
+                position: ' 5.0 0 0.1 '
+                height: ' 20 '
+                color: ' 100 0 0 255 '
+                bgColor: ' 50 50 50 0 '
+                content: ' Army maintenance:  '
+            }
+            text {
+                position: ' 250.0 0 0.1 '
+                height: ' 20 '
+                color: ' 100 0 0 255 '
+                bgColor: ' 50 50 50 0 '
+                content: ' '
+                valueName: ' armyMaintenance '
+            }
+            text {
+                position: ' 5.0 30 0.1 '
+                height: ' 20 '
+                color: ' 100 0 0 255 '
+                bgColor: ' 50 50 50 0 '
+                content: ' Income:  '
+            }
+            text {
+                position: ' 250.0 30 0.1 '
+                height: ' 20 '
+                color: ' 100 0 0 255 '
+                bgColor: ' 50 50 50 0 '
+                content: ' '
+                valueName: ' countryIncome '
+            }
+            text {
+                position: ' 5.0 60 0.1 '
+                height: ' 20 '
+                color: ' 100 0 0 255 '
+                bgColor: ' 50 50 50 0 '
+                content: ' Army maintenance:  '
+            }
+            text {
+                position: ' 250.0 60 0.1 '
+                height: ' 20 '
+                color: ' 100 0 0 255 '
+                bgColor: ' 50 50 50 0 '
+                content: ' '
+                valueName: ' armyMaintenance '
+            }
+
+        }
+    }
+
+    label {
+        position: ' 250 60 0.1 '
+        size: ' 420 30 '
+        bgColor: ' 200 200 200 255 '
+        text {
+             position: ' 5 0 0.1 '
+             height: ' 30 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' Manpower: '
+        }
+        text {
+             position: ' 165 0 0.1 '
+             height: ' 30 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' '
+             valueName: ' countryManpower '
+        }
+    }
+    label {
+        position: ' 250 60 0.5 '
+        size: ' 220 30 '
+        bgColor: ' 150 150 150 0 '
+        hover: ' true '
+        label {
+            position: ' 0 -30 0.1 '
+            size: ' 420 30 '
+            bgColor: ' 150 150 150 255 '
+            text {
+                position: ' 5 0 0.1 '
+                height: ' 20 '
+                color: ' 100 0 0 255 '
+                bgColor: ' 50 50 50 0 '
+                content: ' MP recovery: '
+            }
+            text {
+                position: ' 180 0 0.1 '
+                height: ' 20 '
+                color: ' 100 0 0 255 '
+                bgColor: ' 50 50 50 0 '
+                content: ' '
+                valueName: ' countryManpowerRecovery '
+            }
+        }
+    }
+
+
+    label {
+        position: ' 10 2 0.1 '
+        size: ' 500 50 '
+        bgColor: ' 200 200 200 255 '
+        text {
+             position: ' 10 0 0.1 '
+             height: ' 50 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: '  '
+             valueName: ' countryName '
+             clickEvent: ' openCountry '
+        }
+    }
+
+    label {
+        position: ' 720 5 0.1 '
+        size: ' 200 90 '
+        bgColor: ' 200 200 200 255 '
+        text {
+             position: ' 10 0 0.1 '
+             height: ' 45 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: '  '
+             valueName: ' date '
+        }
+        text {
+             position: ' 10 60 0.1 '
+             height: ' 25 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' speed:  '
+        }
+        text {
+             position: ' 100 60 0.1 '
+             height: ' 25 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 150 150 150 0 '
+             content: ' '
+             valueName: ' dateSpeed '
+        }
+        icon {
+            position: ' 130 60 0.1 '
+            size: ' 20 20 '
+            texturePath: ' src/img/plus.png '
+            clickEvent: ' dateSpeed '
+            content: ' faster '
+        }
+        icon {
+            position: ' 155 60 0.1 '
+            size: ' 20 20 '
+            texturePath: ' src/img/minus.png '
+            clickEvent: ' dateSpeed '
+            content: ' slower '
+        }
+    }
+
+    label {
+        position: ' 1100 10 0.1 '
+        size: ' 100 50 '
+        bgColor: ' 200 100 200 255 '
+        text {
+             position: ' 10 0 0.1 '
+             height: ' 50 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' test '
+        }
+    }
+
+}

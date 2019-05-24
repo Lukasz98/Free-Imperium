@@ -1,0 +1,8 @@
+province {
+    name: ' Prague '
+    rgb: ' 243 35 35 '
+    development: ' 4 '
+    unitPosition: ' 948 362 '
+    country: ' Bohemia '
+    population: ' 400000 '
+}

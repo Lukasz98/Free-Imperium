@@ -1,0 +1,8 @@
+province {
+    name: ' Brandenburg '
+    rgb: ' 148 103 103 '
+    development: ' 2 '
+    unitPosition: ' 927 424 '
+    country: ' Pomerania '
+    population: ' 200000 '
+}

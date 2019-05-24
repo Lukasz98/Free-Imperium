@@ -1,0 +1,8 @@
+province {
+    name: ' Krakow '
+    rgb: ' 99 19 89 '
+    development: ' 3 '
+    unitPosition: ' 1062 384 '
+    country: ' Poland '
+    population: ' 300000 '
+}

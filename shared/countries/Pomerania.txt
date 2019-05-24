@@ -1,0 +1,6 @@
+country {
+    name: ' Pomerania '
+    rgb: ' 77 201 43 '
+    culture: ' slavic '
+    religion: ' Slavic '
+}

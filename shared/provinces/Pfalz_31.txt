@@ -1,0 +1,8 @@
+province {
+    name: ' Pfalz '
+    rgb: ' 139 241 161 '
+    development: ' 3 '
+    unitPosition: ' 786 361 '
+    country: ' East Francia '
+    population: ' 300000 '
+}

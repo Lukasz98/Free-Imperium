@@ -1,0 +1,8 @@
+province {
+    name: ' Ostrava '
+    rgb: ' 204 217 0 '
+    development: ' 1 '
+    unitPosition: ' 1025 360 '
+    country: ' Bohemia '
+    population: ' 100000 '
+}

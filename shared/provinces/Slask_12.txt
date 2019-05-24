@@ -1,0 +1,8 @@
+province {
+    name: ' Slask '
+    rgb: ' 255 123 238 '
+    development: ' 2 '
+    unitPosition: ' 991 401 '
+    country: ' Poland '
+    population: ' 200000 '
+}

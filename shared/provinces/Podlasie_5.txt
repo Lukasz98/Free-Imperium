@@ -1,0 +1,8 @@
+province {
+    name: ' Podlasie '
+    rgb: ' 125 248 154 '
+    development: ' 1 '
+    unitPosition: ' 1110 470 '
+    country: ' Poland '
+    population: ' 100000 '
+}

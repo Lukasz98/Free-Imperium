@@ -1,0 +1,8 @@
+province {
+    name: ' Niedersachsen '
+    rgb: ' 104 184 82 '
+    development: ' 2 '
+    unitPosition: ' 830 434 '
+    country: ' East Francia '
+    population: ' 200000 '
+}
