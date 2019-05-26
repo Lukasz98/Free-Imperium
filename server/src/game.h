@@ -88,7 +88,17 @@ class Game
     float calculateArmyMaintenance(const std::string & country);
 
     void updateAi();
-    
+    void ai_newUnits(std::shared_ptr<Country> & c);
+    void ai_manageProvincesOfInterest(std::shared_ptr<Country> & c);
+    void ai_warDecisions(std::shared_ptr<Country> & c);
+    void ai_goToWar(std::shared_ptr<Country> & c);
+    void ai_makePeace(std::shared_ptr<Country> & c);
+    void ai_mergeUnits(std::shared_ptr<Country> & c);
+    void ai_units(std::shared_ptr<Country> & c);
+    bool ai_unitTryWalkToMerge(std::shared_ptr<Unit> & u);
+    bool ai_unitWalkToFight(std::shared_ptr<Unit> & u, std::vector<std::string> & atWarWith);
+    void ai_unitWalkToSiege(std::shared_ptr<Unit> & u, std::vector<std::string> & atWarWith);
+
     void provincesUpdate();
     void unitsUpdate();
     void battlesUpdate();

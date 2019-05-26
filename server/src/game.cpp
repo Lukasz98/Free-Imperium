@@ -23,6 +23,7 @@ Game::Game(std::vector<std::shared_ptr<Client>> & clients, std::vector<std::shar
             client->SetCountry(*it);
         }
     }
+    srand(time(NULL));
 }
 
 Game::~Game()
@@ -79,66 +80,282 @@ void Game::Play()
         client->send(packet);
 }
 
-void ai_newUnits()
-{
-}
-
 void Game::updateAi()
 {
     for (auto & c : countries) {
         if (!c->IsOwnedByBoot() || !c->IsActive())
             continue;
 
-        float clearIncome = c->GetIncome() - c->GetArmyMaintenance();
-        if (c->GetGold() > 1.0f && clearIncome > 0.3f) {
-            float monthlyUnitCost = 0.1f; // for 100 soldiers
-            float priceForHundred = 0.1f; // unit cost
+        ai_newUnits(c);
+        ai_manageProvincesOfInterest(c);
+        ai_warDecisions(c);
+        ai_units(c);
+    }    
+}
 
-            float affordFromIncome = clearIncome * monthlyUnitCost * 1000.0f;
-            float affordFromCash = c->GetGold() * priceForHundred * 1000.0f;
-            //affordFromCash = 0;
-            int unitSize = 0;
+void Game::ai_newUnits(std::shared_ptr<Country> & c)
+{
+    float clearIncome = c->GetIncome() - c->GetArmyMaintenance();
+    if (c->GetGold() > 1.0f && clearIncome > 0.3f) {
+        float monthlyUnitCost = 0.1f; // for 100 soldiers
+        float priceForHundred = 0.1f; // unit cost
+        float affordFromIncome = clearIncome * monthlyUnitCost * 1000.0f;
+        float affordFromCash = c->GetGold() * priceForHundred * 1000.0f;
+        //affordFromCash = 0;
+        int unitSize = 0;
 
-            if (affordFromIncome > affordFromCash) {
-                unitSize = affordFromCash;
-            }
-            else {
-                unitSize = affordFromIncome;
-            }
+        if (affordFromIncome > affordFromCash) {
+            unitSize = affordFromCash;
+        }
+        else {
+            unitSize = affordFromIncome;
+        }
 
-            if (unitSize <= 0)
-                continue;
+        if (unitSize <= 0)
+            return;
 
-            for (auto & prov : provinces) {
-                if (prov.GetCountry() == c->GetName()) {
-                    if (prov.GetManpower() > 0 && prov.GetSieged() == 0) {
-                        int temp = unitSize - prov.GetManpower();
+        for (auto & prov : provinces) {
+            if (prov.GetCountry() == c->GetName()) {
+                if (prov.GetManpower() > 0 && prov.GetSieged() == 0) {
+                    int temp = unitSize - prov.GetManpower();
 
-                        if (temp < 0) {
-                            temp = unitSize;
-                            unitSize = 0;
-                        }
-                        else {
-                            temp = prov.GetManpower() - temp;
-                            unitSize -= temp;
-                        }
-
-                        c->EraseMoney((float)temp / (priceForHundred * 1000.0f));
-                        Unit unit{prov.GetName() + " unit", prov.GetUnitPos(), temp, c->GetName(), prov.GetName()};
-                        units.emplace_back(std::make_shared<Unit>(unit));
-                        DoTheThing::SendNewUnitInfo(units.back(), toSend);
+                    if (temp < 0) {
+                        temp = unitSize;
+                        unitSize = 0;
+                    }
+                    else {
+                        temp = prov.GetManpower() - temp;
+                        unitSize -= temp;
                     }
 
-                    if (unitSize == 0) {
-                        float am = calculateArmyMaintenance(c->GetName());
-                        c->SetArmyMaintenance(am);
-                        break;
-                    }
+                    c->EraseMoney((float)temp / (priceForHundred * 1000.0f));
+                    Unit unit{prov.GetName() + " unit", prov.GetUnitPos(), temp, c->GetName(), prov.GetName()};
+                    units.emplace_back(std::make_shared<Unit>(unit));
+                    DoTheThing::SendNewUnitInfo(units.back(), toSend);
+                }
+
+                if (unitSize == 0) {
+                    float am = calculateArmyMaintenance(c->GetName());
+                    c->SetArmyMaintenance(am);
+                    break;
                 }
             }
         }
+    }
+}
 
+void Game::ai_manageProvincesOfInterest(std::shared_ptr<Country> & c)
+{
+    if (lastDay != 1) // monthly update
+        return;
 
+    auto poi = c->GetPoI();
+    for (auto p : poi) {
+        auto provIt = std::find_if(provinces.begin(), provinces.end(), [p](Province & prov) {
+                       return p == prov.GetId();
+                      });
+        if (provIt == provinces.end())
+            continue;
+        Log("POI : " << c->GetName() << " -> " << (*provIt).GetName());
+        auto cIt = std::find_if(countries.begin(), countries.end(), [cName = provIt->GetCountry()](std::shared_ptr<Country> & country) {
+                    return cName == country->GetName();
+                   });
+
+        if (cIt == countries.end())
+            continue;
+
+        if ((*cIt)->GetName() == c->GetName()) {
+            c->ErasePoI(p);
+            continue;
+        }
+
+        if ((*cIt)->GetRel(c->GetName()) > 15) {
+            c->ErasePoI(p);
+        }
+    }
+
+    // find new poi
+    if (poi.size() > 3)
+        return;
+    for (auto & prov : provinces) {
+        if (prov.GetCountry() != c->GetName())
+            continue;
+        auto neighb = prov.GetNeighbours();
+        for (auto n : neighb) {
+            auto provIt = std::find_if(provinces.begin(), provinces.end(), [n](Province & pr) { return n == pr.GetId(); });
+            if (provIt == provinces.end())
+                continue;
+            if (provIt->GetCountry() == c->GetName())
+                continue;
+            auto cIt = std::find_if(countries.begin(), countries.end(), [cName = provIt->GetCountry()](std::shared_ptr<Country> & country) {
+                        return cName == country->GetName();
+                       });
+            if (cIt == countries.end())
+                continue;
+
+            if ((*cIt)->GetRel(c->GetName()) <= 0 && c->GetRel((*cIt)->GetName()) <= 0 && std::rand() % 10 == 0) {
+                c->AddPoI(provIt->GetId());
+            }
+        }
+        if (c->GetPoISize() >= 3)
+            break;
+    }
+}
+
+void Game::ai_warDecisions(std::shared_ptr<Country> & c)
+{
+    if (lastDay != 1) // monthly update
+        return;
+    auto warIt = std::find_if(wars.begin(), wars.end(), [cName = c->GetName()](War & war) { return (war.IsAttacker(cName) || war.IsDefender(cName)); });
+    if (warIt == wars.end()) { //try to go into war
+        ai_goToWar(c);
+    }
+    else { // try to make peace
+        ai_makePeace(c);
+    }
+}
+
+void Game::ai_goToWar(std::shared_ptr<Country> & c)
+{
+    auto poi = c->GetPoI();
+    for (auto p : poi) {
+        auto provIt = std::find_if(provinces.begin(), provinces.end(), [p](Province & pr) { return p == pr.GetId(); });
+        if (provIt == provinces.end())
+            continue;
+        auto cIt = std::find_if(countries.begin(), countries.end(), [cName = provIt->GetCountry()](std::shared_ptr<Country> & country) {
+                    return cName == country->GetName();
+                   });
+        if (cIt == countries.end())
+            continue;
+
+        if (c->IsTruce((*cIt)->GetName(), date))
+            continue;
+
+        if ((*cIt)->GetPower() >= c->GetPower())
+            continue;
+
+        auto isEnemyAtWar = std::find_if(wars.begin(), wars.end(), [cName = (*cIt)->GetName()](War & war) {
+                             return (war.IsAttacker(cName) || war.IsDefender(cName));
+                            });
+        if (isEnemyAtWar != wars.end())
+            continue;
+
+        if (std::rand() % 3 != 0) {
+            DoTheThing::DeclareWar(countries, c->GetName(), (*cIt)->GetName(), wars, toSend, date);
+            break;
+        }
+    }
+}
+
+void Game::ai_makePeace(std::shared_ptr<Country> & c)
+{
+    for (auto & w : wars) {
+        bool isAttacker = w.IsAttacker(c->GetName()); 
+        bool isDefender = w.IsDefender(c->GetName()); 
+        if (!isAttacker && !isDefender)
+            continue;
+
+        int enemyPower = 0;
+        std::string enemyName = "";
+        if (isDefender)
+            enemyName = w.GetAttackerName();
+        if (isAttacker)
+            enemyName = w.GetDefenderName();
+        auto enemyIt = std::find_if(countries.begin(), countries.end(), [enemyName](std::shared_ptr<Country> & ctr) {
+                        return enemyName == ctr->GetName();
+                       });
+        if (enemyIt == countries.end())
+            continue;
+        else
+            enemyPower = (*enemyIt)->GetPower();
+                    
+        int myPower = c->GetPower();
+        int myWarScore = w.GetAttackerWarScore();
+        if (isDefender)
+            myWarScore *= -1;
+
+        Log("WarInfo: " << c->GetName() << " -> " << (*enemyIt)->GetName() << ", score=" << myWarScore);
+        
+        bool peaceSended = false;
+        if (myWarScore > 20) {
+            auto poi = c->GetPoI();
+            std::vector<std::pair<std::string,std::string>> offeredProvinces;
+            for (auto & p : poi) {
+                auto pIt = std::find_if(provinces.begin(), provinces.end(), [p](Province & pr) { return p == pr.GetId(); });
+                if (pIt == provinces.end())
+                    continue;
+                bool isPossible = false;
+                if (isAttacker) 
+                    isPossible = w.IsDefender(pIt->GetCountry());
+                else 
+                    isPossible = w.IsAttacker(pIt->GetCountry());
+
+                if (isPossible) {
+                    offeredProvinces.emplace_back(std::make_pair(pIt->GetName(), c->GetName()));
+                    Log(pIt->GetName() << "  " << pIt->GetCountry());
+                }
+            }
+
+            // tu trzeba wyszukac prowincje ktore nie sa w poi
+                        
+            PeaceOffer peaceOffer;
+            peaceOffer.warId = w.GetId();
+            peaceOffer.warScore = w.GetAttackerWarScore();
+            if (isAttacker)
+                peaceOffer.recipant = w.GetDefenderName();
+            else
+                peaceOffer.recipant = w.GetAttackerName();
+            peaceOffer.recipantIsDefender = isAttacker;
+            peaceOffer.attackers = w.GetAttackers();
+            peaceOffer.defenders = w.GetDefenders();
+            peaceOffer.offeredBy = c->GetName();
+                        
+            auto recipantIt = std::find_if(countries.begin(), countries.end(), [rec = peaceOffer.recipant](std::shared_ptr<Country> & ctr) {
+                               return rec == ctr->GetName();
+                              });
+            if (recipantIt == countries.end())
+                continue;
+
+            auto warIt = std::find_if(wars.begin(), wars.end(), [wId = w.GetId()](War & war) {
+                          return wId == war.GetId();
+                         });
+            DoTheThing::SendPeace(wars, provinces, countries, peaceOffer, offeredProvinces, toSend, recipantIt, warIt, date);
+        }
+    }
+}
+
+void Game::ai_mergeUnits(std::shared_ptr<Country> & c)
+{
+    bool merged = false;
+    do {
+        merged = false;
+        for (auto & u : units) {
+            if (u->GetCountry() != c->GetName())
+                continue;
+
+            std::vector<int> idsToErase;
+
+            for (auto & uu : units) {
+                if (u->GetCountry() == uu->GetCountry() && u->GetId() != uu->GetId() && u->GetPos() == uu->GetPos()) {
+                    u->Add(uu);
+                    idsToErase.push_back(uu->GetId());
+                }
+            }
+
+            if (idsToErase.size()) {
+                DoTheThing::MergeUnits(units, u->GetId(), idsToErase, toSend);
+                merged = true;
+                break;
+            }
+        }
+    } while (merged);
+}
+
+void Game::ai_units(std::shared_ptr<Country> & c)
+{
+    for (auto & u : units) {
+        if (u->GetCountry() != c->GetName())
+            continue;
         std::vector<std::string> atWarWith;
         for (auto & w : wars) {
             if (w.IsAttacker(c->GetName())) {
@@ -148,304 +365,112 @@ void Game::updateAi()
             else if (w.IsDefender(c->GetName())) {
                 auto temp = w.GetAttackers();
                 atWarWith.insert(atWarWith.end(), temp.begin(), temp.end());
-            }
-            
+            }            
         }
 
-        // units ai
-        std::vector<int> updatedUnits;
-        bool mergePrepare = false;
-        for (auto & u : units) {
-            if (u->GetCountry() == c->GetName()) {
-                auto _idIt = std::find(updatedUnits.begin(), updatedUnits.end(), u->GetId());
-                if (_idIt != updatedUnits.end())
-                    continue;
+        bool merge = ai_unitTryWalkToMerge(u);
+        bool walkToFight = false;
+        if (!merge)
+            walkToFight = ai_unitWalkToFight(u, atWarWith);
+        if (!merge && !walkToFight)
+            ai_unitWalkToSiege(u, atWarWith);
+    }
+        
+    ai_mergeUnits(c);
+}
 
-                if (!u->IsMoving() && !mergePrepare && !u->IsSieging() && !u->IsInBattle()) {
-                    auto uPos = u->GetFakePos();
-                    auto uProvIt = std::find_if(provinces.begin(), provinces.end(), [uPos](Province & pr) { return pr.GetUnitPos() == uPos; });
-                    int uProvId = (*uProvIt).GetId();
-                    for (auto & uu : units) {
-                        _idIt = std::find_if(updatedUnits.begin(), updatedUnits.end(), [id = uu->GetId()](int i) { return id == i; });
-                        if (_idIt != updatedUnits.end())
-                            continue;
+bool Game::ai_unitTryWalkToMerge(std::shared_ptr<Unit> & u)
+{
+    if (u->IsMoving() || u->IsSieging() || u->IsInBattle())
+        return false;
+    for (auto & uu : units) {
+        if (uu->GetCountry() != u->GetCountry())
+            continue;
+        if (uu->GetId() == u->GetId())
+            continue;
+
+        auto uPos = u->GetFakePos();
+        auto uProvIt = std::find_if(provinces.begin(), provinces.end(), [uPos](Province & pr) { return pr.GetUnitPos() == uPos; });
+        int uProvId = (*uProvIt).GetId();
                         
-                        if (u->GetId() != uu->GetId() && u->GetCountry() == uu->GetCountry() && std::rand() % 2 == 0) {
+        if (std::rand() % 5 == 0) {
         
-                            auto uuPos = uu->GetFakePos();
-                            auto uuProvIt = std::find_if(provinces.begin(), provinces.end(), [uuPos](Province & pr) { return pr.GetUnitPos() == uuPos; });
-                            int uuProvId = (*uuProvIt).GetId();
-                            if (uuProvId != uProvId)
-                                DoTheThing::MoveUnit(u, provinces, uProvId, uuProvId);
-                            updatedUnits.push_back(u->GetId());
-                            mergePrepare = true;
-                        }
-                    }
-                }
-        
-                _idIt = std::find_if(updatedUnits.begin(), updatedUnits.end(), [id = u->GetId()](int i) { return id == i; });
-                if (_idIt == updatedUnits.end() && !u->IsMoving() && !u->IsSieging() && std::rand() % 2 == 0) {
-                    bool moved = false;
-
-                    for (auto & opponent : atWarWith) {
-                        for (auto & uu : units) {
-                            
-                            if (uu->GetCountry() == opponent && u->GetSoldiers() > uu->GetSoldiers() && std::rand() % 2) {
-                                auto uuProvIt = std::find_if(provinces.begin(), provinces.end(), [uPos = uu->GetPos()](Province & pr) {
-                                                return pr.GetUnitPos() == uPos;
-                                               });
-                                auto uProvIt = std::find_if(provinces.begin(), provinces.end(), [uPos = u->GetPos()](Province & pr) {
-                                                return pr.GetUnitPos() == uPos;
-                                               });
-                                if (uuProvIt == provinces.end() || uProvIt == provinces.end())
-                                    continue;
-
-                                DoTheThing::MoveUnit(u, provinces, (*uProvIt).GetId(), (*uuProvIt).GetId());
-                                updatedUnits.push_back(u->GetId());
-                                
-                                moved = true;
-                                break;
-                            }
-                        }
-                        if (moved)
-                            break;
-                    }
-                }
-
-                if (atWarWith.size() && _idIt == updatedUnits.end() && !u->IsMoving() && !u->IsSieging() && !u->IsInBattle()) {
-                    bool provFound = false;
-                    int provId = 0;
-                    float dist = 0.0f;
-                    auto uProvIt = std::find_if(provinces.begin(), provinces.end(), [pPos = u->GetFakePos()](const Province & p) {
-                                    return p.GetUnitPos() == pPos;
-                                   });
-                    if (uProvIt == provinces.end())
-                        continue;
-                    for (auto & opponent : atWarWith) {
-                        for (auto & prov : provinces) {
-                            if (prov.GetCountry() != opponent && prov.GetCountry() != c->GetName())
-                                continue;
-                            if (prov.GetSiegeCountry() == u->GetCountry())
-                                continue;
-                            
-                            float tmpDist = pow(prov.GetUnitPos().x - uProvIt->GetUnitPos().x, 2);
-                            tmpDist += pow(prov.GetUnitPos().y - uProvIt->GetUnitPos().y, 2);
-                            tmpDist = sqrt(tmpDist);
-
-                            if (tmpDist < dist || !provFound) {
-                                provFound = true;
-                                dist = tmpDist;
-                                provId = prov.GetId();
-                            }
-                        }
-                    }
-                    if (provFound) {
-                        DoTheThing::MoveUnit(u, provinces, (*uProvIt).GetId(), provId);
-                        updatedUnits.push_back(u->GetId());
-                    }
-                }
-            }
-
-        }
-        
-        std::vector<int> idsToErase;
-        int lastIdsSize = 0;
-        for (auto & u : units) {
-            auto idIt = std::find_if(idsToErase.begin(), idsToErase.end(), [uId = u->GetId()](int id) { return uId == id; });
-            if (idIt != idsToErase.end())
-                continue;
-            if (u->GetCountry() != c->GetName())
-                continue;
-
-            for (auto & uu : units) {
-                if (u->GetCountry() == uu->GetCountry() && u->GetId() != uu->GetId() && u->GetPos() == uu->GetPos()) {
-                    u->Add(uu);
-                    idsToErase.push_back(uu->GetId());
-                }
-            }
-            if (lastIdsSize != idsToErase.size()) {
-                Packet packet{true};
-                packet << "MergeUnits";
-                packet << (int)u->GetId();
-                packet << (int)(idsToErase.size() - lastIdsSize);
-                for (int i = lastIdsSize; i < idsToErase.size(); i++) {
-                    packet << idsToErase[i];
-                }
-                lastIdsSize = idsToErase.size();
-                toSend.emplace_back(packet);
-            }
-
-        }
-        
-        for (int i = 0 ; i < idsToErase.size(); i++) {
-            int currId = idsToErase[i];
-            auto unitIt = std::find_if(units.begin(), units.end(), [currId](const std::shared_ptr<Unit> & u) {
-                           return u->GetId() == currId;
-                          });
-
-            if (unitIt != units.end()) {
-                units.erase(unitIt);
-            }
-        }
-
-        // intrest in province, monthly update
-        if (lastDay == 1) {
-            auto poi = c->GetPoI();
-            for (auto p : poi) {
-                auto provIt = std::find_if(provinces.begin(), provinces.end(), [p](Province & prov) {
-                               return p == prov.GetId();
-                              });
-                if (provIt == provinces.end())
-                    continue;
-                auto cIt = std::find_if(countries.begin(), countries.end(), [cName = provIt->GetCountry()](std::shared_ptr<Country> & country) {
-                            return cName == country->GetName();
-                           });
-
-                if (cIt == countries.end())
-                    continue;
-
-                if ((*cIt)->GetName() == c->GetName()) {
-                    c->ErasePoI(p);
-                    continue;
-                }
-
-                if ((*cIt)->GetRel(c->GetName()) > 15) {
-                    c->ErasePoI(p);
-                }
-            }
-
-            // find new poi
-            if (poi.size() < 3) {
-                for (auto & prov : provinces) {
-                    if (prov.GetCountry() != c->GetName())
-                        continue;
-                    auto neighb = prov.GetNeighbours();
-                    for (auto n : neighb) {
-                        auto provIt = std::find_if(provinces.begin(), provinces.end(), [n](Province & pr) { return n == pr.GetId(); });
-                        if (provIt == provinces.end())
-                            continue;
-                        if (provIt->GetCountry() == c->GetName())
-                            continue;
-                        auto cIt = std::find_if(countries.begin(), countries.end(), [cName = provIt->GetCountry()](std::shared_ptr<Country> & country) {
-                                    return cName == country->GetName();
-                                   });
-                        if (cIt == countries.end())
-                            continue;
-
-                        if ((*cIt)->GetRel(c->GetName()) <= 0 && c->GetRel((*cIt)->GetName()) <= 0 && std::rand() % 3 == 0) {
-                            c->AddPoI(provIt->GetId());
-                        }
-                    }
-                    if (c->GetPoISize() >= 3)
-                        break;
-                }
-            }
-        }
-
-        // war decisions, monthly update
-        if (lastDay == 1) {
-            auto warIt = std::find_if(wars.begin(), wars.end(), [cName = c->GetName()](War & war) { return (war.IsAttacker(cName) || war.IsDefender(cName)); });
-            if (warIt == wars.end()) { //try to go into war
-                auto poi = c->GetPoI();
-                for (auto p : poi) {
-                    auto provIt = std::find_if(provinces.begin(), provinces.end(), [p](Province & pr) { return p == pr.GetId(); });
-                    if (provIt == provinces.end())
-                        continue;
-                    auto cIt = std::find_if(countries.begin(), countries.end(), [cName = provIt->GetCountry()](std::shared_ptr<Country> & country) { return cName == country->GetName(); });
-                    if (cIt == countries.end())
-                        continue;
-
-                    if (c->IsTruce((*cIt)->GetName(), date))
-                        continue;
-
-                    if ((*cIt)->GetPower() >= c->GetPower())
-                        continue;
-
-                    auto isEnemyAtWar = std::find_if(wars.begin(), wars.end(), [cName = (*cIt)->GetName()](War & war) {
-                                         return (war.IsAttacker(cName) || war.IsDefender(cName));
-                                        });
-                    if (isEnemyAtWar != wars.end())
-                        continue;
-
-                    if (std::rand() % 3 != 0)
-                        continue;
-                    
-                    DoTheThing::DeclareWar(countries, c->GetName(), (*cIt)->GetName(), wars, toSend, date);
-                    break;
-                }
-            }
-            else { // try to make peace
-                for (auto & w : wars) {
-                    bool isAttacker = w.IsAttacker(c->GetName()); 
-                    bool isDefender = w.IsDefender(c->GetName()); 
-                    if (!isAttacker && !isDefender)
-                        continue;
-
-                    int enemyPower = 0;
-                    std::string enemyName = "";
-                    if (isDefender)
-                        enemyName = w.GetAttackerName();
-                    if (isAttacker)
-                        enemyName = w.GetDefenderName();
-                    auto enemyIt = std::find_if(countries.begin(), countries.end(), [enemyName](std::shared_ptr<Country> & ctr) {
-                                    return enemyName == ctr->GetName();
-                                   });
-                    if (enemyIt == countries.end())
-                        continue;
-                    else
-                        enemyPower = (*enemyIt)->GetPower();
-                    
-                    int myPower = c->GetPower();
-                    int myWarScore = w.GetAttackerWarScore();
-                    if (isDefender)
-                        myWarScore *= -1;
-
-                    bool peaceSended = false;
-                    if (myWarScore > 20) {
-                        auto poi = c->GetPoI();
-                        std::vector<std::pair<std::string,std::string>> offeredProvinces;
-                        for (auto & p : poi) {
-                            auto pIt = std::find_if(provinces.begin(), provinces.end(), [p](Province & pr) { return p == pr.GetId(); });
-                            if (pIt == provinces.end())
-                                continue;
-                            bool isPossible = false;
-                            if (isAttacker) 
-                                isPossible = w.IsDefender(pIt->GetCountry());
-                            else 
-                                isPossible = w.IsAttacker(pIt->GetCountry());
-
-                            if (isPossible) {
-                                offeredProvinces.emplace_back(std::make_pair(pIt->GetName(), c->GetName()));
-                                Log(pIt->GetName() << "  " << pIt->GetCountry());
-                            }
-                        }
-
-                        // tu trzeba wyszukac prowincje ktore nie sa w poi
-                        
-                        PeaceOffer peaceOffer;
-                        peaceOffer.warId = w.GetId();
-                        peaceOffer.warScore = w.GetAttackerWarScore();
-                        if (isAttacker)
-                            peaceOffer.recipant = w.GetDefenderName();
-                        else
-                            peaceOffer.recipant = w.GetAttackerName();
-                        peaceOffer.recipantIsDefender = isAttacker;
-                        peaceOffer.attackers = w.GetAttackers();
-                        peaceOffer.defenders = w.GetDefenders();
-                        peaceOffer.offeredBy = c->GetName();
-                        
-                        auto recipantIt = std::find_if(countries.begin(), countries.end(), [rec = peaceOffer.recipant](std::shared_ptr<Country> & ctr) {
-                                           return rec == ctr->GetName();
-                                          });
-                        if (recipantIt == countries.end())
-                            continue;
-                        DoTheThing::SendPeace(wars, provinces, countries, peaceOffer, offeredProvinces, toSend, recipantIt, warIt, date);
-                    }
-                }
+            auto uuPos = uu->GetFakePos();
+            auto uuProvIt = std::find_if(provinces.begin(), provinces.end(), [uuPos](Province & pr) { return pr.GetUnitPos() == uuPos; });
+            int uuProvId = (*uuProvIt).GetId();
+            if (uuProvId != uProvId) {
+                DoTheThing::MoveUnit(u, provinces, uProvId, uuProvId);
+                return true;
             }
         }
     }
+    return false;
 }
+
+bool Game::ai_unitWalkToFight(std::shared_ptr<Unit> & u, std::vector<std::string> & atWarWith)
+{
+    if (u->IsMoving() || u->IsSieging() || std::rand() % 2 == 0)
+        return false;
+
+    for (auto & opponent : atWarWith) {
+        for (auto & uu : units) {
+                            
+            if (uu->GetCountry() == opponent && u->GetSoldiers() > uu->GetSoldiers() && std::rand() % 5 == 0) {
+                auto uuProvIt = std::find_if(provinces.begin(), provinces.end(), [uPos = uu->GetPos()](Province & pr) {
+                                 return pr.GetUnitPos() == uPos;
+                                });
+                auto uProvIt = std::find_if(provinces.begin(), provinces.end(), [uPos = u->GetPos()](Province & pr) {
+                                return pr.GetUnitPos() == uPos;
+                               });
+                if (uuProvIt == provinces.end() || uProvIt == provinces.end())
+                    continue;
+
+                DoTheThing::MoveUnit(u, provinces, (*uProvIt).GetId(), (*uuProvIt).GetId());
+
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void Game::ai_unitWalkToSiege(std::shared_ptr<Unit> & u, std::vector<std::string> & atWarWith)
+{
+    if (atWarWith.size() == 0 || u->IsMoving() || u->IsSieging() || u->IsInBattle())
+        return;
+
+    bool provFound = false;
+    int provId = 0;
+    float dist = 0.0f;
+    auto uProvIt = std::find_if(provinces.begin(), provinces.end(), [pPos = u->GetFakePos()](const Province & p) {
+                    return p.GetUnitPos() == pPos;
+                   });
+    if (uProvIt == provinces.end())
+        return;
+
+    for (auto & opponent : atWarWith) {
+        for (auto & prov : provinces) {
+            if (prov.GetCountry() != opponent && prov.GetCountry() != u->GetCountry())
+                continue;
+            if (prov.GetSiegeCountry() == u->GetCountry())
+                continue;
+                            
+            float tmpDist = pow(prov.GetUnitPos().x - uProvIt->GetUnitPos().x, 2);
+            tmpDist += pow(prov.GetUnitPos().y - uProvIt->GetUnitPos().y, 2);
+            tmpDist = sqrt(tmpDist);
+
+            if (tmpDist < dist || !provFound) {
+                provFound = true;
+                dist = tmpDist;
+                provId = prov.GetId();
+            }
+        }
+    }
+    if (provFound) {
+        DoTheThing::MoveUnit(u, provinces, (*uProvIt).GetId(), provId);
+    }
+}
+
 
 void Game::hourlyUpdate()
 {    

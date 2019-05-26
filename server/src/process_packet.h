@@ -192,4 +192,31 @@ namespace DoTheThing {
         toSend.emplace_back(newPack);
     }
 
+    static void MergeUnits(std::vector<std::shared_ptr<Unit>> & units, int baseUnitId, std::vector<int> & ids, std::vector<Packet> & toSend)
+    {
+        auto unitBaseIt = std::find_if(units.begin(), units.end(), [baseUnitId](const std::shared_ptr<Unit> & unit) {
+                           return unit->GetId() == baseUnitId;
+                          });
+
+        if (unitBaseIt == units.end())
+            return;
+        
+        Packet mergePacket{true};
+        mergePacket << "MergeUnits";
+        mergePacket << baseUnitId;
+        mergePacket << (int)ids.size();
+                
+        for (auto & currId : ids) {
+            auto unitIt = std::find_if(units.begin(), units.end(), [currId](const std::shared_ptr<Unit> & unit) {
+                           return unit->GetId() == currId;
+                          });
+            if (unitIt != units.end()) {
+                (*unitBaseIt)->Add((*unitIt));
+                mergePacket << currId;
+                units.erase(unitIt);
+            }
+        }
+
+        toSend.emplace_back(mergePacket);
+    }
 }
