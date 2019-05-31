@@ -33,8 +33,11 @@ void Game::setCountryMap()
     std::vector<std::pair<Color, std::string>> pColor;
     for (auto & c : countries)
         cColor.push_back(std::make_pair(c->GetName(), c->GetColor()));
-    for (auto & p : provinces)
+    for (auto & p : provinces) {
+        if (p->GetSieged() != 0)
+            continue;
         pColor.push_back(std::make_pair(p->GetColor(), p->GetCountry()));
+    }
     map.DrawCountries(cColor, pColor);
 
     for (auto & prov : provinces) {
@@ -42,11 +45,6 @@ void Game::setCountryMap()
             auto scIt = std::find_if(countries.begin(), countries.end(), [cccc = prov->GetSiegeCountry()](std::shared_ptr<Country> & ccc) {
                          return ccc->GetName() == cccc;
                         });
-            /*
-              tu jest blad, gdy odbijamy prowincje, a inne panstwo zrobi pokoj, 
-              to graficzna reprezentacja okupowanej prowincji ktora odbijamy resetuje sie, 
-              poniewaz sieged != 100
-             */
             if (scIt != countries.end())
                 map.DrawSieged(prov->GetColor(), (*scIt)->GetColor());
         }

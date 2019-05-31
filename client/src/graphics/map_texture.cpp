@@ -153,7 +153,7 @@ void MapTexture::DrawCountries(std::vector<std::pair<std::string, Color>> cColor
             }
         }
 
-        {
+        if (newColor != white) {
             countryPixels[i + 0] = newColor.r;
             countryPixels[i + 1] = newColor.g;
             countryPixels[i + 2] = newColor.b;
