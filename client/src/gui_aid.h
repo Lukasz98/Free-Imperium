@@ -293,6 +293,7 @@ public:
 
         gui.AddWin("src/gui/sieged_province.txt");
         gui.Update(values, "siegedProvince");
+        gui.ObservationOfLastWin((*provIt).get());
 
         for (auto & w : wars) {
             if (w.ShouldTheyFight(values["countryName"], values["siegeCountry"])) {

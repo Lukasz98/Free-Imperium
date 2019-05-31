@@ -36,6 +36,21 @@ void Game::setCountryMap()
     for (auto & p : provinces)
         pColor.push_back(std::make_pair(p->GetColor(), p->GetCountry()));
     map.DrawCountries(cColor, pColor);
+
+    for (auto & prov : provinces) {
+        if (prov->GetSieged() == 100) {
+            auto scIt = std::find_if(countries.begin(), countries.end(), [cccc = prov->GetSiegeCountry()](std::shared_ptr<Country> & ccc) {
+                         return ccc->GetName() == cccc;
+                        });
+            /*
+              tu jest blad, gdy odbijamy prowincje, a inne panstwo zrobi pokoj, 
+              to graficzna reprezentacja okupowanej prowincji ktora odbijamy resetuje sie, 
+              poniewaz sieged != 100
+             */
+            if (scIt != countries.end())
+                map.DrawSieged(prov->GetColor(), (*scIt)->GetColor());
+        }
+    }
 }
 
 void Game::Play()
@@ -120,7 +135,7 @@ void Game::processPacket(sf::Packet packet)
     //if (type != "hourly" && type != "daily")
     //Log(type);
     if (type == "daily") {
-        ProcessPacket::DailyUpdate(packet, gui, wars, provinces);
+        ProcessPacket::DailyUpdate(packet, gui, wars, provinces, countries, map);
     }
     else if (type == "NewUnit") {
         ProcessPacket::NewUnit(packet, units, myCountry->GetName());

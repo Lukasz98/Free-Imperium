@@ -5,7 +5,9 @@ MapTexture::MapTexture(std::string path, int w, int h)
 {
     countryPixels = new unsigned char[originW * originH * 4];
     countryPixelsOrigin = new unsigned char[originW * originH * 4];
+    brightenProvPixels = new unsigned char[originW * originH * 4];
     std::copy(pixelsOrigin, pixelsOrigin + originW * originH * 4, countryPixels);
+    std::copy(pixelsOrigin, pixelsOrigin + originW * originH * 4, brightenProvPixels);
     drawProvinceBorders();
 }
 
@@ -13,6 +15,7 @@ MapTexture::~MapTexture()
 {
     delete [] countryPixels;
     delete [] countryPixelsOrigin;
+    delete [] brightenProvPixels;
 }
 
 void MapTexture::drawProvinceBorders()
@@ -66,7 +69,7 @@ void MapTexture::drawProvinceBorders()
 
 void MapTexture::BrightenProvince(Color bef, int increase)
 {
-    std::copy(countryPixelsOrigin, countryPixelsOrigin + originW * originH * 4, countryPixels);
+    std::copy(countryPixels, countryPixels + originW * originH * 4, brightenProvPixels);
 
     for (int i = 0; i < originW * originH * 4 - 4; i += 4) {
         Color current{ pixelsOrigin[i + 0], pixelsOrigin[i + 1], pixelsOrigin[i + 2], pixelsOrigin[i + 3] };
@@ -87,21 +90,19 @@ void MapTexture::BrightenProvince(Color bef, int increase)
             if (increase + after.b > 255) after.b = 255;
             else after.b = after.b + increase;
 
-            countryPixels[i + 0] = after.r;
-            countryPixels[i + 1] = after.g;
-            countryPixels[i + 2] = after.b;
-            countryPixels[i + 3] = after.a;                  
+            brightenProvPixels[i + 0] = after.r;
+            brightenProvPixels[i + 1] = after.g;
+            brightenProvPixels[i + 2] = after.b;
+            brightenProvPixels[i + 3] = after.a;                  
         }
     }
     Bind();
-    glTexImage2D(GL_TEXTURE_2D,0, GL_RGBA, originW, originH, 0, GL_RGBA, GL_UNSIGNED_BYTE, countryPixels);
+    glTexImage2D(GL_TEXTURE_2D,0, GL_RGBA, originW, originH, 0, GL_RGBA, GL_UNSIGNED_BYTE, brightenProvPixels);
     Unbind();
 }
     
 void MapTexture::SwapColors(Color bef, Color aft)
 {
-    std::copy(countryPixelsOrigin, countryPixelsOrigin + originW * originH * 4, countryPixels);
-
     for (int i = 0; i < originW * originH * 4 - 4; i += 4) {
         Color current{ pixelsOrigin[i + 0], pixelsOrigin[i + 1], pixelsOrigin[i + 2], pixelsOrigin[i + 3] };
         if (current == bef) {
@@ -167,4 +168,28 @@ void MapTexture::DrawCountries(std::vector<std::pair<std::string, Color>> cColor
     Bind();
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, originW, originH, 0, GL_RGBA, GL_UNSIGNED_BYTE, countryPixels);
     Unbind();
+}
+
+void MapTexture::DrawSieged(const Color & prov, const Color & siege)
+{
+    Color black{0,0,0,255};
+    int rowCount = 0;
+    
+    for (int i = 0; i < originW * originH * 4 - 4; i += 4) {
+        Color current{ pixelsOrigin[i + 0], pixelsOrigin[i + 1], pixelsOrigin[i + 2], pixelsOrigin[i + 3] };
+        Color wysiwyg{ countryPixels[i + 0], countryPixels[i + 1], countryPixels[i + 2], countryPixels[i + 3] };
+        if (current == prov && rowCount % 3 == 0 && wysiwyg != black) {
+            Color after = siege;
+            
+            countryPixels[i + 0] = after.r;
+            countryPixels[i + 1] = after.g;
+            countryPixels[i + 2] = after.b;
+            countryPixels[i + 3] = after.a;                  
+        }
+        if (i % (originW * 4) == 0)
+            rowCount++;
+    }
+    Bind();
+    glTexImage2D(GL_TEXTURE_2D,0, GL_RGBA, originW, originH, 0, GL_RGBA, GL_UNSIGNED_BYTE, countryPixels);
+    Unbind();    
 }

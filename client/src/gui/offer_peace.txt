@@ -1,6 +1,6 @@
 window {
     type: ' offerPeace '
-    position: ' 5 50 0 '
+    position: ' 5 15 0 '
     size: ' 500 600 '
     bgColor: ' 25 25 25 255 '
     priority: ' low '

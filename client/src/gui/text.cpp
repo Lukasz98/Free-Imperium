@@ -56,6 +56,10 @@ Text::Text(glm::vec3 parentPos, std::unordered_map<std::string, std::string> & v
 
     if (text.size())
         set();
+    else {
+        text = "--";
+        set();
+    }
 }
 
 

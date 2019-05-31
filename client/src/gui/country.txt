@@ -1,6 +1,6 @@
 window {
     type: ' country '
-    position: ' 5 50 0.2 '
+    position: ' 5 5 0.2 '
     size: ' 500 600 '
     bgColor: ' 25 25 25 255 '
     priority: ' low '
@@ -63,5 +63,17 @@ window {
         frameColor: ' 100 25 25 255 '
     }
 
+    label {
+        position: ' 480 580 0.1 '
+        size: ' 20 20 '
+        bgColor: ' 0 0 0 0 '
+
+        icon {
+            position: ' 0 0 0.1 '
+            size: ' 20 20 '
+            texturePath: ' src/img/minus.png '
+            clickEvent: ' close '
+        }    
+    }
 
 }

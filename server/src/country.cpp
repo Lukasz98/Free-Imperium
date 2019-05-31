@@ -49,6 +49,9 @@ bool Country::Apply(PeaceOffer offer, const Date & date)
         for (auto & lost : offer.lostProv)
             lostVal += std::get<2>(lost) * 10;
         //Log("LostVal: " << lostVal << ", warScore=" << offer.warScore);
+        if (lostVal > 100)
+            return false;
+        
         if (offer.recipantIsDefender && offer.warScore > 10) {
             if (offer.warScore >= lostVal)
                 accepted = true;

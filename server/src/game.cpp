@@ -297,7 +297,20 @@ void Game::ai_makePeace(std::shared_ptr<Country> & c)
             }
 
             // tu trzeba wyszukac prowincje ktore nie sa w poi
-                        
+
+            for (auto & prov : provinces) {
+                if (prov.GetCountry() == (*enemyIt)->GetName()) {
+                    if (prov.GetSieged() == 100) {
+                        if (w.IsAttacker(prov.GetSiegeCountry()) || w.IsDefender(prov.GetSiegeCountry())) {
+                            poi.push_back(prov.GetId());
+                            c->AddPoI(prov.GetId());
+                            if (poi.size() >= 3)
+                                break;
+                        }
+                    }
+                }
+            }
+            
             PeaceOffer peaceOffer;
             peaceOffer.warId = w.GetId();
             peaceOffer.warScore = w.GetAttackerWarScore();
