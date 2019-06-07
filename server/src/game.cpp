@@ -296,8 +296,7 @@ void Game::ai_makePeace(std::shared_ptr<Country> & c)
                 }
             }
 
-            // tu trzeba wyszukac prowincje ktore nie sa w poi
-
+            // wyszukiwanie prowincji ktore nie sa w poi
             for (auto & prov : provinces) {
                 if (prov.GetCountry() == (*enemyIt)->GetName()) {
                     if (prov.GetSieged() == 100) {
@@ -332,7 +331,7 @@ void Game::ai_makePeace(std::shared_ptr<Country> & c)
             auto warIt = std::find_if(wars.begin(), wars.end(), [wId = w.GetId()](War & war) {
                           return wId == war.GetId();
                          });
-            DoTheThing::SendPeace(wars, provinces, countries, peaceOffer, offeredProvinces, toSend, recipantIt, warIt, date);
+            DoTheThing::SendPeace(wars, provinces, countries, peaceOffer, offeredProvinces, toSend, recipantIt, warIt, date, offersForHumans);
         }
     }
 }
@@ -983,7 +982,7 @@ void Game::processPacket(std::shared_ptr<Client> client, sf::Packet & packet)
         ProcessPacket::DeclareWar(packet, client, countries, wars, toSend, date);
     }
     else if (type == "PeaceOffer") {
-        ProcessPacket::OfferPeace(packet, client, wars, provinces, countries, toSend, date);
+        ProcessPacket::OfferPeace(packet, client, wars, provinces, countries, toSend, date, offersForHumans);
     }
     else if (type == "MergeUnits") {
         ProcessPacket::MergeUnits(packet, client, units, provinces, toSend);
@@ -1008,6 +1007,10 @@ void Game::processPacket(std::shared_ptr<Client> client, sf::Packet & packet)
     }
     else if (type == "StopImprRel") {
         ProcessPacket::StopImprRel(packet, countries);
+    }
+    else if (type == "AcceptPeace") {
+        Log(type);
+        ProcessPacket::AcceptedPeace(packet, provinces, countries, wars, offersForHumans, date, toSend);
     }
 }
 

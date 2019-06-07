@@ -80,6 +80,8 @@ class Game
     std::vector<War> wars;
     std::vector<Battle> battles;
     Map map;
+
+    std::vector<PeaceOffer> offersForHumans;
     
     void hourlyUpdate();
 

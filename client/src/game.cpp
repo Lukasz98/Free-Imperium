@@ -175,6 +175,9 @@ void Game::processPacket(sf::Packet packet)
     else if (type == "monthly") {
         ProcessPacket::MonthlyUpdate(packet, myCountry->GetName(), countries);
     }
+    else if (type == "BotPeaceOffer") {
+        ProcessPacket::BotPeaceOffer(packet, gui, peaceOffers);
+    }
 }
 
 void Game::input()
@@ -400,7 +403,13 @@ void Game::processGuiEvent(GuiClick & click)
     }
     else if (evType == "openWar") {
         aid = new GA_OpenWar(gui, click, wars);
-    }    
+    }
+    else if (evType == "botPeaceOffer") {
+        aid = new GA_BotPeaceOffer(click, gui);
+    }
+    else if (evType == "acceptPeace") {
+        aid = new GA_AcceptPeace(click, gui, peaceOffers);
+    }
 
     if (aid != nullptr) {
         auto packets = aid->GetPackets();

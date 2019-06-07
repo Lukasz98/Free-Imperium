@@ -8,6 +8,7 @@
 #include "battle.h"
 #include "war.h"
 #include "prepare_packet.h"
+#include "peace_offer.h"
 
 class GuiAid
 {
@@ -191,11 +192,11 @@ class GA_EraseObj : public GuiAid
 {
 public:
     GA_EraseObj(Gui & gui, GuiClick & event)
-     {
-         for (auto & v : event.values)
-             Log(v.first << ", " << v.second);
-         gui.EraseObj(event.values["windowType:"], std::stoi(event.values["id:"]));
-     }
+    {
+        for (auto & v : event.values)
+            Log(v.first << ", " << v.second);
+        gui.EraseObj(event.values["windowType:"], std::stoi(event.values["id:"]));
+    }
 };
 
 
@@ -402,21 +403,6 @@ public:
             packet << prov.second;
         }
         packets.emplace_back(packet);
-        
-        
-        /*
-        PeaceWinD data = std::any_cast<PeaceWinD>(ev->GetData());
-        sf::Packet packet;
-        packet << "PeaceOffer";
-        packet << data.warId;
-        packet << data.recipant;
-        packet << (int)data.provinces.size();
-        for (auto & prov : data.provinces) {
-            packet << prov.first;
-            packet << prov.second;
-        }
-        packets.emplace_back(packet);
-        */
     }
 };
 
@@ -543,5 +529,51 @@ public:
         packet << country;
         packets.emplace_back(packet);
         myCountry->StopImprRel(country);
+    }
+};
+
+class GA_BotPeaceOffer : public GuiAid
+{
+public:
+    GA_BotPeaceOffer(GuiClick & event, Gui & gui)
+    {
+        gui.AddWin("src/gui/bot_peace_offer.txt");
+        std::unordered_map<std::string,std::string> values;
+        values["peaceId"] = event.values["impact:"];
+        gui.Update(values, "botPeaceOffer");
+        //Log(event.values["impact:"]);
+    }
+};
+
+class GA_AcceptPeace : public GuiAid
+{
+public:
+    GA_AcceptPeace(GuiClick & event, Gui & gui, std::vector<PeaceOffer> &  peaceOffers)
+    {
+        //gui.AddWin("src/gui/bot_peace_offer.txt");
+        //gui.Update(values, "offerPeace");
+        Log(event.values["peaceId:"]);
+
+        // tu jest rozjebane
+
+        int peaceId = std::stoi(event.values["peaceId:"]);
+
+        auto peaceIt = std::find_if(peaceOffers.begin(), peaceOffers.end(), [peaceId](PeaceOffer & po) {
+                        return po.peaceId == peaceId;
+                       });
+
+        if (peaceIt == peaceOffers.end())
+            return;
+        
+        sf::Packet packet;
+        packet << "AcceptPeace";
+        packet << peaceId;
+        packets.emplace_back(packet);
+
+        gui.EraseWin(event.values["windowType:"]);
+        gui.EraseObj("notifications", peaceIt->idInGui);
+        peaceOffers.erase(peaceIt);
+        //GA_EraseObj(gui, event);
+        
     }
 };

@@ -15,6 +15,8 @@
 #include "country.h"
 #include "map.h"
 #include "log.h"
+#include "peace_offer.h"
+
 
 namespace ProcessPacket {
 
@@ -44,5 +46,7 @@ namespace ProcessPacket {
     void SetSpeed(sf::Packet & packet, Gui & gui);
 
     void MonthlyUpdate(sf::Packet & packet, const std::string & myCountry, std::vector<std::shared_ptr<Country>> & countries);
+
+    void BotPeaceOffer(sf::Packet & packet, Gui & gui, std::vector<PeaceOffer> & peaceOffers);
 
 }

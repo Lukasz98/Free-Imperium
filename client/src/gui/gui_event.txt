@@ -95,4 +95,13 @@ guiEvent {
     value1: ' countryName '
 }
 
+guiEvent {
+    name: ' botPeaceOffer '
+}
+
+guiEvent {
+    name: ' acceptPeace '
+    value1: ' peaceId '
+}
+
 }

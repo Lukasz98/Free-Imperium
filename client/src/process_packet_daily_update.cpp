@@ -135,20 +135,16 @@ void ProcessPacket::DailyUpdate(sf::Packet & packet, Gui & gui, std::vector<War>
             }
         }
 
-        Log("Przed");
         for (auto & prov : provinces) {
             if (!prov->WasSiegeUpdated()) {
                 if (prov->GetSieged() != 0) {
                     auto scIt = std::find_if(countries.begin(), countries.end(), [cccc = prov->GetCountry()](std::shared_ptr<Country> & ccc) {
                                  return ccc->GetName() == cccc;
                                 });
-                    Log("Przed resetem " << prov->GetName());
                     if (scIt != countries.end())
                         map.DrawSieged(prov->GetColor(), (*scIt)->GetColor());
-                    Log("po resecie " << prov->GetName());
                 }
                 prov->ResetSieging();
-                Log("popo resecie " << prov->GetName());
             }
         }
     }

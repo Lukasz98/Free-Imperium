@@ -4,10 +4,8 @@
 
 struct PeaceOffer
 {
-    static int FreeId;
-
     int peaceId;
-    PeaceOffer();
+    int idInGui;
     
     std::vector<std::tuple<std::string,std::string,int>> lostProv;
     std::vector<std::tuple<std::string,std::string,int>> gainProv;

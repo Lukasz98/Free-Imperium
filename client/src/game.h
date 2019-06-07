@@ -23,6 +23,7 @@
 #include "war.h"
 #include "battle.h"
 #include "process_packet.h"
+#include "peace_offer.h"
 
 class Game
 {
@@ -42,7 +43,8 @@ class Game
     std::vector<std::shared_ptr<Unit>> units;
     std::vector<War> wars;
     std::vector<std::unique_ptr<Battle>> battles;
-
+    std::vector<PeaceOffer> peaceOffers;
+    
     void setCountryMap();
     void receivePackets();
     void processPacket(sf::Packet packet);
