@@ -18,7 +18,6 @@ protected:
 
 public:
     virtual ~GuiAid() { }
-    //void Realize(std::any component);
     std::vector<sf::Packet> GetPackets() { return packets; }
 };
 
@@ -199,7 +198,6 @@ public:
     }
 };
 
-
 class GA_DeclareWar : public GuiAid
 {
 public:
@@ -226,10 +224,8 @@ public:
             return;
         
         auto warIt = std::find_if(wars.begin(), wars.end(), [id = std::stoi(values["warId"])](const War & war) { return id == war.GetId(); });
-
         if (warIt == wars.end())
             return;
-
         
         values["attackerWarScore"] = std::to_string(warIt->GetAttackerWarScore());
 
@@ -276,14 +272,6 @@ public:
     }
 };
 
-class GA_UpdateBattle : public GuiAid
-{
-public:
-    GA_UpdateBattle(Gui & gui, const std::unique_ptr<Battle> & battle)
-    {
-    }
-};
-
 class GA_OpenSiegedProv : public GuiAid
 {
 public:
@@ -315,14 +303,6 @@ public:
             gui.AddToList(obj, "siegedProvince", "siegeCandidates");
             delete obj;
         }        
-    }
-};
-
-class GA_UpdateSiegedProv : public GuiAid
-{
-public:
-    GA_UpdateSiegedProv(Gui & gui, const std::vector<std::unique_ptr<Province>>::iterator & provIt, const GuiClick & event)
-    {
     }
 };
 
@@ -411,7 +391,7 @@ class GA_MergeUnits : public GuiAid
 public:
     GA_MergeUnits(Gui & gui, const GuiClick & event)
     {
-        Log("MERGE UNIT");
+        //Log("MERGE UNIT");
         sf::Packet packet;
         packet << "MergeUnits";
 
@@ -419,7 +399,7 @@ public:
 
         std::vector<int> ids;
         for (auto & unit : content) {
-            Log("Content: " << unit);
+            //Log("Content: " << unit);
             std::stringstream ss;
             ss << unit;
             while (!ss.eof()) {
@@ -429,8 +409,6 @@ public:
                 int id = std::stoi(c);
                 ids.push_back(id);
                 break;
-                //ss >> c;
-                //ss >> c;
             }
         }
         packet << (int)ids.size();
@@ -438,18 +416,6 @@ public:
             packet << id;
 
         packets.emplace_back(packet);
-    
-        
-        /*
-          std::vector<UnitWinD> data = std::any_cast<std::vector<UnitWinD>>(ev->GetData());
-          Log("merge");
-          sf::Packet packet;
-          packet << "MergeUnits";
-          packet << (int)data.size();
-          for (auto & d : data)
-          packet << d.id;
-          packets.emplace_back(packet);
-        */
     }
 };
 
@@ -460,20 +426,12 @@ public:
     {
         sf::Packet packet;
         packet << "Speed";
-        Log(event.values["content:"]);
+        //Log(event.values["content:"]);
         if (event.values["content:"] == "faster")
             packet << true;
         else
             packet << false;
         packets.emplace_back(packet);
-        
-        /*
-        bool data = std::any_cast<bool>(ev->GetData());
-        sf::Packet packet;
-        packet << "Speed";
-        packet << data;
-        packets.emplace_back(packet);
-        */
     }
 };
 
@@ -507,7 +465,6 @@ public:
     GA_StartImprRel(GuiClick & event, std::shared_ptr<Country> & myCountry)
     {
         std::string country = event.values["countryName:"];
-        Log("KUTAS " << country);
         sf::Packet packet;
         packet << "StartImprRel";
         packet << myCountry->GetName();
@@ -535,13 +492,33 @@ public:
 class GA_BotPeaceOffer : public GuiAid
 {
 public:
-    GA_BotPeaceOffer(GuiClick & event, Gui & gui)
+    GA_BotPeaceOffer(GuiClick & event, Gui & gui, std::vector<PeaceOffer> & peaceOffers)
     {
         gui.AddWin("src/gui/bot_peace_offer.txt");
         std::unordered_map<std::string,std::string> values;
         values["peaceId"] = event.values["impact:"];
         gui.Update(values, "botPeaceOffer");
-        //Log(event.values["impact:"]);
+
+        auto peaceIt = std::find_if(peaceOffers.begin(), peaceOffers.end(), [id = std::stoi(values["peaceId"])](PeaceOffer & po) {
+                         return po.peaceId == id;
+                       });
+        if (peaceIt == peaceOffers.end())
+            return;
+
+        for (auto & prov : peaceIt->lostProv) {
+            DataObj * dobj = new DataObj{"label"};
+            dobj->objects.push_back(new DataObj{"text"});
+            dobj->objects.back()->values["content:"] = std::get<0>(prov) + std::string{" to "} + std::get<1>(prov);
+            gui.AddToList(dobj, "botPeaceOffer", "lostProvs");
+            delete dobj;
+        }
+        for (auto & prov : peaceIt->gainProv) {
+            DataObj * dobj = new DataObj{"label"};
+            dobj->objects.push_back(new DataObj{"text"});
+            dobj->objects.back()->values["content:"] = std::get<0>(prov) + std::string{" to "} + std::get<1>(prov);
+            gui.AddToList(dobj, "botPeaceOffer", "gainProvs");
+            delete dobj;
+        }
     }
 };
 
@@ -550,12 +527,6 @@ class GA_AcceptPeace : public GuiAid
 public:
     GA_AcceptPeace(GuiClick & event, Gui & gui, std::vector<PeaceOffer> &  peaceOffers)
     {
-        //gui.AddWin("src/gui/bot_peace_offer.txt");
-        //gui.Update(values, "offerPeace");
-        Log(event.values["peaceId:"]);
-
-        // tu jest rozjebane
-
         int peaceId = std::stoi(event.values["peaceId:"]);
 
         auto peaceIt = std::find_if(peaceOffers.begin(), peaceOffers.end(), [peaceId](PeaceOffer & po) {
@@ -573,7 +544,5 @@ public:
         gui.EraseWin(event.values["windowType:"]);
         gui.EraseObj("notifications", peaceIt->idInGui);
         peaceOffers.erase(peaceIt);
-        //GA_EraseObj(gui, event);
-        
     }
 };

@@ -405,7 +405,7 @@ void Game::processGuiEvent(GuiClick & click)
         aid = new GA_OpenWar(gui, click, wars);
     }
     else if (evType == "botPeaceOffer") {
-        aid = new GA_BotPeaceOffer(click, gui);
+        aid = new GA_BotPeaceOffer(click, gui, peaceOffers);
     }
     else if (evType == "acceptPeace") {
         aid = new GA_AcceptPeace(click, gui, peaceOffers);

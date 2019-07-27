@@ -47,11 +47,11 @@ window {
              height: ' 35 '
              color: ' 100 0 0 255 '
              bgColor: ' 50 50 50 0 '
-             content: ' Defenders: '
+             content: ' Lost: '
         }
     }
     regularList {
-        name: ' defenders '
+        name: ' lostProvs '
         position: ' 25 20 0.1 '
         size: ' 292.5 350 '
         bgColor: ' 255 25 25 255 '
@@ -68,11 +68,11 @@ window {
              height: ' 35 '
              color: ' 100 0 0 255 '
              bgColor: ' 50 50 50 0 '
-             content: ' Attackers: '
+             content: ' Gain: '
         }
     }
     regularList {
-        name: ' attackers '
+        name: ' gainProvs '
         position: ' 325 20 0.1 '
         size: ' 292.5 350 '
         bgColor: ' 255 25 25 255 '
