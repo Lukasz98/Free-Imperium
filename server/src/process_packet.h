@@ -26,12 +26,15 @@ namespace ProcessPacket {
     void StartImprRel(sf::Packet & packet, std::vector<std::shared_ptr<Country>> & countries);
     void StopImprRel(sf::Packet & packet, std::vector<std::shared_ptr<Country>> & countries);
     void AcceptedPeace(sf::Packet & packet, std::vector<Province> & provinces, std::vector<std::shared_ptr<Country>> & countries, std::vector<War> & wars, std::vector<PeaceOffer> & offersForHumans, Date & date, std::vector<Packet> & toSend);
+    void DeclinePeace(sf::Packet & packet, std::vector<PeaceOffer> & offersForHumans, std::vector<std::shared_ptr<Client>> & clients, std::vector<Packet> & toSend);
 
 }
 
 
 namespace DoTheThing {
 
+    void NotifyOfDeclinedPeace(const std::string & clientCountryName, const std::string & recipant, std::vector<Packet> & toSend);
+    
     static void MoveUnit(std::shared_ptr<Unit> & unit, const std::vector<Province> & provinces, int startProvId, int endProvId)
     {
         Posibility posibility = PathFinder().Find(provinces, startProvId, endProvId);
@@ -211,9 +214,18 @@ namespace DoTheThing {
                 packet << std::get<1>(peaceOffer.gainProv[i]);
                 packet << std::get<2>(peaceOffer.gainProv[i]);
             }
-            toSend.push_back(packet);
-            
+            toSend.push_back(packet);            
         }
+        else if ((*recipantIt)->IsOwnedByBoot()) {
+            for (auto & c : countries) {
+                if (c->GetName() != peaceOffer.offeredBy)
+                    continue;
+                if (c->IsOwnedByBoot())
+                    break;
+                DoTheThing::NotifyOfDeclinedPeace(peaceOffer.offeredBy, peaceOffer.recipant, toSend);
+            }
+        }
+
         return false;
     }
 
@@ -259,4 +271,5 @@ namespace DoTheThing {
 
         toSend.emplace_back(mergePacket);
     }
+
 }

@@ -49,4 +49,5 @@ namespace ProcessPacket {
 
     void BotPeaceOffer(sf::Packet & packet, Gui & gui, std::vector<PeaceOffer> & peaceOffers);
 
+    void PeaceDeclined(sf::Packet & packet, Gui & gui);
 }

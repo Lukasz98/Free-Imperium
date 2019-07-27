@@ -178,6 +178,9 @@ void Game::processPacket(sf::Packet packet)
     else if (type == "BotPeaceOffer") {
         ProcessPacket::BotPeaceOffer(packet, gui, peaceOffers);
     }
+    else if (type == "PeaceDeclined") {
+        ProcessPacket::PeaceDeclined(packet, gui);
+    }
 }
 
 void Game::input()
@@ -409,6 +412,9 @@ void Game::processGuiEvent(GuiClick & click)
     }
     else if (evType == "acceptPeace") {
         aid = new GA_AcceptPeace(click, gui, peaceOffers);
+    }
+    else if (evType == "declinePeace") {
+        aid = new GA_DeclinePeace(click, gui, peaceOffers);
     }
 
     if (aid != nullptr) {

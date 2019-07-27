@@ -546,3 +546,29 @@ public:
         peaceOffers.erase(peaceIt);
     }
 };
+
+class GA_DeclinePeace : public GuiAid
+{
+public:
+    GA_DeclinePeace(GuiClick & event, Gui & gui, std::vector<PeaceOffer> &  peaceOffers)
+    {
+        int peaceId = std::stoi(event.values["peaceId:"]);
+        Log("PeaceId = " << peaceId);
+        auto peaceIt = std::find_if(peaceOffers.begin(), peaceOffers.end(), [peaceId](PeaceOffer & po) {
+                        return po.peaceId == peaceId;
+                       });
+
+        if (peaceIt == peaceOffers.end())
+            return;
+
+        peaceOffers.erase(peaceIt);
+        
+        sf::Packet packet;
+        packet << "DeclinePeace";
+        packet << peaceId;
+        packets.emplace_back(packet);
+
+        gui.EraseWin(event.values["windowType:"]);
+        gui.EraseObj("notifications", peaceIt->idInGui);
+    }
+};

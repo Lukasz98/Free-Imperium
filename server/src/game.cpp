@@ -1009,8 +1009,11 @@ void Game::processPacket(std::shared_ptr<Client> client, sf::Packet & packet)
         ProcessPacket::StopImprRel(packet, countries);
     }
     else if (type == "AcceptPeace") {
-        Log(type);
+        //Log(type);
         ProcessPacket::AcceptedPeace(packet, provinces, countries, wars, offersForHumans, date, toSend);
+    }
+    else if (type == "DeclinePeace") {
+        ProcessPacket::DeclinePeace(packet, offersForHumans, clients, toSend);
     }
 }
 

@@ -104,4 +104,9 @@ guiEvent {
     value1: ' peaceId '
 }
 
+guiEvent {
+    name: ' declinePeace '
+    value1: ' peaceId '
+}
+
 }

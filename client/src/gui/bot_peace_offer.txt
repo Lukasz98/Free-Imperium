@@ -79,9 +79,31 @@ window {
         frameColor: ' 100 25 25 255 '    
     }
 
+    label {
+        position: ' 50 0 0.1 '
+        size: ' 237.5 35 '
+        bgColor: ' 200 200 200 255 '
+        #contentAlign: ' center '
+        text {
+             position: ' 0 0 0.1 '
+             height: ' 35 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' Decline '
+             clickEvent: ' declinePeace '
+        }
+        text {
+             position: ' 200 0 0.1 '
+             height: ' 35 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: '  '
+             valueName: ' peaceId '
+        }
+    }
 
     label {
-        position: ' 0 0 0.1 '
+        position: ' 320 0 0.1 '
         size: ' 237.5 35 '
         bgColor: ' 200 200 200 255 '
         #contentAlign: ' center '
@@ -92,14 +114,6 @@ window {
              bgColor: ' 50 50 50 0 '
              content: ' Accept '
              clickEvent: ' acceptPeace '
-        }
-        text {
-             position: ' 200 0 0.1 '
-             height: ' 35 '
-             color: ' 100 0 0 255 '
-             bgColor: ' 50 50 50 0 '
-             content: '  '
-             valueName: ' peaceId '
         }
     }
 
