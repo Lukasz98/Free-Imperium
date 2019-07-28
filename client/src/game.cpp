@@ -2,13 +2,12 @@
 
 
 Game::Game(Window & win, sf::TcpSocket & sock, std::string countryName, glm::vec2 res, std::vector<std::shared_ptr<Country>> & countries)
-    :window(win), socket(sock), shader("src/graphics/shaders/vert.v", "src/graphics/shaders/frag.f"), camera(win.GetSize()),
-     resolution(res), gui(res), countries(countries)
+    : Scene{win, res}, socket(sock), resolution(res), countries(countries)
 {    
     gui.AddWin("src/gui/top_bar.txt");
     gui.AddWin("src/gui/notifications.txt");
 
-    glUseProgram(shader.GetProgram());
+    //glUseProgram(shader.GetProgram());
     windowSize = window.GetSize();
     
     provinces = ProvinceLoader::Load(map.GetPixels(), 1920, 1080);

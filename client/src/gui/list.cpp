@@ -4,6 +4,8 @@ RegularList::RegularList(glm::vec3 parentPos, std::unordered_map<std::string, st
     : freeContentId{1}
 {
     type = "regularList";
+    labelColor = "150 50 0 255";
+    textColor = "0 50 150 255";
     contentHeight = 30.0f;
     contentWidth = 0.0f;
     for (auto & value : values) {
@@ -40,6 +42,33 @@ RegularList::RegularList(glm::vec3 parentPos, std::unordered_map<std::string, st
             frameColor.b = std::stoul(val);
             stream >> val;
             frameColor.a = std::stoul(val);
+        }
+        else if (value.first == "barColor:") {
+            barColor.r = std::stoul(val);
+            stream >> val;
+            barColor.g = std::stoul(val);
+            stream >> val;
+            barColor.b = std::stoul(val);
+            stream >> val;
+            barColor.a = std::stoul(val);
+        }
+        else if (value.first == "labelColor:") {
+            labelColor = val;
+            stream >> val;
+            labelColor += " " + val;
+            stream >> val;
+            labelColor += " " + val;
+            stream >> val;
+            labelColor += " " + val;
+        }
+        else if (value.first == "textColor:") {
+            textColor = val;
+            stream >> val;
+            textColor += " " + val;
+            stream >> val;
+            textColor += " " + val;
+            stream >> val;
+            textColor += " " + val;
         }
         else if (value.first == "name:") {
             name = value.second;
@@ -92,7 +121,7 @@ RegularList::RegularList(glm::vec3 parentPos, std::unordered_map<std::string, st
     glm::vec3 scrollPos = background->GetPosition();
     scrollPos.x += background->GetSize().x - offsetX;
     scrollPos.y += offsetY;
-    scrollBar = std::make_unique<ScrollBar>(scrollPos, glm::vec2{offsetX*3, bgSize.y - 2 * offsetY}, 0);
+    scrollBar = std::make_unique<ScrollBar>(scrollPos, glm::vec2{offsetX*3, bgSize.y - 2 * offsetY}, 0, barColor);
     
     scrollBar->MaxButtons(maxButtons);
 
@@ -123,7 +152,9 @@ int RegularList::AddLabel(DataObj * ob)
 
     ob->values["position:"] = std::to_string(contentPos.x) + " " + std::to_string(contentPos.y) + " " + std::to_string(contentPos.z);
     ob->values["size:"] = std::to_string(contentWidth) + " " + std::to_string(contentHeight);
-ob->values["contentAlign:"] = "center";
+    ob->values["contentAlign:"] = "center";
+    ob->values["bgColor:"] = labelColor;
+    ob->values["textColor:"] = textColor;
     
     objects.emplace_back(std::make_unique<Label>(background->GetPosition(), ob->values, ob->objects, clickPatterns, freeContentId));
     freeContentId++;    

@@ -95,8 +95,11 @@ window {
         name: ' siegeCandidates '
         position: ' 20 250 0.1 '
         size: ' 300 150 '
-        bgColor: ' 255 25 25 255 '
+        bgColor: ' 50 50 50 255 '
         frameColor: ' 100 25 25 255 '
+        labelColor: ' 100 100 100 100 '
+        textColor: ' 200 200 200 255 '
+        barColor: ' 80 80 80 255 '
     }
 
 }

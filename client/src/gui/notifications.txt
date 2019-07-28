@@ -12,6 +12,11 @@ window {
         size: ' 50 500 '
         bgColor: ' 255 25 25 255 '
         frameColor: ' 100 25 25 255 '
+
+        labelColor: ' 100 100 100 100 '
+        textColor: ' 0 0 100 255 '
+        barColor: ' 80 80 80 255 '
+
         contentHeight: ' 50 '
         contentWidth: ' 50 '
         visible: ' 0 '

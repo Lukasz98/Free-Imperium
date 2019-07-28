@@ -3,6 +3,7 @@
 Label::Label(glm::vec3 parentPos, const std::unordered_map<std::string, std::string> & values, const std::vector<DataObj*> & obs, const std::vector<GuiClick> & clickPatternss, int id)
     : Object{id}, bgColor{200, 200, 200, 255}, clickPatterns{clickPatternss}
 {
+    std::string textColor = "";
     type = "label";
     for (auto & value : values) {
         std::stringstream stream;
@@ -30,6 +31,15 @@ Label::Label(glm::vec3 parentPos, const std::unordered_map<std::string, std::str
             stream >> val;
             bgColor.a = std::stoul(val);
         }
+        else if (value.first == "textColor:") {
+            textColor = val;
+            stream >> val;
+            textColor += " " + val;
+            stream >> val;
+            textColor += " " + val;
+            stream >> val;
+            textColor += " " + val;
+        }
         else if (value.first == "contentAlign:") {
             contentAlign = value.second;
         }
@@ -52,6 +62,8 @@ Label::Label(glm::vec3 parentPos, const std::unordered_map<std::string, std::str
     for (auto & ob : obs) {
         bool newContent = false;
         if (ob->type == "text") {
+            if (textColor.size())
+                ob->values["color:"] = textColor;
             objects.emplace_back(std::make_unique<Text>(position, ob->values, size.x, this->GetId()));
             newContent = true;
         }

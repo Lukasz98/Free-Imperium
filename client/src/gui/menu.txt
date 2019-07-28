@@ -1,82 +1,69 @@
 window {
     type: ' menu '
-    position: ' 100 100 0 '
-    size: ' 900 600 '
+    position: ' 0 0 0 '
+    size: ' 2000 1600 '
     bgColor: ' 25 25 25 255 '
     priority: ' high '
     
     label {
-        position: ' 20 540 0.1 '
-        size: ' 350 50 '
-        bgColor: ' 255 0 0 255 '
+        position: ' 20 500 0.1 '
+        size: ' 550 150 '
+        bgColor: ' 255 0 0 0 '
         contentAlign: ' center '
         text {
              position: ' 5 0 0.1 '
-             height: ' 20 '
-             color: ' 100 0 0 255 '
+             height: ' 100 '
+             color: ' 200 200 200 255 '
              bgColor: ' 50 50 50 0 '
-             content: ' Room '
+             content: ' Free Imperium '
         }
     }
 
     label {
-        position: ' 530 540 0.1 '
-        size: ' 350 50 '
-        bgColor: ' 0 100 250 255 '
+        position: ' 20 400 0.1 '
+        size: ' 350 60 '
+        bgColor: ' 104 0 19 255 '
         contentAlign: ' center '
         text {
              position: ' 5 0 0.1 '
-             height: ' 20 '
-             color: ' 100 0 0 255 '
+             height: ' 40 '
+             color: ' 200 200 200 255 '
              bgColor: ' 50 50 50 0 '
-             content: ' Play '
-             clickEvent: ' play '
+             content: ' Local Game '
+             clickEvent: ' localGame '
         }
     }
-
 
     label {
-        position: ' 30 320 0.1 '
-        size: ' 350 50 '
-        bgColor: ' 255 0 0 255 '
+        position: ' 20 330 0.1 '
+        size: ' 350 60 '
+        bgColor: ' 104 0 19 255 '
         contentAlign: ' center '
         text {
              position: ' 5 0 0.1 '
-             height: ' 20 '
-             color: ' 100 0 0 255 '
+             height: ' 40 '
+             color: ' 200 200 200 255 '
              bgColor: ' 50 50 50 0 '
-             content: ' Players '
+             content: ' Guest Game '
+             clickEvent: ' guestGame '
         }
     }
-    regularList {
-        name: ' players '
-        position: ' 20 10 0.1 '
-        size: ' 380 300 '
-        bgColor: ' 255 25 25 255 '
-        frameColor: ' 100 25 25 255 '    
-    }
-
 
     label {
-        position: ' 500 320 0.1 '
-        size: ' 350 50 '
-        bgColor: ' 255 0 0 255 '
+        position: ' 20 260 0.1 '
+        size: ' 350 60 '
+        bgColor: ' 104 0 19 255 '
         contentAlign: ' center '
         text {
              position: ' 5 0 0.1 '
-             height: ' 20 '
-             color: ' 100 0 0 255 '
+             height: ' 40 '
+             color: ' 200 200 200 255 '
              bgColor: ' 50 50 50 0 '
-             content: ' Countries '
+             content: ' Quit '
+             clickEvent: ' quit '
         }
     }
-    regularList {
-        name: ' countries '
-        position: ' 490 10 0.1 '
-        size: ' 380 300 '
-        bgColor: ' 255 25 25 255 '
-        frameColor: ' 100 25 25 255 '
-    }
+
 
 
 }
