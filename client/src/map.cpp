@@ -36,3 +36,8 @@ Color Map::ClickOnProvince(int x, int y)
     return provinceColor;
 }
 
+void Map::DrawSieged(const Color & prov, const Color & siege)
+{
+    ((MapTexture*)(mapTexture.get()))->DrawSieged(prov, siege);
+}
+

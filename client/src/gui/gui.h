@@ -26,7 +26,8 @@ public:
     void Update(const std::unordered_map<std::string,std::string> & values, std::string type);
     void ClearList(const std::string & win, const std::string & listName);
     void Hover(int x, int y);
-    void EraseObj(std::string winType, int objId);
+    void EraseObj(const std::string & winType, int objId);
+    void EraseWin(const std::string & winType);
     bool Scroll(double offset, double xMouse, double yMouse);
     bool IsOpen(std::string type) const;
     int AddToList(DataObj * newObj, const std::string & win, const std::string & listName);

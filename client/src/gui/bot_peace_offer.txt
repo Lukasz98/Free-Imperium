@@ -1,5 +1,5 @@
 window {
-    type: ' war '
+    type: ' botPeaceOffer '
     position: ' 300 20 0.1 '
     size: ' 650 500 '
     bgColor: ' 25 25 25 255 '
@@ -33,7 +33,7 @@ window {
              color: ' 100 0 0 255 '
              bgColor: ' 50 50 50 0 '
              content: ' '
-             valueName: ' attackerWarScore '
+             valueName: ' offeredBy '
         }
     }
 
@@ -47,11 +47,11 @@ window {
              height: ' 35 '
              color: ' 100 0 0 255 '
              bgColor: ' 50 50 50 0 '
-             content: ' Defenders: '
+             content: ' Lost: '
         }
     }
     regularList {
-        name: ' defenders '
+        name: ' lostProvs '
         position: ' 25 20 0.1 '
         size: ' 292.5 350 '
         bgColor: ' 50 50 50 255 '
@@ -71,11 +71,11 @@ window {
              height: ' 35 '
              color: ' 100 0 0 255 '
              bgColor: ' 50 50 50 0 '
-             content: ' Attackers: '
+             content: ' Gain: '
         }
     }
     regularList {
-        name: ' attackers '
+        name: ' gainProvs '
         position: ' 325 20 0.1 '
         size: ' 292.5 350 '
         bgColor: ' 50 50 50 255 '
@@ -84,5 +84,44 @@ window {
         textColor: ' 200 200 200 255 '
         barColor: ' 80 80 80 255 '
     }
+
+    label {
+        position: ' 50 0 0.1 '
+        size: ' 237.5 35 '
+        bgColor: ' 200 200 200 255 '
+        #contentAlign: ' center '
+        text {
+             position: ' 0 0 0.1 '
+             height: ' 35 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' Decline '
+             clickEvent: ' declinePeace '
+        }
+        text {
+             position: ' 200 0 0.1 '
+             height: ' 35 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: '  '
+             valueName: ' peaceId '
+        }
+    }
+
+    label {
+        position: ' 320 0 0.1 '
+        size: ' 237.5 35 '
+        bgColor: ' 200 200 200 255 '
+        #contentAlign: ' center '
+        text {
+             position: ' 0 0 0.1 '
+             height: ' 35 '
+             color: ' 100 0 0 255 '
+             bgColor: ' 50 50 50 0 '
+             content: ' Accept '
+             clickEvent: ' acceptPeace '
+        }
+    }
+
 
 }

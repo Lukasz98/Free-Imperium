@@ -1,7 +1,7 @@
 #include "scroll_bar.h"
 
-ScrollBar::ScrollBar(glm::vec3 p, glm::vec2 s, int elements)
-    : Rectangle(p, s, glm::vec4{1.0,1.0,1.0,1.0}), elements(elements)
+ScrollBar::ScrollBar(glm::vec3 p, glm::vec2 s, int elements, Color boatColor)
+    : Rectangle(p, s, glm::vec4{1.0,1.0,1.0,1.0}), elements(elements), boatColor(boatColor)
 {
     scrollCount = 0;
     maxButtons = 2;
@@ -33,7 +33,7 @@ void ScrollBar::init()
     else {
         boat = std::make_unique<Rectangle>(glm::vec3{position.x + padding.x, position.y + size.y - padding.y - boatH, position.z},
                                            boatSize,
-                                           glm::vec4{0.0,0.0,0.7,1.0}
+                                           glm::vec4{(double)boatColor.r / 255, (double)boatColor.g / 255, (double)boatColor.b / 255, (double)boatColor.a / 255}
                                           );
     }
 }

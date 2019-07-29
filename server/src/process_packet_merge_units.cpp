@@ -56,30 +56,8 @@ void ProcessPacket::MergeUnits(sf::Packet & packet, std::shared_ptr<Client> & cl
         // merging
 
         int unitBaseId = unitsIds[0];
-        auto unitBaseIt = std::find_if(units.begin(), units.end(), [unitBaseId](const std::shared_ptr<Unit> & unit) {
-                return unit->GetId() == unitBaseId;
-            });
-        if (unitBaseIt != units.end()) {
-            unitsIds.erase(unitsIds.begin());
-
-            Packet mergePacket{true};
-            mergePacket << "MergeUnits";
-            mergePacket << (*unitBaseIt)->GetId();
-            mergePacket << (int)unitsIds.size();
-                
-            for (auto & currId : unitsIds) {
-                auto unitIt = std::find_if(units.begin(), units.end(), [currId](const std::shared_ptr<Unit> & unit) {
-                        return unit->GetId() == currId;
-                    });
-                if (unitIt != units.end()) {
-                    (*unitBaseIt)->Add((*unitIt));
-                    mergePacket << currId;
-                    units.erase(unitIt);
-                }
-            }
-
-            toSend.emplace_back(mergePacket);
-        }
+        unitsIds.erase(unitsIds.begin());
+        DoTheThing::MergeUnits(units, unitBaseId, unitsIds, toSend);
     }
 
 }

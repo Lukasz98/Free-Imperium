@@ -13,12 +13,15 @@
 #include "gui_aid.h"
 
 #include "country.h"
+#include "map.h"
 #include "log.h"
+#include "peace_offer.h"
+
 
 namespace ProcessPacket {
 
     
-    void DailyUpdate(sf::Packet & packet, Gui & gui, std::vector<War> & wars, std::vector<std::unique_ptr<Province>> & provinces);
+    void DailyUpdate(sf::Packet & packet, Gui & gui, std::vector<War> & wars, std::vector<std::unique_ptr<Province>> & provinces, std::vector<std::shared_ptr<Country>> & countries, Map & map);
     void HourlyUpdate(sf::Packet & packet, Gui & gui, std::vector<std::shared_ptr<Unit>> & units, std::vector<std::unique_ptr<Battle>> & battles);
     void PeaceAccepted(sf::Packet & packet, Gui & gui, std::vector<std::unique_ptr<Province>> & provinces, std::vector<War> & wars);
     void NewWar(sf::Packet & packet, Gui & gui, std::vector<War> & wars, const std::string myCountry);
@@ -44,4 +47,7 @@ namespace ProcessPacket {
 
     void MonthlyUpdate(sf::Packet & packet, const std::string & myCountry, std::vector<std::shared_ptr<Country>> & countries);
 
+    void BotPeaceOffer(sf::Packet & packet, Gui & gui, std::vector<PeaceOffer> & peaceOffers);
+
+    void PeaceDeclined(sf::Packet & packet, Gui & gui);
 }

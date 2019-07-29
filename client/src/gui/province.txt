@@ -132,4 +132,17 @@ window {
     }
 
 
+    label {
+        position: ' 480 580 0.1 '
+        size: ' 20 20 '
+        bgColor: ' 0 0 0 0 '
+
+        icon {
+            position: ' 0 0 0.1 '
+            size: ' 20 20 '
+            texturePath: ' src/img/minus.png '
+            clickEvent: ' close '
+        }    
+    }
+
 }

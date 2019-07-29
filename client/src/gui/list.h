@@ -14,7 +14,8 @@ class RegularList : public Object
     std::unique_ptr<Rectangle> topRect;
     std::unique_ptr<Rectangle> bottomRect;
 
-    Color bgColor, frameColor;
+    Color bgColor, frameColor, barColor;
+    std::string labelColor, textColor;
     float offsetX, offsetY, scrollBarWidth;
     float contentHeight, contentWidth;
     int maxButtons;

@@ -21,6 +21,8 @@ public:
 
     void SwapColors(Color bef, Color aft) { mapTexture->SwapColors(bef, aft); }
 
+    void DrawSieged(const Color & prov, const Color & siege);
+
     const unsigned char * GetPixels() { return texture->GetOriginPixels(); } 
     int GetScale() { return scale; }
 };

@@ -1,6 +1,6 @@
 #include "process_packet.h"
 
-void ProcessPacket::OfferPeace(sf::Packet & packet, std::shared_ptr<Client> & client, std::vector<War> & wars, std::vector<Province> & provinces, std::vector<std::shared_ptr<Country>> & countries, std::vector<Packet> & toSend, const Date & date)
+void ProcessPacket::OfferPeace(sf::Packet & packet, std::shared_ptr<Client> & client, std::vector<War> & wars, std::vector<Province> & provinces, std::vector<std::shared_ptr<Country>> & countries, std::vector<Packet> & toSend, const Date & date, std::vector<PeaceOffer> & offersForHumans)
 {
     int warId, provincesCount;
     std::string recipant;
@@ -57,7 +57,7 @@ void ProcessPacket::OfferPeace(sf::Packet & packet, std::shared_ptr<Client> & cl
     peaceOffer.defenders = (*warIt).GetDefenders();
     peaceOffer.offeredBy = offeredBy;
 
-    if (DoTheThing::SendPeace(wars, provinces, countries, peaceOffer, offeredProvinces, toSend, recipantIt, warIt, date)) {
+    if (DoTheThing::SendPeace(wars, provinces, countries, peaceOffer, offeredProvinces, toSend, recipantIt, warIt, date, offersForHumans)) {
         Truce truce{date};
         truce.enemy = recipant;
         truce.year++;

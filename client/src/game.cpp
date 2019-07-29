@@ -2,13 +2,12 @@
 
 
 Game::Game(Window & win, sf::TcpSocket & sock, std::string countryName, glm::vec2 res, std::vector<std::shared_ptr<Country>> & countries)
-    :window(win), socket(sock), shader("src/graphics/shaders/vert.v", "src/graphics/shaders/frag.f"), camera(win.GetSize()),
-     resolution(res), gui(res), countries(countries)
+    : Scene{win, res}, socket(sock), resolution(res), countries(countries)
 {    
     gui.AddWin("src/gui/top_bar.txt");
     gui.AddWin("src/gui/notifications.txt");
 
-    glUseProgram(shader.GetProgram());
+    //glUseProgram(shader.GetProgram());
     windowSize = window.GetSize();
     
     provinces = ProvinceLoader::Load(map.GetPixels(), 1920, 1080);
@@ -33,9 +32,22 @@ void Game::setCountryMap()
     std::vector<std::pair<Color, std::string>> pColor;
     for (auto & c : countries)
         cColor.push_back(std::make_pair(c->GetName(), c->GetColor()));
-    for (auto & p : provinces)
+    for (auto & p : provinces) {
+        if (p->GetSieged() != 0)
+            continue;
         pColor.push_back(std::make_pair(p->GetColor(), p->GetCountry()));
+    }
     map.DrawCountries(cColor, pColor);
+
+    for (auto & prov : provinces) {
+        if (prov->GetSieged() == 100) {
+            auto scIt = std::find_if(countries.begin(), countries.end(), [cccc = prov->GetSiegeCountry()](std::shared_ptr<Country> & ccc) {
+                         return ccc->GetName() == cccc;
+                        });
+            if (scIt != countries.end())
+                map.DrawSieged(prov->GetColor(), (*scIt)->GetColor());
+        }
+    }
 }
 
 void Game::Play()
@@ -120,7 +132,7 @@ void Game::processPacket(sf::Packet packet)
     //if (type != "hourly" && type != "daily")
     //Log(type);
     if (type == "daily") {
-        ProcessPacket::DailyUpdate(packet, gui, wars, provinces);
+        ProcessPacket::DailyUpdate(packet, gui, wars, provinces, countries, map);
     }
     else if (type == "NewUnit") {
         ProcessPacket::NewUnit(packet, units, myCountry->GetName());
@@ -161,6 +173,12 @@ void Game::processPacket(sf::Packet packet)
     }
     else if (type == "monthly") {
         ProcessPacket::MonthlyUpdate(packet, myCountry->GetName(), countries);
+    }
+    else if (type == "BotPeaceOffer") {
+        ProcessPacket::BotPeaceOffer(packet, gui, peaceOffers);
+    }
+    else if (type == "PeaceDeclined") {
+        ProcessPacket::PeaceDeclined(packet, gui);
     }
 }
 
@@ -387,7 +405,16 @@ void Game::processGuiEvent(GuiClick & click)
     }
     else if (evType == "openWar") {
         aid = new GA_OpenWar(gui, click, wars);
-    }    
+    }
+    else if (evType == "botPeaceOffer") {
+        aid = new GA_BotPeaceOffer(click, gui, peaceOffers);
+    }
+    else if (evType == "acceptPeace") {
+        aid = new GA_AcceptPeace(click, gui, peaceOffers);
+    }
+    else if (evType == "declinePeace") {
+        aid = new GA_DeclinePeace(click, gui, peaceOffers);
+    }
 
     if (aid != nullptr) {
         auto packets = aid->GetPackets();

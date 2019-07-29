@@ -96,11 +96,21 @@ void Gui::Hover(int x, int y)
     }
 }
 
-void Gui::EraseObj(std::string winType, int objId)
+void Gui::EraseObj(const std::string & winType, int objId)
 {
     for (auto & w : windows) {
         if (w->GetType() == winType) {
             w->DeleteObj(objId);
+        }
+    }
+}
+
+void Gui::EraseWin(const std::string & winType)
+{
+    for (auto w = windows.begin(); w < windows.end(); w++) {
+        if ((*w)->GetType() == winType) {
+            windows.erase(w);
+            break;
         }
     }
 }

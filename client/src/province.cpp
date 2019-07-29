@@ -41,8 +41,7 @@ Province::~Province()
 
 void Province::AddNeighbour(int n_id)
 {
-    for (auto & n : neighbours)
-    {
+    for (auto & n : neighbours) {
         if (n == n_id) { return; }
     }
     neighbours.push_back(n_id);
@@ -54,29 +53,30 @@ void Province::SetOwner(std::string owner)
     siegeSoldiers = 0;
     siegeCountry = "";
     country = owner;
+    notify(GetValues());
 }
-
 
 void Province::Sieging(std::string ctr, int sieg, int sold)
 {
     sieged = sieg;
     siegeCountry = ctr;
     siegeSoldiers = sold;
+    siegeUpdated = true;
+    notify(GetValues());
 }
-
 
 void Province::ResetSieging()
 {
     sieged = 0;
     siegeCountry = "";
     siegeSoldiers = 0;
+    notify(GetValues());
 }
     
-
 std::unordered_map<std::string, std::string> Province::GetValues()
 {
     std::unordered_map<std::string, std::string> values;
-
+    
     values["provName"] = name;
     values["countryName"] = country;
     values["population"] = itos(population);
@@ -85,7 +85,11 @@ std::unordered_map<std::string, std::string> Province::GetValues()
     values["sieged"] = std::to_string(sieged);
     values["siegeSoldiers"] = itos(siegeSoldiers);
     values["siegeCountry"] = siegeCountry;
-    //values["sieged"] = std::to_string(sieged);
+
+    // if delete this if, segmentation fault occurs while siege prov win is open and army retakes its prov
+    if (siegeCountry == "")
+        values["siegeCountry"] = "--";
+
     return values;
 }
 

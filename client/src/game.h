@@ -3,16 +3,15 @@
 
 #include <SFML/Network.hpp>
 
-#include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "map.h"
-#include "graphics/window.h"
-#include "graphics/shader.h"
+//#include "graphics/window.h"
+//#include "graphics/shader.h"
 #include "camera.h"
-#include "gui/gui.h"
+//#include "gui/gui.h"
 
 #include "country.h"
 #include "country_loader.h"
@@ -23,15 +22,17 @@
 #include "war.h"
 #include "battle.h"
 #include "process_packet.h"
+#include "peace_offer.h"
+#include "scene.h"
 
-class Game
+class Game : public Scene
 {
     sf::TcpSocket & socket;
-    Shader shader;
-    Window & window;
+    //Shader shader;
+    //Window & window;
     Map map;
-    Camera camera;
-    Gui gui;
+    //Camera camera;
+    //Gui gui;
     glm::vec2 windowSize, resolution;
     float dt = 0.0f;
     
@@ -42,7 +43,8 @@ class Game
     std::vector<std::shared_ptr<Unit>> units;
     std::vector<War> wars;
     std::vector<std::unique_ptr<Battle>> battles;
-
+    std::vector<PeaceOffer> peaceOffers;
+    
     void setCountryMap();
     void receivePackets();
     void processPacket(sf::Packet packet);

@@ -19,17 +19,22 @@ namespace ProcessPacket {
 
     void DeclareWar(sf::Packet & packet, std::shared_ptr<Client> & client, std::vector<std::shared_ptr<Country>> & countries, std::vector<War> & wars, std::vector<Packet> & toSend, const Date & date);
 
-    void OfferPeace(sf::Packet & packet, std::shared_ptr<Client> & client, std::vector<War> & wars, std::vector<Province> & provinces, std::vector<std::shared_ptr<Country>> & countries, std::vector<Packet> & toSend, const Date & date);
+    void OfferPeace(sf::Packet & packet, std::shared_ptr<Client> & client, std::vector<War> & wars, std::vector<Province> & provinces, std::vector<std::shared_ptr<Country>> & countries, std::vector<Packet> & toSend, const Date & date, std::vector<PeaceOffer> & offersForHumans);
 
     void MergeUnits(sf::Packet & packet, std::shared_ptr<Client> & client, std::vector<std::shared_ptr<Unit>> & units, std::vector<Province> & provinces, std::vector<Packet> & toSend);
     
     void StartImprRel(sf::Packet & packet, std::vector<std::shared_ptr<Country>> & countries);
     void StopImprRel(sf::Packet & packet, std::vector<std::shared_ptr<Country>> & countries);
+    void AcceptedPeace(sf::Packet & packet, std::vector<Province> & provinces, std::vector<std::shared_ptr<Country>> & countries, std::vector<War> & wars, std::vector<PeaceOffer> & offersForHumans, Date & date, std::vector<Packet> & toSend);
+    void DeclinePeace(sf::Packet & packet, std::vector<PeaceOffer> & offersForHumans, std::vector<std::shared_ptr<Client>> & clients, std::vector<Packet> & toSend);
+
 }
 
 
 namespace DoTheThing {
 
+    void NotifyOfDeclinedPeace(const std::string & clientCountryName, const std::string & recipant, std::vector<Packet> & toSend);
+    
     static void MoveUnit(std::shared_ptr<Unit> & unit, const std::vector<Province> & provinces, int startProvId, int endProvId)
     {
         Posibility posibility = PathFinder().Find(provinces, startProvId, endProvId);
@@ -84,7 +89,83 @@ namespace DoTheThing {
 
     }
 
-    static bool SendPeace(std::vector<War> & wars, std::vector<Province> & provinces, std::vector<std::shared_ptr<Country>> & countries, PeaceOffer & peaceOffer, std::vector<std::pair<std::string,std::string>> & offeredProvinces, std::vector<Packet> & toSend, std::vector<std::shared_ptr<Country>>::iterator & recipantIt, std::vector<War>::iterator & warIt, const Date & date)
+    static void RealizeAcceptedPeace(std::vector<Province> & provinces, PeaceOffer & peaceOffer, std::vector<Packet> & toSend, std::vector<std::shared_ptr<Country>>::iterator & recipantIt, std::vector<War>::iterator & warIt, const Date & date, std::vector<War> & wars)
+    {
+        Packet newPacket{true};
+        newPacket << "PeaceAccepted";
+        newPacket << (int)(peaceOffer.lostProv.size() + peaceOffer.gainProv.size());
+        for (auto & offeredProv : peaceOffer.lostProv) {
+            auto provIt = std::find_if(provinces.begin(), provinces.end(), [offeredProv](const Province & province) {
+                           return (province.GetName() == std::get<0>(offeredProv));
+                          });
+            (*provIt).SetOwner(std::get<1>(offeredProv));
+            newPacket << std::get<0>(offeredProv);
+            newPacket << std::get<1>(offeredProv);
+        }
+        for (auto & offeredProv : peaceOffer.gainProv) {
+            auto provIt = std::find_if(provinces.begin(), provinces.end(), [offeredProv](const Province & province) {
+                           return (province.GetName() == std::get<0>(offeredProv));
+                          });
+            (*provIt).SetOwner(std::get<1>(offeredProv));
+            newPacket << std::get<0>(offeredProv);
+            newPacket << std::get<1>(offeredProv);
+        }
+
+        for (auto & prov : provinces) {
+            if (prov.GetSiegeCountry() == "")
+                continue;
+            if (warIt->ShouldTheyFight(prov.GetCountry(), prov.GetSiegeCountry())) {
+                Log("Reset " << prov.GetName());
+                prov.ResetSiege();
+            }
+        }
+        
+        newPacket << (*warIt).GetId();
+            
+        if (peaceOffer.recipantIsDefender) {
+            if ((*warIt).GetDefenderName() == (*recipantIt)->GetName()) {
+                if ((*warIt).GetAttackerName() == peaceOffer.offeredBy) {
+                    newPacket << "endWar";
+                    wars.erase(warIt);
+                }
+                else {
+                    newPacket << "erase";
+                    newPacket << peaceOffer.offeredBy;
+                    (*warIt).Erase(peaceOffer.offeredBy);
+                }
+            }
+            else  {
+                if ((*warIt).GetAttackerName() == peaceOffer.offeredBy) {
+                    newPacket << "erase";
+                    newPacket << peaceOffer.recipant;
+                    (*warIt).Erase(peaceOffer.recipant);
+                }
+            }
+        }
+        else {
+            if ((*warIt).GetAttackerName() == peaceOffer.recipant) {
+                if ((*warIt).GetDefenderName() == peaceOffer.offeredBy) {
+                    newPacket << "endWar";
+                    wars.erase(warIt);
+                }
+                else {
+                    newPacket << "erase";
+                    newPacket << peaceOffer.offeredBy;
+                    (*warIt).Erase(peaceOffer.offeredBy);
+                }
+            }
+            else  {
+                if ((*warIt).GetDefenderName() == peaceOffer.offeredBy) {
+                    newPacket << "erase";
+                    newPacket << peaceOffer.recipant;
+                    (*warIt).Erase(peaceOffer.recipant);
+                }
+            }
+        }
+        toSend.emplace_back(newPacket);
+    }
+    
+    static bool SendPeace(std::vector<War> & wars, std::vector<Province> & provinces, std::vector<std::shared_ptr<Country>> & countries, PeaceOffer & peaceOffer, std::vector<std::pair<std::string,std::string>> & offeredProvinces, std::vector<Packet> & toSend, std::vector<std::shared_ptr<Country>>::iterator & recipantIt, std::vector<War>::iterator & warIt, const Date & date, std::vector<PeaceOffer> & offersForHumans)
     {
         for (auto & offeredProv : offeredProvinces) {
             auto provIt = std::find_if(provinces.begin(), provinces.end(), [offeredProv](const Province & province) { return (province.GetName() == offeredProv.first); });
@@ -108,72 +189,43 @@ namespace DoTheThing {
                 }
             }
         }
-        if ((*recipantIt)->Apply(peaceOffer, date)) {
-            Packet newPacket{true};
-            newPacket << "PeaceAccepted";
-            newPacket << (int)offeredProvinces.size();
-            for (auto & offeredProv : offeredProvinces) {
-                auto provIt = std::find_if(provinces.begin(), provinces.end(), [offeredProv](const Province & province) {
-                                                                                   return (province.GetName() == offeredProv.first);
-                                                                               });
-                (*provIt).SetOwner(offeredProv.second);
-                newPacket << offeredProv.first;
-                newPacket << offeredProv.second;
-            }
-            for (auto & prov : provinces) {
-                if (prov.GetSiegeCountry() == "")
-                    continue;
-                if (warIt->ShouldTheyFight(prov.GetCountry(), prov.GetSiegeCountry())) {
-                    Log("Reset " << prov.GetName());
-                    prov.ResetSiege();
-                }
-            }
         
-            newPacket << (*warIt).GetId();
-            
-            if (peaceOffer.recipantIsDefender) {
-                if ((*warIt).GetDefenderName() == (*recipantIt)->GetName()) {
-                    if ((*warIt).GetAttackerName() == peaceOffer.offeredBy) {
-                        newPacket << "endWar";
-                        wars.erase(warIt);
-                    }
-                    else {
-                        newPacket << "erase";
-                        newPacket << peaceOffer.offeredBy;
-                        (*warIt).Erase(peaceOffer.offeredBy);
-                    }
-                }
-                else  {
-                    if ((*warIt).GetAttackerName() == peaceOffer.offeredBy) {
-                        newPacket << "erase";
-                        newPacket << peaceOffer.recipant;
-                        (*warIt).Erase(peaceOffer.recipant);
-                    }
-                }
-            }
-            else {
-                if ((*warIt).GetAttackerName() == peaceOffer.recipant) {
-                    if ((*warIt).GetDefenderName() == peaceOffer.offeredBy) {
-                        newPacket << "endWar";
-                        wars.erase(warIt);
-                    }
-                    else {
-                        newPacket << "erase";
-                        newPacket << peaceOffer.offeredBy;
-                        (*warIt).Erase(peaceOffer.offeredBy);
-                    }
-                }
-                else  {
-                    if ((*warIt).GetDefenderName() == peaceOffer.offeredBy) {
-                        newPacket << "erase";
-                        newPacket << peaceOffer.recipant;
-                        (*warIt).Erase(peaceOffer.recipant);
-                    }
-                }
-            }
-            toSend.emplace_back(newPacket);
+        if ((*recipantIt)->IsOwnedByBoot() && (*recipantIt)->Apply(peaceOffer, date)) {
+            DoTheThing::RealizeAcceptedPeace(provinces, peaceOffer, toSend, recipantIt, warIt, date, wars);
             return true;
         }
+        else if ((*recipantIt)->IsOwnedByBoot() == false) {
+            offersForHumans.push_back(peaceOffer);
+            Packet packet{false};
+            packet.PushRecipant((*recipantIt)->GetName());
+            packet << "BotPeaceOffer";
+            packet << peaceOffer.peaceId;
+            packet << warIt->GetId();
+            packet << peaceOffer.offeredBy;
+            packet << (int)peaceOffer.lostProv.size();
+            for (int i = 0; i < peaceOffer.lostProv.size(); i++) {
+                packet << std::get<0>(peaceOffer.lostProv[i]);
+                packet << std::get<1>(peaceOffer.lostProv[i]);
+                packet << std::get<2>(peaceOffer.lostProv[i]);
+            }
+            packet << (int)peaceOffer.gainProv.size();
+            for (int i = 0; i < peaceOffer.gainProv.size(); i++) {
+                packet << std::get<0>(peaceOffer.gainProv[i]);
+                packet << std::get<1>(peaceOffer.gainProv[i]);
+                packet << std::get<2>(peaceOffer.gainProv[i]);
+            }
+            toSend.push_back(packet);            
+        }
+        else if ((*recipantIt)->IsOwnedByBoot()) {
+            for (auto & c : countries) {
+                if (c->GetName() != peaceOffer.offeredBy)
+                    continue;
+                if (c->IsOwnedByBoot())
+                    break;
+                DoTheThing::NotifyOfDeclinedPeace(peaceOffer.offeredBy, peaceOffer.recipant, toSend);
+            }
+        }
+
         return false;
     }
 
@@ -190,6 +242,34 @@ namespace DoTheThing {
         newPack << unit->GetFakePos().y;
         newPack << unit->GetFakePos().z;
         toSend.emplace_back(newPack);
+    }
+
+    static void MergeUnits(std::vector<std::shared_ptr<Unit>> & units, int baseUnitId, std::vector<int> & ids, std::vector<Packet> & toSend)
+    {
+        auto unitBaseIt = std::find_if(units.begin(), units.end(), [baseUnitId](const std::shared_ptr<Unit> & unit) {
+                           return unit->GetId() == baseUnitId;
+                          });
+
+        if (unitBaseIt == units.end())
+            return;
+        
+        Packet mergePacket{true};
+        mergePacket << "MergeUnits";
+        mergePacket << baseUnitId;
+        mergePacket << (int)ids.size();
+                
+        for (auto & currId : ids) {
+            auto unitIt = std::find_if(units.begin(), units.end(), [currId](const std::shared_ptr<Unit> & unit) {
+                           return unit->GetId() == currId;
+                          });
+            if (unitIt != units.end()) {
+                (*unitBaseIt)->Add((*unitIt));
+                mergePacket << currId;
+                units.erase(unitIt);
+            }
+        }
+
+        toSend.emplace_back(mergePacket);
     }
 
 }

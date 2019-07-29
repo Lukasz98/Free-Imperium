@@ -95,4 +95,30 @@ guiEvent {
     value1: ' countryName '
 }
 
+guiEvent {
+    name: ' botPeaceOffer '
+}
+
+guiEvent {
+    name: ' acceptPeace '
+    value1: ' peaceId '
+}
+
+guiEvent {
+    name: ' declinePeace '
+    value1: ' peaceId '
+}
+
+guiEvent {
+    name: ' localGame '
+}
+
+guiEvent {
+    name: ' guestGame '
+}
+
+guiEvent {
+    name: ' quit '
+}
+
 }

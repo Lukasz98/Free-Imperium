@@ -1,6 +1,6 @@
 #include "process_packet.h"
 
-void ProcessPacket::DailyUpdate(sf::Packet & packet, Gui & gui, std::vector<War> & wars, std::vector<std::unique_ptr<Province>> & provinces)
+void ProcessPacket::DailyUpdate(sf::Packet & packet, Gui & gui, std::vector<War> & wars, std::vector<std::unique_ptr<Province>> & provinces, std::vector<std::shared_ptr<Country>> & countries, Map & map)
 {
     std::unordered_map<std::string, std::string> values;
     std::string strData;
@@ -110,8 +110,8 @@ void ProcessPacket::DailyUpdate(sf::Packet & packet, Gui & gui, std::vector<War>
 
         int siegedProvincesCount;
         packet >> siegedProvincesCount;
-        for (auto & prov : provinces)
-            prov->ResetSieging();
+        //for (auto & prov : provinces)
+            //prov->ResetSieging();
 
         for (int i = 0; i < siegedProvincesCount; i++) {
             std::string provName, siegeCountry;
@@ -121,10 +121,30 @@ void ProcessPacket::DailyUpdate(sf::Packet & packet, Gui & gui, std::vector<War>
             packet >> siegeCountry;
             packet >> siegeSoldiers;
             auto provIt = std::find_if(provinces.begin(), provinces.end(), [provName](const std::unique_ptr<Province> & prov){
-                                                                               return prov->GetName() == provName;
-                                                                           });
+                           return prov->GetName() == provName;
+                          });
             if (provIt != provinces.end()) {
+                if (sieged == 100 && (*provIt)->GetSieged() != 100) {
+                    auto scIt = std::find_if(countries.begin(), countries.end(), [siegeCountry](std::shared_ptr<Country> & ccc) {
+                                 return ccc->GetName() == siegeCountry;
+                                });
+                    if (scIt != countries.end())
+                        map.DrawSieged((*provIt)->GetColor(), (*scIt)->GetColor());
+                }
                 (*provIt)->Sieging(siegeCountry, sieged, siegeSoldiers);
+            }
+        }
+
+        for (auto & prov : provinces) {
+            if (!prov->WasSiegeUpdated()) {
+                if (prov->GetSieged() != 0) {
+                    auto scIt = std::find_if(countries.begin(), countries.end(), [cccc = prov->GetCountry()](std::shared_ptr<Country> & ccc) {
+                                 return ccc->GetName() == cccc;
+                                });
+                    if (scIt != countries.end())
+                        map.DrawSieged(prov->GetColor(), (*scIt)->GetColor());
+                }
+                prov->ResetSieging();
             }
         }
     }

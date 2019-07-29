@@ -56,6 +56,10 @@ Text::Text(glm::vec3 parentPos, std::unordered_map<std::string, std::string> & v
 
     if (text.size())
         set();
+    else {
+        text = "--";
+        set();
+    }
 }
 
 
@@ -165,8 +169,8 @@ void Text::set()
                 int index = 0;
                 if (belowBaseline > 0)
                     index = (x + offsetX + (y - (g->bitmap.rows - g->bitmap_top) + belowBaseline) * atlas_w)*4;
-                else
-                    Log(g->bitmap.rows);
+                //else
+                //Log(g->bitmap.rows);
 
                 if (offsetX + x >= atlas_w)
                     break;

@@ -1,6 +1,6 @@
 window {
     type: ' country '
-    position: ' 5 50 0.2 '
+    position: ' 5 5 0.2 '
     size: ' 500 600 '
     bgColor: ' 25 25 25 255 '
     priority: ' low '
@@ -59,9 +59,24 @@ window {
         name: ' diplomatic '
         position: ' 10 10 0.1 '
         size: ' 300 300 '
-        bgColor: ' 255 25 25 255 '
+        bgColor: ' 50 50 50 255 '
         frameColor: ' 100 25 25 255 '
+        labelColor: ' 100 100 100 100 '
+        textColor: ' 200 200 200 255 '
+        barColor: ' 80 80 80 255 '
     }
 
+    label {
+        position: ' 480 580 0.1 '
+        size: ' 20 20 '
+        bgColor: ' 0 0 0 0 '
+
+        icon {
+            position: ' 0 0 0.1 '
+            size: ' 20 20 '
+            texturePath: ' src/img/minus.png '
+            clickEvent: ' close '
+        }    
+    }
 
 }

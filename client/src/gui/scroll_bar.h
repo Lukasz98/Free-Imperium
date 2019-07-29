@@ -2,10 +2,12 @@
 #include <memory>
 
 #include "../graphics/rectangle.h"
+#include "../color.h"
 
 class ScrollBar : public Rectangle
 {
     std::unique_ptr<Rectangle> boat;
+    Color boatColor;
     glm::vec2 padding;
     int elements, maxButtons, scrollCount;
     float speed;
@@ -13,7 +15,7 @@ class ScrollBar : public Rectangle
     void init();
 
 public:
-    ScrollBar(glm::vec3 p, glm::vec2 s, int elements);
+    ScrollBar(glm::vec3 p, glm::vec2 s, int elements, Color boatColor);
     ~ScrollBar() override;
     
     void Draw() override;

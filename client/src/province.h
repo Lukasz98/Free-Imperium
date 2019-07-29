@@ -10,6 +10,7 @@
 #include "data_object.h"
 #include "color.h"
 #include "observer.h"
+#include "log.h"
 
 class Province : public Subject
 {
@@ -24,6 +25,7 @@ class Province : public Subject
     int sieged = 0;
     int siegeSoldiers = 0;
     std::string siegeCountry;
+    bool siegeUpdated = false;
 
     int population = 0, manpower = 0;
     float autonomy = 0.0f, unrest = 0.0f, prosperity = 0.0f, administration = 0.0f, treasury = 0.0f;
@@ -77,7 +79,7 @@ public:
     int GetSieged() const { return sieged; }
     std::string GetSiegeCountry() const { return siegeCountry; }
     int GetSiegeSoldiers() const { return siegeSoldiers; }
-
+    bool WasSiegeUpdated() { bool tmp = siegeUpdated; siegeUpdated = false; return tmp; }
     std::unordered_map<std::string, std::string> GetValues();
     
     void AddNeighbour(int  n_id);
