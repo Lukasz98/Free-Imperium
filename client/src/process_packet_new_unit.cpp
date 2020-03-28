@@ -13,6 +13,8 @@ void ProcessPacket::NewUnit(sf::Packet & packet, std::vector<std::shared_ptr<Uni
     packet >> pos.x;
     packet >> pos.y;
     packet >> pos.z;
+    pos.x*=4;
+    pos.y*=4;
 
     units.push_back(std::make_shared<Unit>(id, name, pos, unitSize, country));
 

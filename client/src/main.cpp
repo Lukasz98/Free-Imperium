@@ -23,7 +23,7 @@ int main()
     //glm::vec2 resolution = {windowSize.x * 2, windowSize.y * 2};
     //glm::vec2 resolution = {1280, 720};
     //glm::vec2 resolution = {1920, 1080};
-    std::string title = "Word";
+    std::string title = "Free_Imperium";
 
     Window window(windowSize, title);
     if (glewInit() != GLEW_OK) {
@@ -35,6 +35,7 @@ int main()
 
     Settings settings;
     auto countries = CountryLoader::Load();
+
 
     Menu menu(window, settings, countries);
     //Room room(window, settings, countries);

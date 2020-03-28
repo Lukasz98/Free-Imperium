@@ -12,6 +12,8 @@ void ProcessPacket::HourlyUpdate(sf::Packet & packet, Gui & gui, std::vector<std
         packet >> uPos.x;
         packet >> uPos.y;
         packet >> uPos.z;
+	uPos.x *= 4;
+	uPos.y *=4;
 
         int movesCount = 0;
         packet >> movesCount;
@@ -22,6 +24,8 @@ void ProcessPacket::HourlyUpdate(sf::Packet & packet, Gui & gui, std::vector<std
             packet >> v.x;
             packet >> v.y;
             packet >> v.z;
+	    v.x*=4;
+	    v.y*=4;
             moves.push_back(v);
         }
 

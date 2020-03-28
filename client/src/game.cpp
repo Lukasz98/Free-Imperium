@@ -200,7 +200,7 @@ void Game::input()
         packet << "Stop";
         toSend.emplace_back(packet);
     }
-
+    
     camera.Update(window.xMouse, window.yMouse);
     
     if (window.scrollOffset) {
@@ -246,7 +246,7 @@ void Game::input()
 
 bool Game::provClick(glm::vec2 mouseInWorld)
 {
-    Color provinceColor = map.ClickOnProvince(mouseInWorld.x, mouseInWorld.y);
+    Color provinceColor = map.ClickOnProvince(mouseInWorld.x /4, mouseInWorld.y /4);
     auto provIt = std::find_if(provinces.begin(), provinces.end(), [provinceColor](std::unique_ptr<Province> & p) { return p->GetColor() == provinceColor; });
     if (provIt != provinces.end()) {
         glm::vec3 unitPos{(*provIt)->GetUnitPos(), 0.1};
@@ -342,7 +342,7 @@ bool Game::unitClick(glm::vec2 mouseInWorld)
 
 void Game::unitMove(std::unordered_map<std::string,std::string> & values, glm::vec2 mouseInWorld)
 {
-    Color provinceColor = map.ClickOnProvince(mouseInWorld.x, mouseInWorld.y);
+    Color provinceColor = map.ClickOnProvince(mouseInWorld.x /4, mouseInWorld.y /4);
     //auto it = std::find(provinces.begin(), provinces.end(), provinceColor);
     auto it = std::find_if(provinces.begin(), provinces.end(), [provinceColor](std::unique_ptr<Province> & p) { return p->GetColor() == provinceColor; });
     if (it != provinces.end()) {    

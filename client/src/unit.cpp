@@ -1,7 +1,7 @@
 #include "unit.h"
 
 Unit::Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string country)
-    : Rectangle(pos, glm::vec2(10, 15))
+    : Rectangle(pos, glm::vec2(10*4, 15*4))
 {
     this->name = name;
     this->soldiers = soldiers;
@@ -14,7 +14,7 @@ Unit::Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string co
 
     DataObj * obj = new DataObj{"label"};
     obj->values["position:"] = "0.0 0.0 0.1";
-    obj->values["size:"] = "70 10";
+    obj->values["size:"] = "90 30";
     //obj->values["valueName:"] = "unitSize";
     obj->values["bgColor:"] = "255 255 255 255";
     obj->values["contentAlign:"] = "center";
@@ -24,10 +24,10 @@ Unit::Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string co
     obj->objects.back()->values["valueName:"] = "unitSize";
     obj->objects.back()->values["content:"] = itos(soldiers);;
     //obj->objects.back()->values["height:"] = "10";
-    obj->objects.back()->values["height:"] = "10";
+    obj->objects.back()->values["height:"] = "20";
 
     std::vector<GuiClick> clickPatterns;
-    bar = std::make_unique<Label>(glm::vec3{pos.x - 25, pos.y - 15, pos.z}, obj->values, obj->objects, clickPatterns);
+    bar = std::make_unique<Label>(glm::vec3{pos.x - 25, pos.y - 25, pos.z}, obj->values, obj->objects, clickPatterns);
 
     delete obj;    
     
@@ -57,7 +57,7 @@ void Unit::Update(glm::vec3 p, std::vector<glm::vec3> mvs, int soldiersCount)
         position = p;
         fakePos = p;
         Init();
-        bar->SetPos(glm::vec3{position.x - 25, position.y - 15, position.z});
+        bar->SetPos(glm::vec3{position.x - 25, position.y - 25, position.z});
     }
 
     bool newMoves = false;

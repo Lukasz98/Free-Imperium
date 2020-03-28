@@ -1,9 +1,10 @@
 #include "map.h"
 
 Map::Map()
-    : Rectangle(glm::vec3(0.0, 0, -.5), glm::vec2(1920, 1080))
+    : Rectangle(glm::vec3(0.0, 0, -.5), glm::vec2(1920*4, 1080*4))
 {
     mapTexture = std::make_shared<MapTexture>("../shared/map.png", 1920, 1080);
+
     SetTexture(mapTexture);
 }
 Map::~Map()

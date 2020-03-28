@@ -7,12 +7,16 @@ Window::Window(glm::vec2 size, std::string title)
     int code = glfwInit();
     if (!code) {
         Log("GLFW Initialization failed, error code: " << code);
-        return;
+        const char * errorDes;
+	glfwGetError(&errorDes);
+	std::cout << std::string{errorDes} << std::endl;
+
+	return;
     }
-    
+   
     glfwSetErrorCallback(error_callback);
         
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);

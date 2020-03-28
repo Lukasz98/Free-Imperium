@@ -16,7 +16,7 @@ class Camera
     float baseSpeed = 1000.0f;
 
     float left = 0.0f, bottom = 0.0f;
-    float fov = 45.0f, fovMax = 45.0f, fovMin = 44.0f;
+    float fov = 45.0f, fovMax = 46.0f, fovMin = 44.0f;
     float near = 0.1f, far = 1001.0f;
 
     glm::vec3 mouseInWorld;
