@@ -22,7 +22,7 @@ Unit::Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string co
     obj->objects.push_back(new DataObj{"text"});
     obj->objects.back()->values["color"] = "255 20 20 255";
     obj->objects.back()->values["valueName:"] = "unitSize";
-    obj->objects.back()->values["content:"] = itos(soldiers);;
+    obj->objects.back()->values["content:"] = itos(soldiers);
     //obj->objects.back()->values["height:"] = "10";
     obj->objects.back()->values["height:"] = "20";
 

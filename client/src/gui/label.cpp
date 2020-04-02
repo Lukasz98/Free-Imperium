@@ -99,11 +99,13 @@ Label::~Label()
 void Label::SetPos(glm::vec3 p)
 {
     position = relativePos + p;
-    if (background)
-        background->SetPosition(p);
+    if (background) {
+        background->SetPosition(position);
+	
+    }
     for (auto & ob : objects) {
         if (contentAlign == "center") {
-            glm::vec3 center = { position.x + size.x / 2, position.y + size.y / 2, position.z };
+	    glm::vec3 center = { position.x + size.x / 2, position.y + size.y / 2, 0.0};
             ob->MakeCentered(center);
         }
         else 
