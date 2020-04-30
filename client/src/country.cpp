@@ -2,6 +2,7 @@
 
 Country::Country(DataObj * obj)
 {
+    id = std::stoi(obj->values["id:"]);
     name = obj->values["name:"];
     culture = obj->values["culture:"];
     religion = obj->values["religion:"];

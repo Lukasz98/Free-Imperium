@@ -22,7 +22,7 @@ struct DataObj
             delete o;
     }
 
-    virtual void Print(int indentCount = 0)
+    void Print(int indentCount = 0)
     {
         std::string indent = "";
         for (int i = 0; i < indentCount; i++)

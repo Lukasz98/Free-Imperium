@@ -4,5 +4,6 @@ province {
     development: ' 1 '
     unitPosition: ' 946 384 '
     country: ' Bohemia '
+    countryId: ' 0 '
     population: ' 100000 '
 }

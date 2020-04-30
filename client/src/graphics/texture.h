@@ -34,7 +34,7 @@ public:
     {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
-
+GLuint GetId() { return texture; }
     virtual const unsigned char * GetPixels() { return pixelsOrigin; }
     //virtual const unsigned char * GetPixels() { return pixelsOrigin; }
     const unsigned char * GetOriginPixels() { return pixelsOrigin; }

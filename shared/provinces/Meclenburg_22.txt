@@ -4,5 +4,6 @@ province {
     development: ' 2 '
     unitPosition: ' 906 460 '
     country: ' Pomerania '
+    countryId: ' 3 '
     population: ' 200000 '
 }

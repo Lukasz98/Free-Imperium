@@ -1,4 +1,5 @@
 country {
+    id: ' 1 '
     name: ' East Francia '
     rgb: ' 20 20 100 '
     culture: ' german '

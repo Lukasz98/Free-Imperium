@@ -88,10 +88,10 @@ void ProvinceLoader::loadFromMap(std::vector<std::unique_ptr<Province>> & provin
     for (auto & prov : provinces)
         {
             //if (prov.GetName() != "Przemysl") continue;
-            std::cout << prov.GetName() << ", id: " << prov.GetId() << "\n";
+            std::cout << prov->GetName() << ", id: " << prov->GetId() << "\n";
             std::cout << "Neighbours\n";
-            for (auto & n : prov.GetNeighbours())
-                std::cout << "- " << "" << getProvinceName(provinces, n) << "\n";
+            for (auto & n : prov->GetNeighbours())
+                std::cout << "- " << "" <<n<<"\n";// getProvinceName(provinces, n) << "\n";
             std::cout << "--------------------\n\n";
         }
     std::cout << "Num of provinces = " << provinces.size() << "\n\n";        

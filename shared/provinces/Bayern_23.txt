@@ -4,5 +4,6 @@ province {
     development: ' 5 '
     unitPosition: ' 878 325 '
     country: ' East Francia '
+    countryId: ' 1 '
     population: ' 500000 '
 }

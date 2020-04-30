@@ -4,5 +4,6 @@ province {
     development: ' 2 '
     unitPosition: ' 991 401 '
     country: ' Poland '
+    countryId: ' 2 '
     population: ' 200000 '
 }

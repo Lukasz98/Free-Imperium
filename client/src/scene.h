@@ -22,6 +22,8 @@ protected:
     sf::Clock clock;
     float dt = 0.0f;
 
+    glm::vec2 resolution;
+
     Scene(Window & win, const glm::vec2 & resolution);
 
     void DrawGui();

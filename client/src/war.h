@@ -5,6 +5,8 @@
 class War
 {
     int id = 0, idInGui = 0;
+    std::vector<int> attackersIds;
+    std::vector<int> defendersIds;
     std::vector<std::string> attackers;
     std::vector<std::string> defenders;
 
@@ -18,14 +20,15 @@ public:
     void AddBattleWinner(std::string winner);
 
     void Update();
-    void Erase(std::string name);
+    void Erase(int ctrId);
 
     void AttackerSiege(int s) { attWarScFromSiege += s; }
     
-    void AddAttacker(std::string a) { attackers.push_back(a); }
-    void AddDefender(std::string d) { defenders.push_back(d); }
+    void AddAttacker(std::string a, int id) { attackers.push_back(a); attackersIds.push_back(id); }
+    void AddDefender(std::string d, int id) { defenders.push_back(d); defendersIds.push_back(id); }
 
-    bool ShouldTheyFight(std::string b, std::string c) const;
+    bool ShouldTheyFight(std::string a, std::string b) const;
+    bool ShouldTheyFight(int ctr1Id, int ctr2Id) const;
     
     int GetId() const { return id; }
     int GetIdInGui() const { return idInGui; }
@@ -37,8 +40,8 @@ public:
     std::vector<std::string> GetAttackers() const { return attackers; }
     std::vector<std::string> GetDefenders() const { return defenders; }
     
-    bool IsAttacker(std::string c) const;
-    bool IsDefender(std::string c) const;
+    bool IsAttacker(int ctrId) const;
+    bool IsDefender(int ctrId) const;
     
     bool IsEnded() const { return end; }
 

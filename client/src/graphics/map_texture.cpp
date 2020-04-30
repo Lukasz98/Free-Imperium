@@ -63,6 +63,7 @@ void MapTexture::drawProvinceBorders()
         
     std::copy(countryPixels, countryPixels + originW * originH * 4, countryPixelsOrigin);
     Bind();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, originW, originH, 0, GL_RGBA, GL_UNSIGNED_BYTE, countryPixels);
     Unbind();
 }
@@ -97,6 +98,7 @@ void MapTexture::BrightenProvince(Color bef, int increase)
         }
     }
     Bind();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D,0, GL_RGBA, originW, originH, 0, GL_RGBA, GL_UNSIGNED_BYTE, brightenProvPixels);
     Unbind();
 }
@@ -113,6 +115,7 @@ void MapTexture::SwapColors(Color bef, Color aft)
         }
     }
     Bind();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D,0, GL_RGBA, originW, originH, 0, GL_RGBA, GL_UNSIGNED_BYTE, countryPixels);
     Unbind();
 }
@@ -166,6 +169,7 @@ void MapTexture::DrawCountries(std::vector<std::pair<std::string, Color>> cColor
         
     std::copy(countryPixels, countryPixels + originW * originH * 4, countryPixelsOrigin);
     Bind();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, originW, originH, 0, GL_RGBA, GL_UNSIGNED_BYTE, countryPixels);
     Unbind();
 }
@@ -190,6 +194,7 @@ void MapTexture::DrawSieged(const Color & prov, const Color & siege)
             rowCount++;
     }
     Bind();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D,0, GL_RGBA, originW, originH, 0, GL_RGBA, GL_UNSIGNED_BYTE, countryPixels);
     Unbind();    
 }

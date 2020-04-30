@@ -5,8 +5,9 @@
 
 class Map : public Rectangle
 {
+    public:
     int scale = 1;
-    int originW = 1920, originH = 1080;
+    int originW = 1920, originH = 1088;
     std::shared_ptr<Texture> mapTexture;
     
 public:

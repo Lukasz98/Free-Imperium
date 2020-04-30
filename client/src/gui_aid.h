@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <cassert>
 
 #include "gui/gui.h"
 #include "country.h"
@@ -20,7 +21,7 @@ public:
     virtual ~GuiAid() { }
     std::vector<sf::Packet> GetPackets() { return packets; }
 };
-
+/*
 class GA_OpenProv : public GuiAid
 {
 public:
@@ -35,7 +36,7 @@ public:
         }        
     }
 };
-
+*/
 class GA_DecreaseValue : public GuiAid
 {
 public:
@@ -63,7 +64,8 @@ public:
 class GA_OpenCountry : public GuiAid
 {
 public:
-    GA_OpenCountry(Gui & gui, const std::vector<std::shared_ptr<Country>> & countries, const std::shared_ptr<Country> & myCountry, const std::vector<War> & wars, const GuiClick & event)
+    GA_OpenCountry(Gui & gui, const std::vector<std::shared_ptr<Country>> & countries, const std::shared_ptr<Country> & myCountry, 
+                    const std::vector<War> & wars, const GuiClick & event)
     {
         std::string countryName = "";
         for (auto & e : event.values) {
@@ -81,69 +83,70 @@ public:
         }
         
         for (auto & c : countries) {
-            if (c->GetName() == countryName) {
-                bool atWar = false;
-                for (auto & war : wars) {
-                    if (war.ShouldTheyFight(countryName, myCountry->GetName())) {
-                        atWar = true;
-                        break;
-                    }
+            if (c->GetName() != countryName)
+                continue;
+            bool atWar = false;
+            for (auto & war : wars) {
+                if (war.ShouldTheyFight(c->GetId(), myCountry->GetId())) {
+                    atWar = true;
+                    break;
                 }
+            }
 
-                std::unordered_map<std::string,std::string> values;
-                values["countryName"] = countryName;
+            std::unordered_map<std::string,std::string> values;
+            values["countryName"] = countryName;
 
-                if (myCountry->GetName() != c->GetName()) {
-                    values["myOpinion"] = std::to_string(myCountry->GetRel(c->GetName()));
-                    values["hisOpinion"] = std::to_string(c->GetRel(myCountry->GetName()));
-                }
+            if (myCountry->GetName() != c->GetName()) {
+                values["myOpinion"] = std::to_string(myCountry->GetRel(c->GetName()));
+                values["hisOpinion"] = std::to_string(c->GetRel(myCountry->GetName()));
+            }
                 
-                gui.AddWin("src/gui/country.txt");
-                gui.Update(values, "country");
+            gui.AddWin("src/gui/country.txt");
+            gui.Update(values, "country");
 
                 //gui.Update(values, "country");
 
                 //values.clear();
-                if (countryName != myCountry->GetName()) {
-                    DataObj * dobj = new DataObj{"label"};
-                    dobj->objects.push_back(new DataObj{"text"});
-                    dobj->objects.back()->values["valueName:"] = "diploOption";
-                    if (atWar) {
-                        dobj->objects.back()->values["content:"] = "Offer peace";
-                        dobj->objects.back()->values["clickEvent:"] = "offerPeace";
-                    }
-                    else {
-                        dobj->objects.back()->values["content:"] = "Declare war";
-                        dobj->objects.back()->values["clickEvent:"] = "declareWar";
-                    }
-                    gui.AddToList(dobj, "country", "diplomatic");
-                    delete dobj;
+            if (c->GetId() != myCountry->GetId()) {
+                DataObj * dobj = new DataObj{"label"};
+                dobj->objects.push_back(new DataObj{"text"});
+                dobj->objects.back()->values["valueName:"] = "diploOption";
+                if (atWar) {
+                    dobj->objects.back()->values["content:"] = "Offer peace";
+                    dobj->objects.back()->values["clickEvent:"] = "offerPeace";
                 }
-                if (countryName != myCountry->GetName()) {
-                    DataObj * dobj = new DataObj{"label"};
-                    dobj->objects.push_back(new DataObj{"text"});
-                    dobj->objects.back()->values["valueName:"] = "diploOption";
-                    if (myCountry->IsImprRel(countryName)) {
-                        dobj->objects.back()->values["content:"] = "Stop improving relations";
-                        dobj->objects.back()->values["clickEvent:"] = "stopImprRel";
-                    }
-                    else {
-                        dobj->objects.back()->values["content:"] = "Improve relations";
-                        dobj->objects.back()->values["clickEvent:"] = "startImprRel";
-                    }
-                    gui.AddToList(dobj, "country", "diplomatic");
-                    delete dobj;
+                else {
+                    dobj->objects.back()->values["content:"] = "Declare war";
+                    dobj->objects.back()->values["clickEvent:"] = "declareWar";
                 }
-                break;
+                gui.AddToList(dobj, "country", "diplomatic");
+                delete dobj;
             }
-        }        
-    }
+            if (c->GetId() != myCountry->GetId()) {
+                DataObj * dobj = new DataObj{"label"};
+                dobj->objects.push_back(new DataObj{"text"});
+                dobj->objects.back()->values["valueName:"] = "diploOption";
+                if (myCountry->IsImprRel(countryName)) {
+                    dobj->objects.back()->values["content:"] = "Stop improving relations";
+                    dobj->objects.back()->values["clickEvent:"] = "stopImprRel";
+                }
+                else {
+                    dobj->objects.back()->values["content:"] = "Improve relations";
+                    dobj->objects.back()->values["clickEvent:"] = "startImprRel";
+                }
+                gui.AddToList(dobj, "country", "diplomatic");
+                delete dobj;
+            }
+            break;
+        }
+    }        
+
 };
 
 class GA_NewUnit : public GuiAid
 {
 public:
-    GA_NewUnit(const GuiClick & event)
+    GA_NewUnit(const GuiClick & event, std::vector<std::unique_ptr<Province>> & provinces)
     {
         std::string country, prov, size;
         auto valIt = event.values.find("countryName:");
@@ -158,8 +161,12 @@ public:
         if (valIt != event.values.end())
             size = valIt->second;
 
+        auto pIt = std::find_if(provinces.begin(), provinces.end(), [prov](const std::unique_ptr<Province> & p){
+            return p->GetName() == prov;
+        });
+
         packets.emplace_back(
-           PreparePacket::NewUnit(country, prov, std::stoi(size)) 
+           PreparePacket::NewUnit((*pIt)->GetCountryId(), (*pIt)->GetId(), std::stoi(size)) 
         );
     }
 };
@@ -201,13 +208,18 @@ public:
 class GA_DeclareWar : public GuiAid
 {
 public:
-    GA_DeclareWar(GuiClick & event)
+    GA_DeclareWar(GuiClick & event, std::vector<std::shared_ptr<Country>> & countries)
     {
         //auto countryName = std::any_cast<std::string>(ev->GetData());
         Log("WAR WAR");
-        std::string countryName = event.values["countryName:"];
+     
+        auto ctr = std::find_if(countries.begin(), countries.end(), [c = event.values["countryName:"]] (std::shared_ptr<Country>& ct) {
+            return c == ct->GetName();
+        });
+        //std::string countryName = event.values["countryName:"];
         sf::Packet packet;
-        packet << "DeclareWar" << countryName;
+        packet << "DeclareWar"; 
+        packet << (*ctr)->GetId();//countryName;
         packets.push_back(packet);
     }
 };
@@ -285,8 +297,10 @@ public:
         gui.ObservationOfLastWin((*provIt).get());
 
         for (auto & w : wars) {
-            if (w.ShouldTheyFight(values["countryName"], values["siegeCountry"])) {
-                if (w.IsAttacker(values["siegeCountry"]))
+            if (w.ShouldTheyFight((*provIt)->GetCountryId(), (*provIt)->GetSiegeCountryId())) {
+            //if (w.ShouldTheyFight(values["countryName"], values["siegeCountry"])) {
+                if (w.IsAttacker((*provIt)->GetSiegeCountryId()))
+                //if (w.IsAttacker(values["siegeCountry"]))
                     possibleSiegers = w.GetAttackers();
                 else
                     possibleSiegers = w.GetDefenders();
@@ -340,7 +354,8 @@ public:
 class GA_SendPeaceOffer : public GuiAid
 {
 public:
-    GA_SendPeaceOffer(Gui & gui, const std::vector<War> & wars, GuiClick & event)
+    GA_SendPeaceOffer(Gui & gui, const std::vector<War> & wars, std::vector<std::shared_ptr<Country>> & countries,
+                        std::vector<std::unique_ptr<Province>> & provinces, GuiClick & event)
     {
         std::vector<std::string> agreements = gui.GetContentOf("offerPeace", "agreement");
         //Log("AGREEMENTS: " << agreements);
@@ -373,12 +388,29 @@ public:
             provs.emplace_back(std::make_pair(firstVal, secVal));
         }
 
+        std::vector<std::pair<int,int>> pcids;
+
+        for (auto & prov : provs) {
+            auto pIt = std::find_if(provinces.begin(), provinces.end(), [p = prov.first](std::unique_ptr<Province> & pr ) {
+                return pr->GetName() == p;
+            });
+            auto cIt = std::find_if(countries.begin(), countries.end(), [p = prov.second](std::shared_ptr<Country> & c ) {
+                return c->GetName() == p;
+            });
+            pcids.push_back(std::make_pair((*pIt)->GetId(), (*cIt)->GetId()));
+        }
+
+        auto recipant = std::find_if(countries.begin(), countries.end(), [p = event.values["recipant:"]] (std::shared_ptr<Country> & c ) {
+            return c->GetName() == p;
+        });
+        
+
         sf::Packet packet;
         packet << "PeaceOffer";
         packet << std::stoi(event.values["warId:"]);
-        packet << event.values["recipant:"];
+        packet << (*recipant)->GetId(); //event.values["recipant:"];
         packet << (int)provs.size();
-        for (auto & prov : provs) {
+        for (auto & prov : pcids) {
             packet << prov.first;
             packet << prov.second;
         }
@@ -462,13 +494,18 @@ public:
 class GA_StartImprRel : public GuiAid
 {
 public:
-    GA_StartImprRel(GuiClick & event, std::shared_ptr<Country> & myCountry)
+    GA_StartImprRel(GuiClick & event, std::shared_ptr<Country> & myCountry, std::vector<std::shared_ptr<Country>> & countries)
     {
         std::string country = event.values["countryName:"];
         sf::Packet packet;
+        
+        auto ctr = std::find_if(countries.begin(), countries.end(), [country] (std::shared_ptr<Country>& ct) {
+            return ct->GetName() == country;
+        });
+        
         packet << "StartImprRel";
-        packet << myCountry->GetName();
-        packet << country;
+        packet << myCountry->GetId();
+        packet << (*ctr)->GetId();
         packets.emplace_back(packet);
         myCountry->StartImprRel(country);
     }
@@ -477,13 +514,18 @@ public:
 class GA_StopImprRel : public GuiAid
 {
 public:
-    GA_StopImprRel(GuiClick & event, std::shared_ptr<Country> & myCountry)
+    GA_StopImprRel(GuiClick & event, std::shared_ptr<Country> & myCountry, std::vector<std::shared_ptr<Country>> & countries)
     {
         std::string country = event.values["countryName:"];
         sf::Packet packet;
         packet << "StopImprRel";
-        packet << myCountry->GetName();
-        packet << country;
+        
+        auto ctr = std::find_if(countries.begin(), countries.end(), [country] (std::shared_ptr<Country>& ct) {
+            return ct->GetName() == country;
+        });
+        
+        packet << myCountry->GetId();
+        packet << (*ctr)->GetId();
         packets.emplace_back(packet);
         myCountry->StopImprRel(country);
     }
@@ -492,7 +534,8 @@ public:
 class GA_BotPeaceOffer : public GuiAid
 {
 public:
-    GA_BotPeaceOffer(GuiClick & event, Gui & gui, std::vector<PeaceOffer> & peaceOffers)
+    GA_BotPeaceOffer(GuiClick & event, Gui & gui, std::vector<PeaceOffer> & peaceOffers, const std::vector<std::shared_ptr<Country>> & countries,
+                    const std::vector<std::unique_ptr<Province>> & provinces)
     {
         gui.AddWin("src/gui/bot_peace_offer.txt");
         std::unordered_map<std::string,std::string> values;
@@ -508,14 +551,24 @@ public:
         for (auto & prov : peaceIt->lostProv) {
             DataObj * dobj = new DataObj{"label"};
             dobj->objects.push_back(new DataObj{"text"});
-            dobj->objects.back()->values["content:"] = std::get<0>(prov) + std::string{" to "} + std::get<1>(prov);
+            //dobj->objects.back()->values["content:"] = std::get<0>(prov) + std::string{" to "} + std::get<1>(prov);
+            assert(std::get<0>(prov) >= 0 && std::get<0>(prov) < provinces.size());
+            assert(std::get<1>(prov) >= 0 && std::get<1>(prov) < countries.size());
+            std::string provName = provinces.at(std::get<0>(prov))->GetName();
+            std::string ctrName = countries.at(std::get<1>(prov))->GetName();
+            dobj->objects.back()->values["content:"] = provName + std::string{" to "} + ctrName;
             gui.AddToList(dobj, "botPeaceOffer", "lostProvs");
             delete dobj;
         }
         for (auto & prov : peaceIt->gainProv) {
             DataObj * dobj = new DataObj{"label"};
             dobj->objects.push_back(new DataObj{"text"});
-            dobj->objects.back()->values["content:"] = std::get<0>(prov) + std::string{" to "} + std::get<1>(prov);
+            assert(std::get<0>(prov) >= 0 && std::get<0>(prov) < provinces.size());
+            assert(std::get<1>(prov) >= 0 && std::get<1>(prov) < countries.size());
+            std::string provName = provinces.at(std::get<0>(prov))->GetName();
+            std::string ctrName = countries.at(std::get<1>(prov))->GetName();
+            dobj->objects.back()->values["content:"] = provName + std::string{" to "} + ctrName;
+            //dobj->objects.back()->values["content:"] = std::get<0>(prov) + std::string{" to "} + std::get<1>(prov);
             gui.AddToList(dobj, "botPeaceOffer", "gainProvs");
             delete dobj;
         }

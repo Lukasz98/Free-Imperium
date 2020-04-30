@@ -71,7 +71,7 @@ void Room::loop(bool & play, std::string & country)
             else if (messg == "Players") {
                 int playersCount = 0;
                 packet >> playersCount;
-                gui.ClearList("menu", "players");
+                gui.ClearList("room", "players");
                 for (int i = 0; i < playersCount; i++) {
                     packet >> messg;
                     //players.emplace_back(messg);
@@ -94,7 +94,8 @@ void Room::loop(bool & play, std::string & country)
         }
 
         if (window.mouseL && !window.mouseR) {
-            auto guiEvent = gui.Click(window.xMouse, window.GetSize().y - window.yMouse);
+            //auto guiEvent = gui.Click(window.xMouse, window.GetSize().y - window.yMouse);
+            auto guiEvent = gui.Click(window.xMouse *resolution.x/window.GetSize().x, (window.GetSize().y - window.yMouse) * resolution.y/window.GetSize().y);
             bool wasGuiClicked = guiEvent.values.size();
             if (wasGuiClicked) {
                 processGuiEvent(guiEvent, toSend, play);

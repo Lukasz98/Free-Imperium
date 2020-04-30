@@ -12,7 +12,7 @@ class Battle : public Subject
     std::vector<std::shared_ptr<Unit>> attackers;
     std::vector<std::shared_ptr<Unit>> defenders;
 
-    int id, warId;
+    int id, warId, provId;
     glm::vec3 position;
     std::string provName;
     bool updated = false;
@@ -22,10 +22,11 @@ class Battle : public Subject
     int defendersMorale = 0;
     std::string attacker = "";
     std::string defender = "";
+    int attackerId, defenderId;
 
     
 public:
-    Battle(int id, int warId, glm::vec3 pos, std::string prov);
+    Battle(int id, int warId, glm::vec3 pos, std::string prov, int provId);
     ~Battle();
     
     void Update();
@@ -66,7 +67,8 @@ public:
     
     int GetAttackersSize() const { return attackersSize; }
     int GetDefendersSize() const { return defendersSize; }
-    std::string GetProvName() const { return provName; }
+    inline int GetProvId() const { return provId; }
+    //std::string GetProvName() const { return provName; }
     bool WasUpdated() { bool r = updated; updated = 0; return r; }
     int GetWarId() const { return warId; }
     int GetId() const { return id; }

@@ -84,7 +84,7 @@ void Text::set()
     char whiteSpace = '.';
     unsigned int atlas_w = 0, atlas_h = 0, belowBaseline = 0;
     int charCount = 0;
-    
+
     for (auto c : text) {
         if (c == 32)
             c = whiteSpace;
@@ -102,7 +102,7 @@ void Text::set()
             realSize.y = std::max((unsigned int)realSize.y, g->bitmap.rows);
             if (g->bitmap.rows - g->bitmap_top < 10000)
                 realBelowBaseline = std::max(realBelowBaseline, g->bitmap.rows - g->bitmap_top);
-             
+
         }
 
         {
@@ -179,7 +179,7 @@ void Text::set()
 
                 unsigned char transparency = g->bitmap.buffer[x + (g->bitmap.rows - y) * g->bitmap.width];
 
-                if (transparency == 255 || 1) {  // Draw char 
+                if (transparency == 255) {  // Draw char 
                     pixels[index + 0] = color.r;
                     pixels[index + 1] = color.g;
                     pixels[index + 2] = color.b;
@@ -239,6 +239,8 @@ void Text::SetClick(GuiClick c)
 
 void Text::SetContent(const std::string & ct)
 {
+    if (ct == text)
+        return;
     text = ct;
     guiClick.values["content:"] = text;
     set();

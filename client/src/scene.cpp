@@ -1,8 +1,9 @@
 #include "scene.h"
 
 Scene::Scene(Window & win, const glm::vec2 & resolution)
-    : window(win), gui(resolution), shader("src/graphics/shaders/vert.v", "src/graphics/shaders/frag.f"), camera(window.GetSize())
+    : window(win), gui(resolution), shader("src/graphics/shaders/vert.v", "src/graphics/shaders/frag.f", "",""), camera(window.GetSize())
 {
+    this->resolution = resolution;
     glUseProgram(shader.GetProgram());
     glm::mat4 matrix = glm::ortho(0.0f, (float)resolution.x, 0.0f, (float)resolution.y);
     glUniformMatrix4fv(glGetUniformLocation(shader.GetProgram(), "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));

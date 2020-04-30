@@ -16,7 +16,7 @@ class Rectangle
     void bind();
     void unbind();
     
-protected:
+public:
     std::shared_ptr<Texture> texture;
     glm::vec3 position;
     glm::vec2 size;
@@ -31,14 +31,20 @@ public:
     Rectangle(Rectangle &&) = delete;
     Rectangle(glm::vec3 pos, glm::vec2 s, glm::vec4 color = glm::vec4(.0f, 0.0f, .0f, 1.0f));
     Rectangle(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4, glm::vec4 color = glm::vec4(.0f, 0.0f, .0f, 1.0f));
+
+
+    Rectangle(glm::vec3 pos, glm::vec2 s, glm::vec2 texCoordLeftBottom, glm::vec2 texCoordLen);
+    
     
     virtual ~Rectangle();
     
     void SetColor(glm::vec4 color);
     void SetTexture(std::shared_ptr<Texture> t);
     
-    virtual void Draw();    
+    void Draw(bool patches);    
+    virtual void Draw() { Draw(false); }
     bool Click(int x, int y);
+
 
     void Init();
     void Left();

@@ -18,10 +18,10 @@ Window::Window(glm::vec2 size, std::string title)
         
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
-    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
     this->size = size;
     window = glfwCreateWindow(size.x, size.y, this->title.c_str(), NULL, NULL); // window mode
@@ -41,10 +41,12 @@ Window::Window(glm::vec2 size, std::string title)
 
     
     glEnable(GL_DEPTH_TEST);   // Enable depth testing for z-culling
+    //glDepthFunc(GL_NOTEQUAL);
     glDepthFunc(GL_LEQUAL);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
 
     for (int i = 0; i < 1000; i++)
         keys[i] = false;
