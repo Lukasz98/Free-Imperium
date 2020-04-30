@@ -48,6 +48,12 @@ Window::Window(glm::vec2 size, std::string title)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     //glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
 
+//glEnable(GL_SCISSOR_TEST);
+//glScissor(GLint x​, GLint y​, GLsizei width​, GLsizei height​);
+//glScissor(0, 0, size.x, size.y);// GLint x​, GLint y​, GLsizei width​, GLsizei height​);
+    //glEnable(GL_CULL_FACE);
+    //glCullFace(GL_FRONT_AND_BACK);
+
     for (int i = 0; i < 1000; i++)
         keys[i] = false;
     scrollOffset = 0.0;

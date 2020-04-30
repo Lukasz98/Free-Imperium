@@ -120,8 +120,15 @@ for (auto & p : provs) {
 GLuint ts[] = {0, map.mapTexture->GetId(), texture.GetId(), grassT.GetId(), stoneT.GetId() };
 //GLuint ts[] = {0, texture.GetId(), map.mapTexture->GetId()};
 glBindTextures(ts[0], 5, ts);
-for (auto & r : rects)
-r->Draw(true);
+for (auto & r : rects) {
+    auto rpos = r->GetPosition();
+    auto rsize = r->GetSize();
+    if (camera.IsPointInFrustum(rpos) ||
+        camera.IsPointInFrustum(rpos + glm::vec3{rsize.x, 0,0}) ||
+        camera.IsPointInFrustum(rpos + glm::vec3{0.0, rsize.y,0}) ||
+        camera.IsPointInFrustum(rpos + glm::vec3{rsize.x, rsize.y, 0}))
+        r->Draw(true);
+}
 #endif
 GLuint tss[] = {0};
 glBindTextures(tss[0], 1, tss);

@@ -14,21 +14,25 @@
         eye = glm::vec3(1077, 537, 169.0f);
         up = glm::vec3(0.0f, 1.0f, 0.0f);
         look = glm::vec3(.0f, .0f, -0.1f);
+        setPlanes();
     }
     
     void Camera::MoveHor(int x, float dt)
     {
         eye.x += speed * x * dt;
+        setPlanes();
     }
 
     void Camera::MoveVer(int y, float dt)
     {
         eye.y += speed * y * dt;
+        setPlanes();
     }
 
     void Camera::Rotate(int ax, float dt)
     {
         look.y += 0.4f * dt * ax;
+        setPlanes();
         //look.x += speed *dt*ax;
     }
 
@@ -63,5 +67,95 @@
             speed = baseSpeed * (fov - fovMin + 0.01f);
             projection = glm::perspectiveFovRH(fov, width, height, near, far);
         }
+        setPlanes();
     }
 
+void Camera::setPlanes()
+{
+glm::mat4 m = projection * glm::lookAt(eye, eye + look, up);
+/*
+ planes[0].x = m[3][0] + m[0][0];
+ planes[0].y = m[3][1] + m[0][1];
+ planes[0].z = m[3][2] + m[0][2];
+ planes[0].w = m[3][3] + m[0][3];
+ // Right clipping plane
+ planes[1].x = m[3][0] - m[0][0];
+ planes[1].y = m[3][1] - m[0][1];
+ planes[1].z = m[3][2] - m[0][2];
+ planes[1].w = m[3][3] - m[0][3];
+ // Top clipping plane
+ planes[2].x = m[3][0] - m[1][0];
+ planes[2].y = m[3][1] - m[1][1];
+ planes[2].z = m[3][2] - m[1][2];
+ planes[2].w = m[3][3] - m[1][3];
+ // Bottom clipping plane
+ planes[3].x = m[3][0] + m[1][0];
+ planes[3].y = m[3][1] + m[1][1];
+ planes[3].z = m[3][2] + m[1][2];
+ planes[3].w = m[3][3] + m[1][3];
+ // Near clipping plane
+ planes[4].x = m[3][0] + m[2][0];
+ planes[4].y = m[3][1] + m[2][1];
+ planes[4].z = m[3][2] + m[2][2];
+ planes[4].w = m[3][3] + m[2][3];
+ // Far clipping plane
+ planes[5].x = m[3][0] - m[2][0];
+ planes[5].y = m[3][1] - m[2][1];
+ planes[5].z = m[3][2] - m[2][2];
+ planes[5].w = m[3][3] - m[2][3];
+*/
+
+ planes[0].x = m[0][3] + m[0][0];
+ planes[0].y = m[1][3] + m[1][0];
+ planes[0].z = m[2][3] + m[2][0];
+ planes[0].w = m[3][3] + m[3][0];
+ // Right clipping plane
+ planes[1].x = m[0][3] - m[0][0];
+ planes[1].y = m[1][3] - m[1][0];
+ planes[1].z = m[2][3] - m[2][0];
+ planes[1].w = m[3][3] - m[3][0];
+ // Top clipping plane
+ planes[2].x = m[0][3] - m[0][1];
+ planes[2].y = m[1][3] - m[1][1];
+ planes[2].z = m[2][3] - m[2][1];
+ planes[2].w = m[3][3] - m[3][1];
+ // Bottom clipping plane
+ planes[3].x = m[0][3] + m[0][1];
+ planes[3].y = m[1][3] + m[1][1];
+ planes[3].z = m[2][3] + m[2][1];
+ planes[3].w = m[3][3] + m[3][1];
+ // Near clipping plane
+ planes[4].x = m[0][2];// + m[2][0];
+ planes[4].y = m[1][2];// + m[2][1];
+ planes[4].z = m[2][2];// + m[2][2];
+ planes[4].w = m[3][2];// + m[2][3];
+ // Far clipping plane
+ planes[5].x = m[0][3] - m[0][2];
+ planes[5].y = m[1][3] - m[1][2];
+ planes[5].z = m[2][3] - m[2][2];
+ planes[5].w = m[3][3] - m[3][2];
+
+
+ //normalize
+ //for (int i = 0; i < 6; i++)
+ //planes[i] = 1.0f / planes[i];
+}
+
+bool Camera::IsPointInFrustum(glm::vec3 p)
+{
+    for(int i = 0; i < 6; i++) {
+      float d = planes[i].x * p.x + planes[i].y * p.y + planes[i].z * p.z + planes[i].w;
+      if (d < 0)
+        return false;
+      //if(planes[i].x * p.x + planes[i].y * p.y + planes[i].z * p.z + planes[i].w <= 0)
+      //   return false;
+    }
+    return true;
+
+/*
+     d = plane.a*pt.x + plane.b*pt.y + plane.c*pt.z + plane.d;
+ if (d < 0) return NEGATIVE;
+ if (d > 0) return POSITIVE;
+ return ON_PLANE;
+*/
+}

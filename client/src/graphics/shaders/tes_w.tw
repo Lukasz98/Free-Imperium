@@ -11,7 +11,7 @@ in TCS_OUT
 out TES_OUT
 {
     vec2 tc;
-    vec2 grass_tc;
+    //vec2 grass_tc;
     float h;
     float x, y;
 } tes_out;
@@ -53,7 +53,7 @@ gl_Position = matrix * pos;
 
 
 
-
+/*
 
 int ile_podzielen = int(1920.0 / 64.0);
 int za_ktorym = int(tc.x * float(ile_podzielen));
@@ -86,7 +86,7 @@ gtc.y = diff;
 
 
 tes_out.grass_tc = gtc;
-
+*/
 
 
 

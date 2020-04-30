@@ -13,7 +13,7 @@ out vec4 color;
 in TES_OUT
 {
   vec2 tc;
-  vec2 grass_tc;
+  //vec2 grass_tc;
   float h;
   float x,y;
 } fs_in;
@@ -25,15 +25,15 @@ void main()
   
   vec2 ttc = vec2(fs_in.x / 64.0, fs_in.y / 64.0); 
   
-  if (color.z != 1.0) {
+//  if (color.z != 1.0) {
 
    //color = vec4(0.0,0.0,0.0,1.0);
     //color.x = fs_in.grass_tc.x;
     //color.y = fs_in.grass_tc.y;//za_ktorym_x;//tc.x;
-    color = mix(color, texture(grassTexID, ttc), 0.9f);
+    //color = mix(color, texture(grassTexID, ttc), 0.9f);
     //color = mix(color, texture(grassTexID, fs_in.grass_tc), 0.9f);
     
-  }
+//  }
 
   if (fs_in.h > 0.4) {
     //color.x += fs_in.h / 2;

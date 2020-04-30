@@ -8,6 +8,7 @@
 class Camera
 {
  public:
+    glm::vec4 planes[6];
     glm::mat4 projection;
     glm::vec3 eye, center, up;
     glm::vec3 look;
@@ -21,7 +22,9 @@ class Camera
 
     glm::vec3 mouseInWorld;
     glm::vec2 windowSize;
-    
+
+    void setPlanes();
+
 public:
     Camera(glm::vec2 winSize);
 
@@ -30,6 +33,8 @@ public:
     void MoveVer(int y, float dt);
 
     void Rotate(int ax, float dt);
+
+    bool IsPointInFrustum(glm::vec3 p);
 
     glm::mat4 GetMat()
     {
