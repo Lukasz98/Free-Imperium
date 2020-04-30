@@ -35,7 +35,7 @@ public:
     void Rotate(int ax, float dt);
 
     bool IsPointInFrustum(glm::vec3 p);
-
+    float GetFovDelta() { return fov - fovMin; }
     glm::mat4 GetMat()
     {
         return projection * glm::lookAt(eye, eye + look, up);

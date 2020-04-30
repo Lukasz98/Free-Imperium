@@ -60,7 +60,7 @@ auto rects = getRects(&map);
 Log(rects.size());
     glUseProgram(shader.GetProgram());
     glPatchParameteri(GL_PATCH_VERTICES, 3);
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     Camera camera{window.GetSize()};
 
@@ -86,7 +86,15 @@ glm::mat4 matrix = camera.GetMat();
     
     glUseProgram(shader.GetProgram());
     glUniformMatrix4fv(glGetUniformLocation(shader.GetProgram(), "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
-
+    {
+        float fov = camera.GetFov();
+        float fovDelta = camera.GetFovDelta();// - 0.5f;
+        float d = 1.5f - fovDelta;
+        float trCount = 20.0f;
+        trCount += d * 44;
+        //Log(trCount);
+        glUniform1f(glGetUniformLocation(shader.GetProgram(), "level"), trCount);
+    }
 
         if (window.keys['A']) camera.MoveHor(-1, dt);
         if (window.keys['D']) camera.MoveHor(1,dt);

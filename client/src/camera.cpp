@@ -6,7 +6,7 @@
         speed = 1000.0f;
         baseSpeed = 1000.0f;
         left = 0.0f, bottom = 0.0f;
-        fov = 45.0f, fovMax = 46.0f, fovMin = 44.0f;
+        fov = 45.0f, fovMax = 46.0f, fovMin = 44.5f;
         near = 5.1f, far = 1001.0f;
 
         windowSize = winSize;
@@ -62,6 +62,11 @@
             fov += .1f;
             ok = 1;
         }
+
+        if (fov < fovMin)
+            fov = fovMin;
+        else if (fov > fovMax)
+            fov = fovMax;
         
         if (ok) {
             speed = baseSpeed * (fov - fovMin + 0.01f);

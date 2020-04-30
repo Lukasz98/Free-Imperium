@@ -13,10 +13,15 @@ out TCS_OUT
 } tcs_out[];
 
 uniform mat4 matrix;
-
+uniform float level;
 void main()
 {
     if (gl_InvocationID == 0) {
+        gl_TessLevelInner[0] = level;
+        gl_TessLevelOuter[0] = level;
+        gl_TessLevelOuter[1] = level;
+        gl_TessLevelOuter[2] = level;
+ /*
         if (1 == 1) {
            gl_TessLevelInner[0] = 24.0;
            gl_TessLevelOuter[0] = 24.0;
@@ -29,6 +34,7 @@ void main()
            gl_TessLevelOuter[1] = 64.0;
            gl_TessLevelOuter[2] = 64.0;
         }
+*/
     }
     tcs_out[gl_InvocationID].tc = tcs_in[gl_InvocationID].tc;
     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
