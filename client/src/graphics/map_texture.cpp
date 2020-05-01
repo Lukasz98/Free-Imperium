@@ -8,7 +8,7 @@ MapTexture::MapTexture(std::string path, int w, int h)
     brightenProvPixels = new unsigned char[originW * originH * 4];
     std::copy(pixelsOrigin, pixelsOrigin + originW * originH * 4, countryPixels);
     std::copy(pixelsOrigin, pixelsOrigin + originW * originH * 4, brightenProvPixels);
-    drawProvinceBorders();
+    //drawProvinceBorders();
 }
 
 MapTexture::~MapTexture()
