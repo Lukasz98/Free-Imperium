@@ -52,15 +52,16 @@ Shader shader{"src/graphics/shaders/vert.v", "src/graphics/shaders/frag.f",
                "std/graphics/shaders/tes_ster.ts",
                "src/graphics/shaders/tes_w.tw"};
 
-Texture texture{"../shared/map2.png", 1920, 1088};
+Texture texture{"../shared/map_height.png", 1920, 1088};
 Texture grassT{"../shared/grass1.png", 64, 64};
 Texture stoneT{"../shared/smoothstone.png", 64, 64};
+Texture water{"../shared/water2.png", 64, 64};
 Log(grassT.GetId());
 auto rects = getRects(&map);
 Log(rects.size());
     glUseProgram(shader.GetProgram());
     glPatchParameteri(GL_PATCH_VERTICES, 3);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     Camera camera{window.GetSize()};
 
@@ -78,7 +79,7 @@ Rectangle testRect = Rectangle{
 //auto provs = setTextures(&map, &texture, provinces);
 
     int frames = 0;
-    float frameTime = 0.0f;
+    float frameTime = 0.0f, waterTime = 0.0f;
     float dt = 0.0f, currTime = glfwGetTime();
     while (!window.ShouldClose()) {
         window.Refresh();
@@ -95,6 +96,7 @@ glm::mat4 matrix = camera.GetMat();
         //Log(trCount);
         glUniform1f(glGetUniformLocation(shader.GetProgram(), "level"), trCount);
     }
+    glUniform1f(glGetUniformLocation(shader.GetProgram(), "waterTime"), waterTime);
 
         if (window.keys['A']) camera.MoveHor(-1, dt);
         if (window.keys['D']) camera.MoveHor(1,dt);
@@ -125,9 +127,9 @@ for (auto & p : provs) {
 //break;
 }
 #else
-GLuint ts[] = {0, map.mapTexture->GetId(), texture.GetId(), grassT.GetId(), stoneT.GetId() };
+GLuint ts[] = {0, map.mapTexture->GetId(), texture.GetId(), grassT.GetId(), stoneT.GetId(), water.GetId() };
 //GLuint ts[] = {0, texture.GetId(), map.mapTexture->GetId()};
-glBindTextures(ts[0], 5, ts);
+glBindTextures(ts[0], 6, ts);
 for (auto & r : rects) {
     auto rpos = r->GetPosition();
     auto rsize = r->GetSize();
@@ -147,7 +149,8 @@ testRect.Draw(false);
         frames++;
         window.Update();
         dt = glfwGetTime() - currTime;
-    
+
+        waterTime += dt;    
         frameTime += dt;
         if (frameTime > 1.0f) {
             frameTime = 0.0;
