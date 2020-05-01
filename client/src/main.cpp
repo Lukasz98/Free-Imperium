@@ -243,7 +243,7 @@ std::shared_ptr<Texture> setCountryBorders(std::vector<std::shared_ptr<Country>>
                 countryPixels[index + off * 4 + 0] = currentColor.r;
                 countryPixels[index + off * 4 + 1] = currentColor.g;
                 countryPixels[index + off * 4 + 2] = currentColor.b;
-                countryPixels[index + off * 4 + 3] = 255 - (off + 2) * 60;
+                countryPixels[index + off * 4 + 3] = 255 - (off + 1) * 60;
             }
         }
     }
@@ -260,7 +260,7 @@ std::shared_ptr<Texture> setCountryBorders(std::vector<std::shared_ptr<Country>>
                 countryPixels[index - off * 4 + 0] = currentColor.r;
                 countryPixels[index - off * 4 + 1] = currentColor.g;
                 countryPixels[index - off * 4 + 2] = currentColor.b;
-                countryPixels[index - off * 4 + 3] = 255 - (off + 2) * 60;
+                countryPixels[index - off * 4 + 3] = 255 - (off + 1) * 60;
             }
         }
     }
@@ -274,7 +274,7 @@ std::shared_ptr<Texture> setCountryBorders(std::vector<std::shared_ptr<Country>>
             lastColor = currentColor;
                 
             for (int off = 0; off < 3 && y - off >= 0; off++) {
-                unsigned char myAlfa = 255 - (off + 2) * 60;
+                unsigned char myAlfa = 255 - (off + 1) * 60;
                 unsigned char a = countryPixels[index - off * originW * 4 + 3];
                 if (a > myAlfa)
                     continue;
@@ -296,7 +296,7 @@ std::shared_ptr<Texture> setCountryBorders(std::vector<std::shared_ptr<Country>>
             lastColor = currentColor;
                 
             for (int off = 0; off < 3 && y + off < originH; off++) {
-                unsigned char myAlfa = 255 - (off + 2) * 60;
+                unsigned char myAlfa = 255 - (off + 1) * 60;
                 unsigned char a = countryPixels[index + off * originW * 4 + 3];
                 if (a > myAlfa)
                     continue;
@@ -313,10 +313,12 @@ std::shared_ptr<Texture> setCountryBorders(std::vector<std::shared_ptr<Country>>
 
 std::shared_ptr<Texture> setProvsBorders(Map * map)
 {
-    int originW = 1920, originH = 1088;
+    const int originW = 1920, originH = 1088;
     const unsigned char * pixelsOrigin = map->mapTexture->GetOriginPixels();
-    unsigned char provsPixels[1920 * 1088 * 4];
-    std::fill(provsPixels, provsPixels + 1920 * 1088 * 4, 0);
+    //const int scale = 2;
+    unsigned char provsPixels[originW * originH * 4];
+    std::fill(provsPixels, provsPixels + originW * originH * 4, 0);
+    //Log("ti");
     Color lastColor{255,255,255,255};
     Color bColor{50, 50, 50, 55};
     for (int y = 0; y < originH; y++) {
@@ -326,6 +328,7 @@ std::shared_ptr<Texture> setProvsBorders(Map * map)
             if (currentColor == lastColor)
                 continue;
             lastColor = currentColor;
+            //index = (y*scale) * originW * 4 + (x*scale) * 4;
             int off = 0;
             //for (int off = 0; off < 3 && x + off < originW; off++) {
                 provsPixels[index + off * 4 + 0] = bColor.r;

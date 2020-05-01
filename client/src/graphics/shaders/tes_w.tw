@@ -43,10 +43,15 @@ else {
   zz = vec4(0.0, 0.0, sin(waterTime) * 1, 0.0);
   //zz = vec4(0.0, 0.0, (waterTime + pos.x / 1920.0) * -2.0, 0.0);
   
-  int mod = int(pos.x + pos.y) % 4;
-  if (mod == 0) mod = -2;
-  else if (mod == 1) mod = -1;
-  zz.z = mod * sin(waterTime)  *2;
+  //int mod = int(pos.x * pos.y) % 10;
+  int mod = int(pos.x) % 10;
+  int mod2 = int(pos.y) % 10;
+  
+  if (mod < 5 && mod2 < 5) mod = -1;
+  else  mod = 1;
+  zz.z = mod * sin(waterTime*2);//  *2;
+  
+  //pos.x += mod;
   //zz.z *= int(pos.x) % 4;
   //if (int(pos.x) % 64 == 0) zz.z *= -1;
   //if (int(gl_in[0].gl_Position.x) % 2 == 0) zz.z *= -1;

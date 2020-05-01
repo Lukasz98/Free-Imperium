@@ -55,6 +55,9 @@ if (cBorderColor.w == 0.0) {
   color = mix(color, pBorderColor, pBorderColor.w);
 }
 
+  //if (int(fs_in.x) % 3 == 0)
+//    color = vec4(0.0,1.0,0.0,1.0);
+
 //color = mix(color, texture(cBordersTexID, fs_in.tc), 0.1f);
   }
      
