@@ -6,6 +6,7 @@ layout (triangles, equal_spacing, cw) in;
 in TCS_OUT
 {
     vec2 tc;
+  int id;
 } tes_in[];
 
 out TES_OUT
@@ -41,24 +42,22 @@ if (z != 0.0)
   zz = vec4(0.0, 0.0, z * 20.0, 0.0);
 else {
   zz = vec4(0.0, 0.0, sin(waterTime) * 1, 0.0);
-  //zz = vec4(0.0, 0.0, (waterTime + pos.x / 1920.0) * -2.0, 0.0);
-  
-  //int mod = int(pos.x * pos.y) % 10;
+/*  
   int mod = int(pos.x) % 10;
   int mod2 = int(pos.y) % 10;
-  
   if (mod < 5 && mod2 < 5) mod = -1;
   else  mod = 1;
   zz.z = mod * sin(waterTime*2);//  *2;
-  
-  //pos.x += mod;
-  //zz.z *= int(pos.x) % 4;
-  //if (int(pos.x) % 64 == 0) zz.z *= -1;
-  //if (int(gl_in[0].gl_Position.x) % 2 == 0) zz.z *= -1;
-  //if (int(gl_TessCoord.x) % 2 == 0) zz.z *= -20;
+*/
+float waveLen = 5.0f;
+float pi = 3.1456f;
+float radX = (pos.x / waveLen + waterTime/2) * 2.0 * pi;
+float radY = (pos.y / waveLen + waterTime/2) * 2.0 * pi;
+float wa = 1.0f;
+float ww = wa * 0.5 *(sin(radX) + cos(radY));
+zz.z = ww;
 }
 pos += zz;
-
 
 
 

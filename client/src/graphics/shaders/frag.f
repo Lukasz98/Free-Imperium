@@ -28,7 +28,8 @@ void main()
   color = texture(texID, fs_in.tc);
   
   if (color.z == 1.0) {
-    vec2 ttc = vec2(fs_in.x / 32.0, fs_in.y / 32.0); 
+    vec2 ttc = vec2(fs_in.x / 16.0, fs_in.y / 16.0); 
+    //vec2 ttc = vec2(fs_in.x / 128.0, fs_in.y / 128.0); 
     
     color = texture(waterTexID, ttc);
   }

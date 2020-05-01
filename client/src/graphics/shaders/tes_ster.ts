@@ -10,6 +10,7 @@ in VS_OUT
 out TCS_OUT
 {
     vec2 tc;
+    int id;
 } tcs_out[];
 
 uniform mat4 matrix;
@@ -36,6 +37,7 @@ void main()
         }
 */
     }
+    tcs_out[gl_InvocationID].id = gl_InvocationID;
     tcs_out[gl_InvocationID].tc = tcs_in[gl_InvocationID].tc;
     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
 }
