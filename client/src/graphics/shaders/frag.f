@@ -17,9 +17,10 @@ out vec4 color;
 in TES_OUT
 {
   vec2 tc;
-  //vec2 grass_tc;
   float h;
   float x,y;
+  float stone;
+  vec2 normal;
 } fs_in;
 
 
@@ -29,8 +30,6 @@ void main()
   
   if (color.z == 1.0) {
     vec2 ttc = vec2(fs_in.x / 16.0, fs_in.y / 16.0); 
-    //vec2 ttc = vec2(fs_in.x / 128.0, fs_in.y / 128.0); 
-    
     color = texture(waterTexID, ttc);
   }
   else {
@@ -43,23 +42,25 @@ void main()
     if (h > 0.5)
       h *= 1.2;
 
-    color = mix(color, texture(stoneTexID, ttc), h);
-    //if (fs_in.h > 0.7)
+    if (fs_in.normal.x != 0.0) {
+    color.x += fs_in.normal.x;
+    color.y += fs_in.normal.x;
+    color.z += fs_in.normal.x;
+    }
+    ///if (fs_in.stone > 0.5)
+    //  color = mix(color, texture(stoneTexID, ttc), h);
+    //if (fs_in.h > 0.5)
+      //color = mix(color, texture(stoneTexID, ttc), h);
+    ///if (fs_in.h > 0.6)
     //  color += vec4(0.1, 0.1, 0.1, 0.0);
    
-vec4 cBorderColor = texture(cBordersTexID, fs_in.tc);    
-//color.xyzw += borderColor.xyzw;
-color = mix(color, cBorderColor, cBorderColor.w);
+    vec4 cBorderColor = texture(cBordersTexID, fs_in.tc);    
+    color = mix(color, cBorderColor, cBorderColor.w);
 
-if (cBorderColor.w == 0.0) {
-  vec4 pBorderColor = texture(pBordersTexID, fs_in.tc);
-  color = mix(color, pBorderColor, pBorderColor.w);
-}
-
-  //if (int(fs_in.x) % 3 == 0)
-//    color = vec4(0.0,1.0,0.0,1.0);
-
-//color = mix(color, texture(cBordersTexID, fs_in.tc), 0.1f);
+    if (cBorderColor.w == 0.0) {
+      vec4 pBorderColor = texture(pBordersTexID, fs_in.tc);
+      color = mix(color, pBorderColor, pBorderColor.w);
+    }
   }
      
 }

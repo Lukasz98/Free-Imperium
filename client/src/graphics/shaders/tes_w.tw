@@ -1,20 +1,19 @@
 #version 450 core
 
 layout (triangles, equal_spacing, cw) in;
-// equal_spacing, cw) in;
 
 in TCS_OUT
 {
     vec2 tc;
-  int id;
 } tes_in[];
 
 out TES_OUT
 {
     vec2 tc;
-    //vec2 grass_tc;
     float h;
     float x, y;
+    float stone;
+    vec2 normal;
 } tes_out;
 
 layout (binding=2) uniform sampler2D height;
@@ -24,94 +23,69 @@ uniform float waterTime;
 
 void main(void)
 {
-vec2 tc = vec2(0.0,0.0);
-tc += gl_TessCoord[0] * tes_in[0].tc;
-tc += gl_TessCoord[1] * tes_in[1].tc;
-tc += gl_TessCoord[2] * tes_in[2].tc;
+    vec2 tc = vec2(0.0,0.0);
+    tc += gl_TessCoord[0] * tes_in[0].tc;
+    tc += gl_TessCoord[1] * tes_in[1].tc;
+    tc += gl_TessCoord[2] * tes_in[2].tc;
 
-vec4 pos = (
+    vec4 pos = (
         gl_TessCoord.x * gl_in[0].gl_Position + 
         gl_TessCoord.y * gl_in[1].gl_Position + 
         gl_TessCoord.z * gl_in[2].gl_Position
-//        + zz 
-);
-
-vec4 zz;
-    float z =  ( texture(height, tc).r);
-if (z != 0.0)
-  zz = vec4(0.0, 0.0, z * 20.0, 0.0);
-else {
-  zz = vec4(0.0, 0.0, sin(waterTime) * 1, 0.0);
-/*  
-  int mod = int(pos.x) % 10;
-  int mod2 = int(pos.y) % 10;
-  if (mod < 5 && mod2 < 5) mod = -1;
-  else  mod = 1;
-  zz.z = mod * sin(waterTime*2);//  *2;
-*/
-float waveLen = 5.0f;
-float pi = 3.1456f;
-float radX = (pos.x / waveLen + waterTime/2) * 2.0 * pi;
-float radY = (pos.y / waveLen + waterTime/2) * 2.0 * pi;
-float wa = 1.0f;
-float ww = wa * 0.5 *(sin(radX) + cos(radY));
-zz.z = ww;
-}
-pos += zz;
-
-
-
-tes_out.tc = tc;
-tes_out.h = z;
-
-tes_out.x = pos.x;
-tes_out.y = pos.y;
-
-
-gl_Position = matrix * pos;
-
-
-
-/*
-
-int ile_podzielen = int(1920.0 / 64.0);
-int za_ktorym = int(tc.x * float(ile_podzielen));
-
-float dl_podz = 1.0 / float(ile_podzielen);
-float za_ktorym_x = dl_podz * float(za_ktorym);
-float diff = tc.x - za_ktorym_x;
-diff = diff * ile_podzielen;
-//if (diff >= 0.99)
-//diff = 0.0;
-//if (diff > 1.0) diff = 1.0;
-
-    vec2 gtc = vec2(
-      diff,diff// 0.7// fs_in.tc.y * 1088 /64
     );
 
+    float z =  ( texture(height, tc).r);
+    vec4 zz;
+    if (z != 0.0) {
+        zz = vec4(0.0, 0.0, z * 20.0, 0.0);
+    }
+    else {
+        zz = vec4(0.0, 0.0, sin(waterTime) * 1, 0.0);
+        float waveLen = 5.0f;
+        float pi = 3.1456f;
+        float radX = (pos.x / waveLen + waterTime/2) * 2.0 * pi;
+        float radY = (pos.y / waveLen + waterTime/2) * 2.0 * pi;
+        float wa = 2.0f;
+        float ww = wa * 0.5 *(sin(radX) + cos(radY));
+        zz.z = ww;
+    }
 
-ile_podzielen = int(1088.0 / 64.0);
-za_ktorym = int(tc.y * float(ile_podzielen));
-dl_podz = 1.0 / float(ile_podzielen);
-float za_ktorym_y = dl_podz * float(za_ktorym);
-diff = tc.y - za_ktorym_y;
-diff = diff * ile_podzielen;
+    pos += zz;
 
-//if (diff <= 0.3)
-//diff = 1.0;
+    tes_out.tc = tc;
+    tes_out.h = z;
 
-gtc.y = diff;
+    tes_out.x = pos.x;
+    tes_out.y = pos.y;
 
+    gl_Position = matrix * pos;
 
+    float tcOff = 0.001;
+    if (texture(height, vec2(tcOff, 0.0) + tc).r < z) {
+      tes_out.stone = 1.0;
+    }
+    else if (texture(height, vec2(0.0, -tcOff) + tc).r < z) {
+      tes_out.stone = 1.0;
+    }
+    else if (texture(height, vec2(0.0, tcOff) + tc).r < z) {
+      tes_out.stone = 1.0;
+    }
+    else if (texture(height, vec2(tcOff, 0.0) + tc).r < z) {
+      tes_out.stone = 1.0;
+    }
+    else {
+      tes_out.stone = 0.0;
+    }
 
-tes_out.grass_tc = gtc;
-*/
-
-
-
-
-
-
-
+    tcOff = 0.001;
+    float right = (texture(height, vec2(tcOff, 0.0) + tc).r);
+    float bottom = (texture(height, vec2(0.0, -tcOff) + tc).r);
+    float top = (texture(height, vec2(0.0, tcOff) + tc).r);
+    float left = (texture(height, vec2(-tcOff, 0.0) + tc).r);
+    vec2 normal = vec2(left - right, bottom - top);
+    tes_out.normal = normal;// * sin(waterTime / 2);
+    
+    //if (tes_out.normal.x < 0.1) tes_out.normal.y += 0.1;
+    //if (tes_out.normal.y < 0.1) tes_out.normal.y = 0.1;
 
 }
