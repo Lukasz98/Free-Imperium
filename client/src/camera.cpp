@@ -7,11 +7,14 @@
         baseSpeed = 1000.0f;
         left = 0.0f, bottom = 0.0f;
         fov = 45.0f, fovMax = 46.0f, fovMin = 44.5f;
-        near = 5.1f, far = 1001.0f;
 
+       near = 5.1, far = 1000.1;
+       near = 5.1, far = 500.1;
+       
         windowSize = winSize;
         projection = glm::perspectiveFovRH(fov, width, height, near, far);
-        eye = glm::vec3(1077, 537, 169.0f);
+        //eye = glm::vec3(1077, 537, 169.0f);
+        eye = glm::vec3{0.0, 537, 169};
         up = glm::vec3(0.0f, 1.0f, 0.0f);
         look = glm::vec3(.0f, .0f, -0.1f);
         setPlanes();
@@ -32,6 +35,7 @@
     void Camera::Rotate(int ax, float dt)
     {
         look.y += 0.4f * dt * ax;
+        up.y = look.y;
         setPlanes();
         //look.x += speed *dt*ax;
     }
@@ -42,13 +46,48 @@
         glm::mat4 model(1.0);
         glm::vec4 viewport = { 0, 0, windowSize.x, windowSize.y };
 
-        glm::vec3 pos =
-            glm::unProject(win, model, projection * glm::lookAt(eye, eye + look, up), viewport);
-            
-        pos.x += (pos.x - eye.x) * 9600.0f;
 
-        pos.y += -(pos.y - eye.y) * 108000.0f / 11.0f;
-        mouseInWorld = pos;
+//glm::mat4 view{glm::lookAt(eye + glm::vec3{0.0,-look.y,0.0}, eye + look, up)};
+glm::mat4 view{glm::lookAt(eye, eye + look, up)};
+//glm::mat4 view{glm::lookAt(eye, eye + glm::vec3{0.0,0.0,-0.1}, up)};
+float x = (2.0f * xMouse) / windowSize.x - 1.0f;
+//float y = 1.0f - (2.0f * yMouse) / windowSize.y;
+float y = (2.0f * yMouse) / windowSize.y - 1.0f;
+
+//float x = (2.0f * xMouse) / width - 1.0f;
+//float y = 1.0f - (2.0f * yMouse) / height;
+float z = 1.0f;
+glm::vec3 ray_nds(x, y, z);
+glm::vec4 ray_clip(ray_nds.x, ray_nds.y, -1.0, 1.0);
+//glm::vec4 ray_clip(ray_nds.x, ray_nds.y, -1.0, 1.0);
+glm::vec4 ray_eye = glm::inverse(projection) * ray_clip;
+ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0, 0.0);
+glm::vec3 ray_wor = (glm::inverse(view) * ray_eye);//.xyz;
+// don't forget to normalise the vector at some point
+Log("AAA"<<ray_wor.x << " " << ray_wor.y <<" "<<ray_wor.z);
+//ray_wor.w = 1.0f; ray_wor = glm::normalize(ray_wor);
+//ray_wor = 1.0 / ray_wor;
+//Log("NNN"<<ray_wor.x << " " << ray_wor.y <<" "<<ray_wor.z);
+
+
+float mapZ = 0.0f;
+auto cPos = eye;// + look;
+eye.y -= look.y;
+float distance = cPos.z - mapZ;
+auto scaledRay = distance * ray_wor;// * distance;
+auto pos = cPos + scaledRay;
+Log("BBB: "<<pos.x << " " << pos.y <<" "<<pos.z);
+
+        //glm::vec3 pos = glm::unProject(win, model, projection * glm::lookAt(eye, eye + look, up), viewport);
+        //glm::vec3 pos = glm::unProject(win, model, projection * glm::lookAt(eye, eye + look, up), viewport);
+        ///pos.x += (pos.x - eye.x) * 9600.0f;
+
+        //pos.y += -(pos.y - eye.y) * 108000.0f / 11.0f;
+        
+        //pos.x += (pos.x - eye.x);
+        //pos.y += -(pos.y - eye.y);
+        //mouseInWorld = pos;
+        mouseInWorld = ray_wor;
     }
     
     void Camera::Scroll(int z)

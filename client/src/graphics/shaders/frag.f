@@ -46,9 +46,10 @@ void main()
     color.x += fs_in.normal.x;
     color.y += fs_in.normal.x;
     color.z += fs_in.normal.x;
+      //color = mix(color, texture(stoneTexID, ttc), 1.0);
     }
-    ///if (fs_in.stone > 0.5)
-    //  color = mix(color, texture(stoneTexID, ttc), h);
+    //if (fs_in.stone > 0.5)
+     // color = mix(color, texture(stoneTexID, ttc), 1.0);
     //if (fs_in.h > 0.5)
       //color = mix(color, texture(stoneTexID, ttc), h);
     ///if (fs_in.h > 0.6)

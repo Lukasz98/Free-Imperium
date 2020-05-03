@@ -80,7 +80,8 @@ Rectangle testRect = Rectangle{
                     glm::vec3{100.0, 200.0, 1.0}, 
                     glm::vec4{1.0,0.0,0.0,1.0}
 };
-
+Rectangle unitRect = Rectangle{glm::vec3{1000.0,550.0,1.0}, glm::vec2{40.0,15*4}};
+Texture unitT = Texture{"src/img/unit_1.png", 40, 40};
 //auto provs = setTextures(&map, &texture, provinces);
 
     int frames = 0;
@@ -149,8 +150,16 @@ GLuint tss[] = {0};
 glBindTextures(tss[0], 1, tss);
 glUseProgram(basicShader.GetProgram());
 glUniformMatrix4fv(glGetUniformLocation(basicShader.GetProgram(), "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
-testRect.Draw(false);
+//testRect.Draw(false);
+unitT.Bind();
+unitRect.Draw();
 
+if (window.mouseL) {
+    camera.Update(window.xMouse, window.size.y - window.yMouse);
+    glm::vec2 mouse = camera.GetMouseInWorld();
+    Log("MOUSE: " << mouse.x << ", " << mouse.y);
+    window.mouseL = false;
+}
         frames++;
         window.Update();
         dt = glfwGetTime() - currTime;
@@ -159,7 +168,7 @@ testRect.Draw(false);
         frameTime += dt;
         if (frameTime > 1.0f) {
             frameTime = 0.0;
-            Log("FPS: " << frames);
+            //Log("FPS: " << frames);
             frames = 0;
         }
     
@@ -181,7 +190,7 @@ testRect.Draw(false);
 std::vector<std::shared_ptr<Rectangle>> getRects(Map *map)
 {
     std::vector<std::shared_ptr<Rectangle>> rects;
-    float w = 64.0f;
+    float w = 64.0f, wScale = 1.0f;
     float x = 0.0f, y = 0.0f;
     int mapW = 1920, mapH = 1088;
     //float texCLen = w / mapW;
@@ -192,7 +201,7 @@ std::vector<std::shared_ptr<Rectangle>> getRects(Map *map)
             //glm::vec2 texC{(float)j / mapW, (float)i / mapH}; 
             //Log(texC.x);
             rects.push_back(
-                std::make_shared<Rectangle>(glm::vec3{(float)j, i, -1.0}, glm::vec2{w, w}, texC, tCL)
+                std::make_shared<Rectangle>(glm::vec3{(float)j * wScale, i * wScale, -1.0}, glm::vec2{w * wScale, w * wScale}, texC, tCL)
             );
             texC.x += tCL.x;
         }

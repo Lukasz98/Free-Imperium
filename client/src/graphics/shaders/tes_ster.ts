@@ -18,9 +18,9 @@ void main()
 {
     if (gl_InvocationID == 0) {
         gl_TessLevelInner[0] = level;
-        //gl_TessLevelOuter[0] = level;
-        //gl_TessLevelOuter[1] = level;
-        //gl_TessLevelOuter[2] = level;
+        gl_TessLevelOuter[0] = level;
+        gl_TessLevelOuter[1] = level;
+        gl_TessLevelOuter[2] = level;
  /*
         if (1 == 1) {
            gl_TessLevelInner[0] = 24.0;

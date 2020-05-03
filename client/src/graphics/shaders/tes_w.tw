@@ -60,7 +60,7 @@ void main(void)
 
     gl_Position = matrix * pos;
 
-    float tcOff = 0.001;
+    float tcOff = 0.0005;
     if (texture(height, vec2(tcOff, 0.0) + tc).r < z) {
       tes_out.stone = 1.0;
     }
