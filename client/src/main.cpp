@@ -80,7 +80,7 @@ Rectangle testRect = Rectangle{
                     glm::vec3{100.0, 200.0, 1.0}, 
                     glm::vec4{1.0,0.0,0.0,1.0}
 };
-Rectangle unitRect = Rectangle{glm::vec3{1000.0,550.0,1.0}, glm::vec2{40.0,15*4}};
+Rectangle unitRect = Rectangle{glm::vec3{1000.0,550.0,0.1}, glm::vec2{40.0,15*4}};
 Texture unitT = Texture{"src/img/unit_1.png", 40, 40};
 //auto provs = setTextures(&map, &texture, provinces);
 
@@ -156,9 +156,17 @@ unitRect.Draw();
 
 if (window.mouseL) {
     camera.Update(window.xMouse, window.size.y - window.yMouse);
-    glm::vec2 mouse = camera.GetMouseInWorld();
+    glm::vec3 mouse = camera.GetMouseInWorld();
     Log("MOUSE: " << mouse.x << ", " << mouse.y);
+    unitRect.SetPosition(glm::vec3{mouse.x, mouse.y,0.0});// mouse.z});
     window.mouseL = false;
+}
+auto uPPos = unitRect.GetPosition();
+if (uPPos.z > 0.1) {
+    uPPos.z -= dt * 200.0;
+    if (uPPos.z < 0.1)
+        uPPos.z = 0.1;
+    unitRect.SetPosition(uPPos);
 }
         frames++;
         window.Update();

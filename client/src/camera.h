@@ -37,10 +37,7 @@ public:
 
     bool IsPointInFrustum(glm::vec3 p);
     float GetFovDelta() { return fov - fovMin; }
-    glm::mat4 GetMat()
-    {
-        return projection * glm::lookAt(eye, eye + look, up);
-    }
+    glm::mat4 GetMat();
 
     void Update(double xMouse, double yMouse);
     

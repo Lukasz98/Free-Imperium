@@ -16,7 +16,7 @@
         //eye = glm::vec3(1077, 537, 169.0f);
         eye = glm::vec3{0.0, 537, 169};
         up = glm::vec3(0.0f, 1.0f, 0.0f);
-        look = glm::vec3(.0f, .0f, -0.1f);
+        look = glm::vec3(0.0f, .0f, -0.1f);
         setPlanes();
     }
     
@@ -35,59 +35,56 @@
     void Camera::Rotate(int ax, float dt)
     {
         look.y += 0.4f * dt * ax;
-        up.y = look.y;
+
+        //Log("Look y="<<tan(look.y) * eye.z);
+                //up.y = 0.1f *dt*ax;//look.y;
         setPlanes();
         //look.x += speed *dt*ax;
     }
 
     void Camera::Update(double xMouse, double yMouse)
     {
-        glm::vec3 win = {xMouse, yMouse, 0.0};
-        glm::mat4 model(1.0);
-        glm::vec4 viewport = { 0, 0, windowSize.x, windowSize.y };
 
-
-//glm::mat4 view{glm::lookAt(eye + glm::vec3{0.0,-look.y,0.0}, eye + look, up)};
 glm::mat4 view{glm::lookAt(eye, eye + look, up)};
-//glm::mat4 view{glm::lookAt(eye, eye + glm::vec3{0.0,0.0,-0.1}, up)};
 float x = (2.0f * xMouse) / windowSize.x - 1.0f;
-//float y = 1.0f - (2.0f * yMouse) / windowSize.y;
 float y = (2.0f * yMouse) / windowSize.y - 1.0f;
 
-//float x = (2.0f * xMouse) / width - 1.0f;
-//float y = 1.0f - (2.0f * yMouse) / height;
 float z = 1.0f;
 glm::vec3 ray_nds(x, y, z);
 glm::vec4 ray_clip(ray_nds.x, ray_nds.y, -1.0, 1.0);
-//glm::vec4 ray_clip(ray_nds.x, ray_nds.y, -1.0, 1.0);
 glm::vec4 ray_eye = glm::inverse(projection) * ray_clip;
 ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0, 0.0);
 glm::vec3 ray_wor = (glm::inverse(view) * ray_eye);//.xyz;
-// don't forget to normalise the vector at some point
 Log("AAA"<<ray_wor.x << " " << ray_wor.y <<" "<<ray_wor.z);
-//ray_wor.w = 1.0f; ray_wor = glm::normalize(ray_wor);
-//ray_wor = 1.0 / ray_wor;
+//ray_wor = glm::normalize(ray_wor);
 //Log("NNN"<<ray_wor.x << " " << ray_wor.y <<" "<<ray_wor.z);
 
 
 float mapZ = 0.0f;
-auto cPos = eye;// + look;
-eye.y -= look.y;
-float distance = cPos.z - mapZ;
-auto scaledRay = distance * ray_wor;// * distance;
-auto pos = cPos + scaledRay;
-Log("BBB: "<<pos.x << " " << pos.y <<" "<<pos.z);
+auto cPos = eye;// - look;
+glm::vec3 pos;
+bool ok = true;
+do {
+    float distance = cPos.z - mapZ;
+    auto scaledRay = distance * ray_wor;// * distance;
+    pos = cPos + scaledRay;
+    if (pos.z > 0.1) {
+        mapZ -= 0.1f;
+    }
+    else if (pos.z < 0.0) {
+        mapZ += 0.05f;
+    }
+    else {
+        ok = false;
+    }
+    if (pos.z > 0.1)
+        pos.z = 0.1;
+    //if (pos.z < 0)pos.z*=-1;
+    //pos.y += pos.z;
+} while(ok);
+    Log("BBB: "<<pos.x << " " << pos.y <<" "<<pos.z);
 
-        //glm::vec3 pos = glm::unProject(win, model, projection * glm::lookAt(eye, eye + look, up), viewport);
-        //glm::vec3 pos = glm::unProject(win, model, projection * glm::lookAt(eye, eye + look, up), viewport);
-        ///pos.x += (pos.x - eye.x) * 9600.0f;
-
-        //pos.y += -(pos.y - eye.y) * 108000.0f / 11.0f;
-        
-        //pos.x += (pos.x - eye.x);
-        //pos.y += -(pos.y - eye.y);
-        //mouseInWorld = pos;
-        mouseInWorld = ray_wor;
+       mouseInWorld = pos;
     }
     
     void Camera::Scroll(int z)
@@ -203,3 +200,10 @@ bool Camera::IsPointInFrustum(glm::vec3 p)
  return ON_PLANE;
 */
 }
+
+    glm::mat4 Camera::GetMat()
+    {
+        return projection * glm::lookAt(eye, eye + look, up);
+    }
+
+ 
