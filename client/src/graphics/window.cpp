@@ -42,7 +42,7 @@ Window::Window(glm::vec2 size, std::string title)
     
     glEnable(GL_DEPTH_TEST);   // Enable depth testing for z-culling
     //glDepthFunc(GL_NOTEQUAL);
-    glDepthFunc(GL_LEQUAL);
+    //glDepthFunc(GL_LEQUAL);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

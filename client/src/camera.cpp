@@ -14,7 +14,7 @@
         windowSize = winSize;
         projection = glm::perspectiveFovRH(fov, width, height, near, far);
         //eye = glm::vec3(1077, 537, 169.0f);
-        eye = glm::vec3{0.0, 537, 169};
+        eye = glm::vec3{0.0, 0, 169};
         up = glm::vec3(0.0f, 1.0f, 0.0f);
         look = glm::vec3(0.0f, .0f, -0.1f);
         setPlanes();
@@ -59,6 +59,7 @@ Log("AAA"<<ray_wor.x << " " << ray_wor.y <<" "<<ray_wor.z);
 //ray_wor = glm::normalize(ray_wor);
 //Log("NNN"<<ray_wor.x << " " << ray_wor.y <<" "<<ray_wor.z);
 
+rrrr = ray_wor;
 
 float mapZ = 0.0f;
 auto cPos = eye;// - look;

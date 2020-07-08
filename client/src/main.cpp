@@ -13,6 +13,8 @@
 #include "asset_manager.h"
 #include "settings.h"
 
+#include "graphics/model_3d.h"
+
 struct Prov {
     std::shared_ptr<Rectangle> rect;
     std::shared_ptr<Texture> t;
@@ -80,10 +82,19 @@ Rectangle testRect = Rectangle{
                     glm::vec3{100.0, 200.0, 1.0}, 
                     glm::vec4{1.0,0.0,0.0,1.0}
 };
-Rectangle unitRect = Rectangle{glm::vec3{1000.0,550.0,0.1}, glm::vec2{40.0,15*4}};
+Rectangle unitRect = Rectangle{glm::vec3{50.0,50.0,0.1}, glm::vec2{40.0,15*4}};
 Texture unitT = Texture{"src/img/unit_1.png", 40, 40};
 //auto provs = setTextures(&map, &texture, provinces);
 
+//Model3D model = Model3D{"src/img/xd_tux_0.blend.obj", glm::vec3{0.0, 0, 0.1}};
+//Model3D model = Model3D{"src/img/DudeDonePose.obj", glm::vec3{0.0, 0, 0.1}};
+Model3D model = Model3D{"src/img/DudeDonePosefix.obj", glm::vec3{0.0, 0, 0.1}};
+Texture modelTexture = Texture{"src/img/Done3.png"};
+Shader shader3d{"src/graphics/shaders/model_3d/vert.v",
+                    "src/graphics/shaders/model_3d/frag.f", "", ""};
+
+glm::vec3 modelPos{100.0,100.0,0.0};
+//glm::vec3 modelPos{0.0,100.0,0.0};
     int frames = 0;
     float frameTime = 0.0f, waterTime = 0.0f;
     float dt = 0.0f, currTime = glfwGetTime();
@@ -139,20 +150,45 @@ glBindTextures(ts[0], 8, ts);
 for (auto & r : rects) {
     auto rpos = r->GetPosition();
     auto rsize = r->GetSize();
+///*
     if (camera.IsPointInFrustum(rpos) ||
         camera.IsPointInFrustum(rpos + glm::vec3{rsize.x, 0,0}) ||
         camera.IsPointInFrustum(rpos + glm::vec3{0.0, rsize.y,0}) ||
         camera.IsPointInFrustum(rpos + glm::vec3{rsize.x, rsize.y, 0}))
         r->Draw(true);
+//*/
 }
 #endif
+glm::mat4 ml = glm::mat4(1.0);
 GLuint tss[] = {0};
 glBindTextures(tss[0], 1, tss);
 glUseProgram(basicShader.GetProgram());
 glUniformMatrix4fv(glGetUniformLocation(basicShader.GetProgram(), "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
+glUniformMatrix4fv(glGetUniformLocation(basicShader.GetProgram(), "ml"), 1, GL_FALSE, glm::value_ptr(ml));
 //testRect.Draw(false);
 unitT.Bind();
 unitRect.Draw();
+unitT.Unbind();
+
+ml = glm::translate(ml, modelPos);
+ml = glm::scale(ml, glm::vec3{10.0, 10.0, 10.0});
+glm::mat4 rotat = glm::rotate(glm::mat4{1.0}, 20.0f, glm::vec3{1.0, 0.0, 0.0});
+//ml = ml * rotat;
+ml = glm::rotate(ml, 20.0f, glm::vec3{1.0, 0.0, 0.0});
+//ml = glm::translate(ml, glm::vec3{0.0, 0.0, 1.0});
+
+glUniformMatrix4fv(glGetUniformLocation(basicShader.GetProgram(), "ml"), 1, GL_FALSE, glm::value_ptr(ml));
+model.DrawRect(ml);
+
+
+glUseProgram(shader3d.GetProgram());
+//ml = glm::rotate(ml, sin(waterTime) * 10, glm::vec3{0.0, 1.0, 0.0});
+glUniformMatrix4fv(glGetUniformLocation(shader3d.GetProgram(), "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
+glUniformMatrix4fv(glGetUniformLocation(shader3d.GetProgram(), "ml"), 1, GL_FALSE, glm::value_ptr(ml));
+modelTexture.Bind();
+
+model.Draw();
+
 
 if (window.mouseL) {
     camera.Update(window.xMouse, window.size.y - window.yMouse);
@@ -160,6 +196,9 @@ if (window.mouseL) {
     Log("MOUSE: " << mouse.x << ", " << mouse.y);
     unitRect.SetPosition(glm::vec3{mouse.x, mouse.y,0.0});// mouse.z});
     window.mouseL = false;
+    model.Click(ml, rotat, camera.rrrr, camera.GetEye());
+    //model.Click(ml, mouse, camera.GetEye());
+    //modelPos = glm::vec3{mouse.x, mouse.y, 0.1};
 }
 auto uPPos = unitRect.GetPosition();
 if (uPPos.z > 0.1) {

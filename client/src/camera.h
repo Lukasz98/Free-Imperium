@@ -26,6 +26,8 @@ class Camera
 
     void setPlanes();
 
+    glm::vec3 rrrr;
+
 public:
     Camera(glm::vec2 winSize);
 
@@ -45,4 +47,5 @@ public:
 
     glm::vec3 GetMouseInWorld() { return mouseInWorld; }
     float GetFov() { return fov; }
+    glm::vec3 GetEye() { return eye; }
 };

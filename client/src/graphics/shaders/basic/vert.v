@@ -14,5 +14,5 @@ void main()
 {
     col = Color;
     texCoord = TexCoord;
-    gl_Position = matrix * vec4(Pos, 1.0f);
+    gl_Position = matrix * ml * vec4(Pos, 1.0f);
 }
