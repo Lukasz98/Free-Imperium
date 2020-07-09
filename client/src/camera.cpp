@@ -42,7 +42,7 @@
         //look.x += speed *dt*ax;
     }
 
-    void Camera::Update(double xMouse, double yMouse)
+    void Camera::Update(double xMouse, double yMouse, const unsigned char * terrain)
     {
 
 glm::mat4 view{glm::lookAt(eye, eye + look, up)};
@@ -61,6 +61,34 @@ Log("AAA"<<ray_wor.x << " " << ray_wor.y <<" "<<ray_wor.z);
 
 rrrr = ray_wor;
 
+for (float f = 20.0f; f >= -1.0f; f -= 1.0f) {
+    glm::vec3 normal{0.0, 0.0, -1.0};
+    
+    double dn = glm::dot(ray_wor, normal);
+    if (dn == 0.0) continue;
+
+    glm::vec3 left{0.0, 0.0, f};
+    double tt = glm::dot(left - eye, normal) / dn;
+    
+    glm::vec3 qq{ray_wor.x * tt, ray_wor.y * tt, ray_wor.z * tt};
+    glm::vec3 h{eye + qq};
+
+    int texX = 0.5f + h.x, texY = 0.5f + h.y;
+    int texMapIndex = (1920 * (texY) + (texX));// + 0.5f;
+    float colZ = terrain[texMapIndex * 4 + 0];
+//    Log("Color: " <<colZ<<" x="<<texX<<" y="<<texY);
+    if (colZ != 0.0f) colZ = colZ / 255.0f;
+    float newZ = 20.0f * colZ;
+ 
+    if (newZ >= f) {
+
+       mouseInWorld = h;
+       break;
+    }
+
+}
+
+/*
 float mapZ = 0.0f;
 auto cPos = eye;// - look;
 glm::vec3 pos;
@@ -83,9 +111,10 @@ do {
     //if (pos.z < 0)pos.z*=-1;
     //pos.y += pos.z;
 } while(ok);
-    Log("BBB: "<<pos.x << " " << pos.y <<" "<<pos.z);
+*/
+//    Log("BBB: "<<pos.x << " " << pos.y <<" "<<pos.z);
 
-       mouseInWorld = pos;
+       //mouseInWorld = pos;
     }
     
     void Camera::Scroll(int z)

@@ -57,7 +57,7 @@ Shader shader{"src/graphics/shaders/vert.v", "src/graphics/shaders/frag.f",
                "std/graphics/shaders/tes_ster.ts",
                "src/graphics/shaders/tes_w.tw"};
 
-Texture texture{"../shared/map_height.png", 1920, 1088};
+std::shared_ptr<Texture> texture = std::make_shared<Texture>("../shared/map_height.png", 1920, 1088);
 Texture grassT{"../shared/grass1.png", 64, 64};
 Texture stoneT{"../shared/smoothstone.png", 64, 64};
 Texture water{"../shared/water2.png", 64, 64};
@@ -144,7 +144,7 @@ for (auto & p : provs) {
 //break;
 }
 #else
-GLuint ts[] = {0, map.mapTexture->GetId(), texture.GetId(), grassT.GetId(), stoneT.GetId(), water.GetId(), countryBorders->GetId(), provsBorders->GetId() };
+GLuint ts[] = {0, map.mapTexture->GetId(), texture->GetId(), grassT.GetId(), stoneT.GetId(), water.GetId(), countryBorders->GetId(), provsBorders->GetId() };
 //GLuint ts[] = {0, texture.GetId(), map.mapTexture->GetId()};
 glBindTextures(ts[0], 8, ts);
 for (auto & r : rects) {
@@ -170,6 +170,13 @@ unitT.Bind();
 unitRect.Draw();
 unitT.Unbind();
 
+texture->Bind();
+Rectangle reop{glm::vec3{-1920.0, 0.0, 1.1}, glm::vec2{1920,1088}};
+reop.SetTexture(texture);
+reop.Draw();
+texture->Unbind();
+
+
 ml = glm::translate(ml, modelPos);
 ml = glm::scale(ml, glm::vec3{10.0, 10.0, 10.0});
 glm::mat4 rotat = glm::rotate(glm::mat4{1.0}, 20.0f, glm::vec3{1.0, 0.0, 0.0});
@@ -179,8 +186,6 @@ ml = glm::rotate(ml, 20.0f, glm::vec3{1.0, 0.0, 0.0});
 
 glUniformMatrix4fv(glGetUniformLocation(basicShader.GetProgram(), "ml"), 1, GL_FALSE, glm::value_ptr(ml));
 model.DrawRect(ml);
-
-
 glUseProgram(shader3d.GetProgram());
 //ml = glm::rotate(ml, sin(waterTime) * 10, glm::vec3{0.0, 1.0, 0.0});
 glUniformMatrix4fv(glGetUniformLocation(shader3d.GetProgram(), "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
@@ -191,17 +196,25 @@ model.Draw();
 
 
 if (window.mouseL) {
-    camera.Update(window.xMouse, window.size.y - window.yMouse);
+    camera.Update(window.xMouse, window.size.y - window.yMouse, texture->GetOriginPixels());
     glm::vec3 mouse = camera.GetMouseInWorld();
     Log("MOUSE: " << mouse.x << ", " << mouse.y);
-    unitRect.SetPosition(glm::vec3{mouse.x, mouse.y,0.0});// mouse.z});
+    int texX = 0.5f + mouse.x, texY = 0.5f + mouse.y;
+    int texMapIndex = (1920 * (texY) + (texX));// + 0.5f;
+    float colZ = texture->GetOriginPixels()[texMapIndex * 4 + 0];
+    Log("Color: " <<colZ<<" x="<<texX<<" y="<<texY);
+    if (colZ != 0.0f) colZ = colZ / 255.0f;
+    float newZ = 20.0f * colZ;
+    Log("newz="<<newZ);
+    unitRect.SetPosition(glm::vec3{mouse.x, mouse.y,newZ});// mouse.z});
     window.mouseL = false;
     model.Click(ml, rotat, camera.rrrr, camera.GetEye());
     //model.Click(ml, mouse, camera.GetEye());
     //modelPos = glm::vec3{mouse.x, mouse.y, 0.1};
 }
+
 auto uPPos = unitRect.GetPosition();
-if (uPPos.z > 0.1) {
+if (uPPos.z > 0.1 && 0) {
     uPPos.z -= dt * 200.0;
     if (uPPos.z < 0.1)
         uPPos.z = 0.1;

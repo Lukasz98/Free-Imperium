@@ -41,7 +41,7 @@ public:
     float GetFovDelta() { return fov - fovMin; }
     glm::mat4 GetMat();
 
-    void Update(double xMouse, double yMouse);
+    void Update(double xMouse, double yMouse, const unsigned char * terrain);
     
     void Scroll(int z);
 

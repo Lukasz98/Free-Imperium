@@ -235,7 +235,7 @@ void Game::input()
         toSend.emplace_back(packet);
     }
     
-    camera.Update(window.xMouse, window.yMouse);
+    camera.Update(window.xMouse, window.yMouse, nullptr);
     
     if (window.scrollOffset) {
         if (!gui.Scroll(window.scrollOffset, window.xMouse, windowSize.y - window.yMouse))
