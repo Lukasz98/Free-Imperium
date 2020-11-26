@@ -1,12 +1,17 @@
 #pragma once
 #include <sstream>
 #include <algorithm>
+#include <memory>
 
 #include "log.h"
 #include "color.h"
 #include "peace_offer.h"
 #include "data_object.h"
 #include "truce.h"
+
+#include "unit.h"
+#include "province.h"
+#include "war.h"
 
 struct MonthCash
 {
@@ -20,6 +25,7 @@ struct MonthCash
 
 class Country
 {
+    int id = -1;
     Color color;
     bool ownedByBoot, active;
     std::string name, culture, religion;
@@ -38,16 +44,31 @@ class Country
 
     MonthCash monthUpdate;
 
-    std::vector<std::pair<std::string,int>> relations;
-    std::vector<std::string> imprRel;
+    std::vector<std::pair<int,int>> relations;
+    std::vector<int> imprRel;
 
     std::vector<int> poi; //provinceOfIntrest;
     std::vector<Truce> truces; //provinceOfIntrest;
-    
+
+    std::vector<std::shared_ptr<Unit>> units;
+    std::vector<std::shared_ptr<Province>> provinces;
+    std::vector<War*> wars;
+
 public:
 
     Country(DataObj * obj);
-    ~Country();
+
+    MonthCash MonthUpdate();
+
+    void AddProvince(std::shared_ptr<Province> & p);
+    void RemoveProvince(std::shared_ptr<Province> & p);
+
+    void AddWar(War * w);
+    void RemoveWar(War * w);
+    bool IsWarIn(const War * w);
+    void UpdateSiegesForWar();
+
+    std::vector<std::shared_ptr<Province>> GetProvs() { return provinces; }
 
     void Cash(MonthCash mc);
 
@@ -67,6 +88,7 @@ public:
 
     void SetArmyMaintenance(int am) { armyMaintenance = am; }
     
+    inline int GetId() const { return id; }
     std::string GetName() { return name; }
     std::string GetCulture() { return culture; }
     std::string GetReligion() { return religion; }
@@ -94,16 +116,19 @@ public:
     std::vector<int> GetPoI() const { return poi; }
     int GetPoISize() const { return poi.size(); }
 
-    void StartImprRel(const std::string & c);
-    void StopImprRel(const std::string & c);
-    bool IsImprRel(const std::string & c) const;
-    void ImprRel(const std::string & c, int r = 2);
-    int GetRel(const std::string & c) const;
-    const std::vector<std::pair<std::string,int>> & GetRelations() const { return relations; }
-    const std::vector<std::string> & GetImprRel() const { return imprRel; }
+    void StartImprRel(int cId);
+    void StopImprRel(int cOd);
+    bool IsImprRel(int cId) const;
+    void ImprRel(int cId, int r = 2);
+    int GetRel(int cId) const;
+    const std::vector<std::pair<int,int>> & GetRelations() const { return relations; }
+    const std::vector<int> & GetImprRel() const { return imprRel; }
 
     void AddTruce(Truce & t);
-    bool IsTruce(const std::string & c, const Date & d) const;
+    bool IsTruce(int cId) const;
     void DeleteExpiredTruces(const Date & d);
-};
 
+    void AddUnit(std::shared_ptr<Unit> & u);
+    void EraseUnit(std::shared_ptr<Unit> & u);
+    std::vector<std::shared_ptr<Unit>> GetUnits() { return units; }
+};

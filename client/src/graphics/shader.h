@@ -14,6 +14,7 @@ class Shader
     bool CheckShaderError(GLuint shader, GLuint flag, bool isProgram, const std::string &errorMessage);
 
 public:
-    Shader(std::string vertS, std::string fragS);
+Shader() {}
+    Shader(std::string vertS, std::string fragS, std::string tesSter, std::string tesW);
     GLuint GetProgram() { return program; }
 };

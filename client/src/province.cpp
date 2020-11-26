@@ -9,6 +9,7 @@ Province::Province(int id, DataObj * data)
     development = std::stoi(data->values["development:"]);
     country = data->values["country:"];
     population = std::stoi(data->values["population:"]);
+    countryId = std::stoi(data->values["countryId:"]);
 
     {
         std::string val;
@@ -47,18 +48,21 @@ void Province::AddNeighbour(int n_id)
     neighbours.push_back(n_id);
 }
 
-void Province::SetOwner(std::string owner)
+void Province::SetOwner(std::string owner, int ctrId)
 {
     sieged = 0;
     siegeSoldiers = 0;
+    siegeCountryId = -1;
     siegeCountry = "";
     country = owner;
+    countryId = ctrId;
     notify(GetValues());
 }
 
-void Province::Sieging(std::string ctr, int sieg, int sold)
+void Province::Sieging(std::string ctr, int ctrId, int sieg, int sold)
 {
     sieged = sieg;
+    siegeCountryId = ctrId;
     siegeCountry = ctr;
     siegeSoldiers = sold;
     siegeUpdated = true;
@@ -68,6 +72,7 @@ void Province::Sieging(std::string ctr, int sieg, int sold)
 void Province::ResetSieging()
 {
     sieged = 0;
+    siegeCountryId = -1;
     siegeCountry = "";
     siegeSoldiers = 0;
     notify(GetValues());

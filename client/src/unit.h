@@ -9,6 +9,9 @@
 #include "gui/float_to_string.h"
 #include "log.h"
 #include "observer.h"
+#include "asset_manager.h"
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 class Arrow : public Rectangle
 {
@@ -30,6 +33,7 @@ struct Move
 
 class Unit : public Rectangle, public Subject
 {
+    glm::mat4 model, rotate;
     std::unique_ptr<Label> bar;
 
     // if those three will have different sizes
@@ -42,7 +46,7 @@ class Unit : public Rectangle, public Subject
     int activeFrame;
     
     bool visible;
-    int id;
+    int id, countryId, provId;
     
     glm::vec3 fakePos; // this say on what province unit stays 
     std::string name, country;
@@ -57,7 +61,7 @@ class Unit : public Rectangle, public Subject
     std::vector<Move> moves;
 
 public:
-    Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string country);
+    Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string country, Color color, int ctrId, int provId);
     
     Unit(const Unit & u) = delete;
     
@@ -67,7 +71,7 @@ public:
 
     void AddMove(std::vector<Move> ms);
 
-    void Draw(bool isSelected = false);
+    void Draw(glm::mat4 matrix, bool isSelected = false);
     
     void Kill(int amount);
 
@@ -77,8 +81,13 @@ public:
     
     void Visible(bool v) { visible = v; }
 
-    bool Click(int x, int y) { if (!visible) return false; else return Rectangle::Click(x, y); }
+    bool Click(int x, int y) { 
+        if (!visible) return false; 
+        else return false;//Rectangle::Click(x, y); 
+    }
 
+    inline int GetCountryId() const { return countryId; }
+    inline int GeProvId() const { return provId; }
     std::string GetName() { return name; }
     std::string GetCountry() { return country; }
     int GetMorale() { return morale; }

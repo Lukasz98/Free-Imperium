@@ -10,7 +10,7 @@ window {
         size: ' 215 30 '
         bgColor: ' 200 200 200 255 '
         text {
-             position: ' 5 0 0.1 '
+             position: ' 5 0 0.2 '
              height: ' 30 '
              color: ' 100 0 0 255 '
              bgColor: ' 50 50 50 0 '
@@ -36,7 +36,7 @@ window {
             bgColor: ' 150 150 150 255 '
             text {
                 position: ' 5.0 0 0.1 '
-                height: ' 20 '
+                height: ' 25 '
                 color: ' 100 0 0 255 '
                 bgColor: ' 50 50 50 0 '
                 content: ' Army maintenance:  '

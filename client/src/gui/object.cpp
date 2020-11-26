@@ -1,7 +1,7 @@
 #include "object.h"
 
 Object::Object(int id)
-    : relativePos{0.0, 0.0, .1}, size{0.0, 0.0}, visible{true}, id{id}, hover{false}, position{0.0, 0.0, 0.0}, clickless{false}
+    : relativePos{0.0, 0.0, 0.1}, size{0.0, 0.0}, visible{true}, id{id}, hover{false}, position{0.0, 0.0, 0.1}, clickless{false}
 
 {
 }

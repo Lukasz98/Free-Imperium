@@ -9,12 +9,14 @@ struct PeaceOffer
     int peaceId;
     PeaceOffer();
     
-    std::vector<std::tuple<std::string,std::string,int>> lostProv;
-    std::vector<std::tuple<std::string,std::string,int>> gainProv;
+    //std::vector<std::tuple<std::string,std::string,int>> gainProv;
+    std::vector<std::tuple<int, int, int>> gainProv;
+    //std::vector<std::tuple<std::string,std::string,int>> lostProv;
+    std::vector<std::tuple<int, int, int>> lostProv;
     int warScore;
     int warId;
-    std::vector<std::string> attackers, defenders;
-    std::string recipant, offeredBy;
+    std::vector<int> attackers, defenders;
+    int recipant, offeredBy;
     bool recipantIsDefender;
 };
 

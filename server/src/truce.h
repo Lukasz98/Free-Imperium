@@ -12,7 +12,7 @@ struct Truce : public Date
         year = d.year;
     }
             
-    std::string enemy;
+    int enemy;
     bool operator>=(const Truce & t) const
     {
         return (enemy == t.enemy) && Date::operator>=(t);

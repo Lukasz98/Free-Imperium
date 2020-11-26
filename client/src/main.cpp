@@ -14,15 +14,15 @@
 int main()
 {
     //glm::vec2 windowSize = {800, 600};
-    glm::vec2 windowSize = {1280, 720};
+    //glm::vec2 windowSize = {1280, 720};
     //glm::vec2 windowSize = {1366, 768};
-    //glm::vec2 windowSize = {1600, 900};
+    glm::vec2 windowSize = {1600, 900};
     //glm::vec2 windowSize = {1920, 1080};
 
-    glm::vec2 resolution = windowSize;
+    //glm::vec2 resolution = windowSize;
     //glm::vec2 resolution = {windowSize.x * 2, windowSize.y * 2};
     //glm::vec2 resolution = {1280, 720};
-    //glm::vec2 resolution = {1920, 1080};
+    glm::vec2 resolution = {1920, 1080};
     std::string title = "Free_Imperium";
 
     Window window(windowSize, title);
@@ -34,7 +34,11 @@ int main()
     AM::Init();
 
     Settings settings;
+    settings.resolution = resolution;
     auto countries = CountryLoader::Load();
+    std::sort(countries.begin(), countries.end(), [](const std::shared_ptr<Country> & c1, const std::shared_ptr<Country> & c2){
+        return c1->GetId() < c2->GetId();
+    });
 
 
     Menu menu(window, settings, countries);

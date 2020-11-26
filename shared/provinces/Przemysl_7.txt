@@ -1,8 +1,9 @@
 province {
     name: ' Przemysl '
-    rgb: ' 80 162 255 '
+    rgb: ' 80 162 252 '
     development: ' 1 '
     unitPosition: ' 1104 384 '
     country: ' Poland '
+    countryId: ' 2 '
     population: ' 100000 '
 }

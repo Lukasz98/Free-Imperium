@@ -1,6 +1,6 @@
 #include "texture.h"
 
-Texture::Texture(std::string path, int w, int h)
+Texture::Texture(std::string path, int w, int h, GLint param)
 : originW(w), originH(h)
 {
     //std::cout << "1.Texture()\n";
@@ -10,18 +10,23 @@ Texture::Texture(std::string path, int w, int h)
         
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
-    if (bytes == originW * originH * 4)
+    if (bytes == originW * originH * 4) {
+        rgba = true;
         glTexImage2D(GL_TEXTURE_2D,0, GL_RGBA, originW, originH, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelsOrigin);
-    else
+    }
+    else {
+        rgba = false;
         glTexImage2D(GL_TEXTURE_2D,0, GL_RGB, originW, originH, 0, GL_RGB, GL_UNSIGNED_BYTE, pixelsOrigin);
+    }
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, param);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, param);
         
     Unbind();
 }
@@ -29,6 +34,7 @@ Texture::Texture(std::string path, int w, int h)
 Texture::Texture(const unsigned char * pixels, int w, int h)
 : originW(w), originH(h)
 {
+    rgba = true;
     //std::cout << "2.Texture()\n";
     int l = w*h*4;
     //if (pixelsOrigin != nullptr)
@@ -46,7 +52,9 @@ Texture::Texture(const unsigned char * pixels, int w, int h)
 
     //glTexImage2D(GL_TEXTURE_2D,0, GL_RGBA, originW, originH, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelsOrigin);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -65,4 +73,15 @@ Texture::~Texture()
     }
     //std::cout << "~Texture\n";
 }
-        
+
+void Texture::ReloadPixels()
+{
+    Bind();
+    if (rgba) {
+        glTexImage2D(GL_TEXTURE_2D,0, GL_RGBA, originW, originH, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelsOrigin);
+    }
+    else {
+        glTexImage2D(GL_TEXTURE_2D,0, GL_RGB, originW, originH, 0, GL_RGB, GL_UNSIGNED_BYTE, pixelsOrigin);
+    }
+    Unbind();
+}        

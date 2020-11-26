@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-
+#include <cassert>
 #include <SFML/Network.hpp>
 
 #include <glm/glm.hpp>
@@ -34,7 +34,7 @@ class Game : public Scene
     //Camera camera;
     //Gui gui;
     glm::vec2 windowSize, resolution;
-    float dt = 0.0f;
+    float dt = 0.0f, drawDt = 0.0f;
     
     std::vector<sf::Packet> toSend;
     std::shared_ptr<Country> myCountry;

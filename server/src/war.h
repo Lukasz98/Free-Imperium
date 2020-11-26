@@ -2,18 +2,17 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-
-#include "country.h" // only for PeaceOffer
-
+#include "log.h"
+//#include "country.h" // only for PeaceOffer
 
 class War
 {
     int id = 0;
-    std::vector<std::string> attackers;
-    std::vector<std::string> defenders;
+    std::vector<int> attackers;
+    std::vector<int> defenders;
 
-    std::vector<std::string> attackersProvs;
-    std::vector<std::string> defendersProvs;
+    std::vector<int> attackersProvs;
+    std::vector<int> defendersProvs;
 
     int attackerWarScore = 0;
     int attWarScFromSiege = 0;
@@ -27,32 +26,32 @@ public:
     static int id_num;
 
     War();
-    
+
     //void Peace(PeaceOffer offer);
-    void AddBattleWinner(std::string winner);
+    void AddBattleWinner(int winnerId);
 
     void Update();
-    void Erase(std::string name);
+    void Erase(int name);
     void AttackerSiege(int s) { attWarScFromSiege += s; }
     
-    void AddAttacker(std::string a) { attackers.push_back(a); }
-    void AddDefender(std::string d) { defenders.push_back(d); }
+    void AddAttacker(int cId) { attackers.push_back(cId); }
+    void AddDefender(int cId) { defenders.push_back(cId); }
 
-    void AddProv(const std::string & prov, const std::string & country);
-    void DeleteProv(const std::string & prov);
+    void AddProv(int provId, int countryId);
+    void DeleteProv(int provId);
 
-    bool ShouldTheyFight(std::string b, std::string c) const;
+    bool ShouldTheyFight(int cId1, int cId2) const;
     
     int GetId() const { return id; }
-    std::string GetAttackerName() const { if (attackers.size()) return attackers[0];  return "mydelko"; }
-    std::string GetDefenderName() const { if (defenders.size()) return defenders[0]; return "kaszka"; }
+    int GetAttackerId() const { if (attackers.size()) return attackers[0]; return -1; } //hmm -1
+    int GetDefenderId() const { if (defenders.size()) return defenders[0]; return -1; }
     int GetAttackerWarScore();
 
-    std::vector<std::string> GetAttackers() const { return attackers; }
-    std::vector<std::string> GetDefenders() const { return defenders; }
+    std::vector<int> GetAttackers() const { return attackers; }
+    std::vector<int> GetDefenders() const { return defenders; }
     
-    bool IsAttacker(std::string c) const;
-    bool IsDefender(std::string c) const;
+    bool IsAttacker(int cId) const;
+    bool IsDefender(int cId) const;
     
     bool IsEnded() const { return end; }
     int GetMonths() const { return months; }

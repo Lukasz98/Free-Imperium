@@ -10,6 +10,7 @@
 class Texture
 {
     GLuint texture;
+    bool rgba;
 
 protected:
     //std::vector<unsigned char> pixelsOrigin;
@@ -20,7 +21,7 @@ public:
     Texture(const Texture &) = delete;
     Texture(const Texture &&) = delete;
 
-    Texture(std::string path, int w = 0, int h = 0);
+    Texture(std::string path, int w = 0, int h = 0, GLint param = GL_CLAMP_TO_BORDER);
     Texture(const unsigned char * pixels, int w, int h);
     
     virtual ~Texture();
@@ -35,11 +36,14 @@ public:
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
+    void ReloadPixels();
+    unsigned char * GetPixToEdit() { return pixelsOrigin; }
+
+    GLuint GetId() { return texture; }
     virtual const unsigned char * GetPixels() { return pixelsOrigin; }
     //virtual const unsigned char * GetPixels() { return pixelsOrigin; }
     const unsigned char * GetOriginPixels() { return pixelsOrigin; }
     virtual void SwapColors(Color bef, Color aft) {}//= 0;
     virtual void BrightenProvince(Color bef, int increase) {}
-
 
 };

@@ -2,14 +2,16 @@
 
 int Unit::FreeId = 0;
 
-Unit::Unit(std::string name, glm::vec3 pos, int soldiers, std::string country, std::string fromProvince)
+Unit::Unit(std::string name, glm::vec3 pos, int soldiers, std::string country, int fromProvince, int countryId, int provId)
 {
     this->name = name;
     this->soldiers = soldiers;
     this->id = FreeId;
-    this->fromProvince = fromProvince;
+    this->fromProvinceId = fromProvince;
     FreeId++;
     this->country = country;
+    this->countryId = countryId;
+    this->provId = provId;
     fakePos = pos;
     position = pos;
 }
@@ -19,19 +21,21 @@ Unit::~Unit()
 
 }
 
-void Unit::Update()
+bool Unit::Update()
 {
     if (moves.size() && fakePos == position) {
         if (moves[0].daysLeft <= 0) {
             position.x = moves[0].destiny.x;
             position.y = moves[0].destiny.y;
             fakePos = position;
+            provId = moves[0].destinyId;
             moves.erase(moves.begin());
-            return;
+            return true;
         }
         else
             moves[0].daysLeft--;
     }
+    return false;
 }
 
 void Unit::AddMove(std::vector<Move> ms)
@@ -68,8 +72,11 @@ void Unit::Kill(int amount)
 
 void Unit::Battle(bool is, bool attacker)
 {
+//    Log("\n\n"<<name<< ", id="<<GetId()<<", amount="<<soldiers<<"\n");
+    Log(position.x << " " << position.y << " " << position.z << "\n");
+    Log(fakePos.x << " " << fakePos.y << " " << fakePos.z << "\n");
     isInBattle = is;
-    if (is) {
+    if(is ) {
         fakePos = position;
         if (attacker) { position.x -= 15; position.y -= 10; }
         else { position.x += 15; }

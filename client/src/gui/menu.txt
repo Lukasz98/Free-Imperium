@@ -4,7 +4,7 @@ window {
     size: ' 2000 1600 '
     bgColor: ' 25 25 25 255 '
     priority: ' high '
-    
+
     label {
         position: ' 20 500 0.1 '
         size: ' 550 150 '

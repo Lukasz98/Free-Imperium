@@ -7,6 +7,7 @@ Province::Province(int id, DataObj * data)
     name = data->values["name:"];
     development = std::stoi(data->values["development:"]);
     country = data->values["country:"];
+    countryId = std::stoi(data->values["countryId:"]);
     population = std::stoi(data->values["population:"]);
     {
         std::string val;
@@ -35,7 +36,6 @@ Province::Province(int id, DataObj * data)
 
 Province::~Province()
 {
-    
 }
 
 float Province::MonthUpdate(float tax)
@@ -44,19 +44,6 @@ float Province::MonthUpdate(float tax)
         manpower = population / 100.0f;
         firstUpdate = false;
     }
-
-    //populationGrowth = (float)population * 0.01f / 12.0f * (prosperity / 100.0f) + 1.0f;
-    //float monthPopulationGrowth = (0.01f / 12.0f) * (prosperity / 100.0f) + 1.0f;
-    //manpowerRecovery = (float)populationGrowth * 0.01f + 1.0f;
-    //manpower += manpowerRecovery;
-    //manpower += (population * monthPopulationGrowth) / 100.0f * (administration / 100.0f) * ((100.0f - autonomy) / 100.0f);
-    //population *= monthPopulationGrowth;
-    //population += populationGrowth;
-    
-    //unrest = prosperity / 100.0f * ((100.0f - autonomy) / 100.0f);
-    
-    //totalMonthIncome = (float)development * (administration / 100.0f) * ((100.0f - autonomy) / 100.0f);
-    //monthIncome = totalMonthIncome;
 
     manpowerRecovery = development * 50;
     if (manpower < population / 100.0f)
@@ -79,71 +66,6 @@ float Province::MonthUpdate(float tax)
 
 void Province::NewDay()
 {
-    if (siege == true && siegeCountry == "" && sieged < 100) {
-        siege = false;
-        sieged = 0;
-        siegedBy = "";
-    }
-    
-    if (siege == true && siegeCountry == "" && sieged == 100) {
-        siege = false;
-    }
-    
-    if (unsiege == true && siegeCountry == "" && sieged > 0) {
-        unsiege = false;
-        sieged = 100;
-    }
-}
-
-bool Province::Siege(int s, const std::string & siegeCountry, int soldiers)
-{
-    if (unsiege == true)
-        return false;
-    siege = true;
-    siegeSoldiers += soldiers;
-    sieged += s;
-        
-    if (this->siegeCountry == "")
-        this->siegeCountry = siegeCountry;
-
-    if (sieged >= 100) {
-        siegedBy = siegeCountry;
-        this->siegeCountry.clear();
-        sieged = 100;
-        siege = false;
-        return true;
-    }
-    else
-        return false;
-}
-
-bool Province::Unsiege(int s, int soldiers, const std::string & c)
-{
-    if (siege == true)
-        return false;
-    unsiege = true;
-        
-    siegeCountry = c;
-    siegeSoldiers += soldiers;
-    sieged -= s;
-    if (sieged <= 0) {
-        siegeCountry = "";
-        siegedBy = "";
-        sieged = 0;
-        unsiege = false;
-        return true;
-    }
-    return false;
-}
-
-void Province::SiegeBreak()
-{
-    siegeCountry = "";
-    siegeSoldiers = 0;
-}
-
-void Province::SiegeBy(std::string siegeCountry, int soldiers)
-{
 }
 
 void Province::AddNeighbour(int n_id)
@@ -155,32 +77,36 @@ void Province::AddNeighbour(int n_id)
     neighbours.push_back(n_id);
 }
 
-std::string Province::GetSiegeCountry() const
+void Province::Sieging(std::shared_ptr<Unit> & u)
 {
-    if (siegeCountry == "") {
-        if (siegedBy == "") {
-            return country;
+    siege.AddUnit(u);
+}
+
+void Province::UpdateSiege()
+{
+    siege.Update();
+    if (siege.IsDone() && siege.GetSiegeSoldiersCount() == 0) {
+        int power = 0;
+        for (auto & u : units) {
+            if (u->GetCountryId() == countryId) {
+                power += u->GetSiegePower();
+                u->SetSieging(true);
+            }
         }
-        else
-            return siegedBy;
-    }
-    else
-        return siegeCountry;
-}
-
-std::string Province::GetSiegedBy() const
-{
-    if (siegedBy == "")
-        return country;
-    else
-        return siegedBy;
-}
-
-void Province::ResetSiege()
-{
-    sieged = 0;
-    siegeSoldiers = 0;
-    siegeCountry = "";
+        if (power > 0) {
+            siege.Unsiege(power);
+        }
+        else {
+            siege.StopUnsiege();
+        }
+        if (siege.GetLevel() == 0 && power > 0) {
+            for (auto & u : units) {
+                if (u->GetCountryId() == countryId) {
+                    u->SetSieging(false);
+                }
+            }
+        }
+    } 
 }
 
 void Province::Print()
@@ -191,4 +117,36 @@ void Province::Print()
     for (auto & n : neighbours)
         std::cout << "- " << "" << n << "\n";
     std::cout << "--------------------\n\n";
+}
+
+void Province::AddUnit(std::shared_ptr<Unit> & u)
+{
+    units.emplace_back(u);
+}
+
+void Province::EraseUnit(std::shared_ptr<Unit> & u)
+{
+    siege.EraseUnit(u);
+    u->SetSieging(false); // important if unit was unsieging
+    auto it = std::find_if(units.begin(), units.end(), [id = u->GetId()](std::shared_ptr<Unit> & uu) {
+        return (id == uu->GetId());
+    });
+    if (it != units.end())
+        units.erase(it);
+}
+
+
+void Province::EraseSiegeUnitsCtr(int ctr)
+{
+    auto leader = siege.GetLeader();
+    std::vector<std::vector<std::shared_ptr<Unit>>::iterator>  a;
+    for (auto it = units.begin(); it < units.end(); it++) {
+        if ((*it)->GetCountryId() == ctr) {
+            siege.EraseUnit((*it));
+            a.push_back(it);
+        }
+    }
+    if (leader == ctr) {
+        siege = Siege();
+    }
 }

@@ -2,8 +2,8 @@
     
 int Battle::FreeId = 0;
 
-Battle::Battle(int warId, glm::vec3 pos, std::string prov)
-    : warId(warId), position(pos), provName(prov)
+Battle::Battle(int warId, glm::vec3 pos, int prov)
+    : warId(warId), position(pos), provId(prov)
 {
     id = FreeId;
     FreeId++;
@@ -23,32 +23,29 @@ void Battle::Update()
     int d_attack = 0;
     int a_defense = 0;
     int d_defense = 0;
-
+    
     std::vector<int> toDelete;
     for (auto & a : attackers) {
-        if (IsInFight(a)) {
-            if (position != a->GetFakePos() || a->GetSoldiers() <= 0)
-                toDelete.push_back(a->GetId());
-            else {
-                attackersSize += a->GetSoldiers();
-                attackersMorale += a->GetMorale();
-                a_attack += a->GetAttack();
-                a_defense += a->GetDefense();
-            }
+        if (position != a->GetFakePos() || a->GetSoldiers() <= 0)
+            toDelete.push_back(a->GetId());
+        else {
+            attackersSize += a->GetSoldiers();
+            attackersMorale += a->GetMorale();
+            a_attack += a->GetAttack();
+            a_defense += a->GetDefense();
         }
     }
     for (auto & d : defenders) {
-        if (IsInFight(d)) {
-            if (position != d->GetFakePos() || d->GetSoldiers() <= 0)
-                toDelete.push_back(d->GetId());
-            else {
-                defendersSize += d->GetSoldiers();
-                defendersMorale += d->GetMorale();
-                d_attack += d->GetAttack();
-                d_defense += d->GetDefense();
-            }
+        if (position != d->GetFakePos() || d->GetSoldiers() <= 0)
+            toDelete.push_back(d->GetId());
+        else {
+            defendersSize += d->GetSoldiers();
+            defendersMorale += d->GetMorale();
+            d_attack += d->GetAttack();
+            d_defense += d->GetDefense();
         }
     }
+    
     for (auto td : toDelete)
         Erase(td);
 
@@ -70,20 +67,20 @@ void Battle::Update()
         endBattle();
 }
 
-bool Battle::IsCountryInFight(const std::string & country) const
+bool Battle::IsCountryInFight(int country) const
 {
     for (auto & a : attackers)
-        if (a->GetCountry() == country) 
+        if (a->GetCountryId() == country) 
             return true;
 
     for (auto & d : defenders)
-        if (d->GetCountry() == country)
+        if (d->GetCountryId() == country)
             return true;
 
     return false;    
 }
 
-bool Battle::IsInFight(const std::shared_ptr<Unit> b) const
+bool Battle::IsInFight(const std::shared_ptr<Unit> & b) const
 {
     for (auto & a : attackers)
         if (a->GetId() == b->GetId())
@@ -96,7 +93,7 @@ bool Battle::IsInFight(const std::shared_ptr<Unit> b) const
     return false;
 }
 
-bool Battle::ShouldFight(const std::shared_ptr<Unit> b) const
+bool Battle::ShouldFight(const std::shared_ptr<Unit> & b) const
 {
     for (auto & a : attackers)
         if (a->GetCountry() == b->GetCountry())
@@ -109,34 +106,34 @@ bool Battle::ShouldFight(const std::shared_ptr<Unit> b) const
     return false;
 }
 
-void Battle::AddAttacker(std::shared_ptr<Unit> p)
+void Battle::AddAttacker(std::shared_ptr<Unit> & p)
 {
     if (!attackers.size())
-        attacker = p->GetCountry();
+        attackerId = p->GetCountryId();
     updated = true;
     p->Battle(true, true);
     attackers.push_back(p);
 }
     
-void Battle::AddDefender(std::shared_ptr<Unit> p)
+void Battle::AddDefender(std::shared_ptr<Unit> & p)
 {
     if (!defenders.size())
-        defender = p->GetCountry();
+        defenderId = p->GetCountryId();
     updated = true;
     p->Battle(true, false);
     defenders.push_back(p);
 }
 
-void Battle::AddUnit(std::shared_ptr<Unit> p)
+void Battle::AddUnit(std::shared_ptr<Unit> & p)
 {
     updated = true;
     for (auto & a : attackers)
-        if (a->GetCountry() == p->GetCountry()) {
+        if (a->GetCountryId() == p->GetCountryId()) {
             AddAttacker(p);
             return;
         }
     for (auto & d : defenders)
-        if (d->GetCountry() == p->GetCountry()) {
+        if (d->GetCountryId() == p->GetCountryId()) {
             AddDefender(p);
             return;
         }
@@ -144,42 +141,46 @@ void Battle::AddUnit(std::shared_ptr<Unit> p)
 
 void Battle::Erase(int id)
 {
-    for (int i = 0; i < attackers.size(); i++)
-        if (attackers[i]->GetId() == id) {
-            attackers[i]->Battle(false);
-            attackers.erase(attackers.begin() + i);
+     for (auto it = attackers.begin(); it < attackers.end(); it++)
+        if ((*it)->GetId() == id) {
+            (*it)->Battle(false);
+            attackers.erase(it);
             updated = true;
             return;
         }
         
-    for (int i = 0; i < defenders.size(); i++)
-        if (defenders[i]->GetId() == id) {
-            defenders[i]->Battle(false);
-            defenders.erase(defenders.begin() + i);
+    for (auto it = defenders.begin(); it < defenders.end(); it++)
+        if ((*it)->GetId() == id) {
+            (*it)->Battle(false);
+            defenders.erase(it);
             updated = true;
             return;
         }
 }
-    
-std::string Battle::GetWinner()
+
+int Battle::GetWinnerId()
 {
     if (attackers.size() == 0) {
         endBattle();
-        return defender;
+        return defenderId;
     }
     if (defenders.size() == 0) {
         endBattle();
-        return attacker;
+        return attackerId;
     }
         
-    return "none";
+    return -1; //to sie moze zemscic
 }
 
 void Battle::endBattle()
 {
+    if (ended)
+        return;
     ended = true;
-    for (auto & a : attackers)
+    for (auto & a : attackers) {
         a->Battle(false);
-    for (auto & d : defenders)
+    }
+    for (auto & d : defenders) {
         d->Battle(false);
+    }
 }

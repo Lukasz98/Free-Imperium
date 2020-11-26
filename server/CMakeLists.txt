@@ -9,7 +9,14 @@ set ( PROJECT_LINK_LIBS  -lpng16 -lstdc++fs -lsfml-system -lsfml-network )
 
 include_directories( "usr/include" "../shared/" "src/")
 
-add_compile_options(-std=c++17)
+add_compile_options(-std=c++17 -Wall -Wextra -Wpedantic
+#-Wconversion
+#-Wcast-align
+-Wunused
+#-Wshadow
+#-Wold-style-cast
+#-Wpointer-arith -Wcast-qual -Wmissing-prototypes -Wno-missing-braces
+)
 
 file(GLOB SOURCES "src/*.cpp")
 add_executable("Word_and_Sword_server" ${SOURCES})

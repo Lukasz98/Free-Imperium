@@ -9,17 +9,17 @@ War::War()
     id_num++;
 }
 
-void War::AddBattleWinner(std::string winner)
+void War::AddBattleWinner(int winnerId)
 {
     for (auto & a : attackers) {
-        if (a == winner) {
+        if (a == winnerId) {
             attackerWarScore += 2;
             return;
         }
     }
 
     for (auto & d : defenders) {
-        if (d == winner) {
+        if (d == winnerId) {
             attackerWarScore -= 2;
             return;
         }
@@ -31,80 +31,85 @@ void War::Update()
     attWarScFromSiege = 0;
 }
 
-void War::AddProv(const std::string & prov, const std::string & country)
+void War::AddProv(int provId, const int countryId)
 {
-    if (IsAttacker(country)) {
-        auto p = std::find(attackersProvs.begin(), attackersProvs.end(), prov);
-        if (p == attackersProvs.end())
-            attackersProvs.emplace_back(prov);
+    if (IsAttacker(countryId)) {
+        auto p = std::find(attackersProvs.begin(), attackersProvs.end(), provId);
+        if (p == attackersProvs.end()) {
+            attackersProvs.emplace_back(provId);
+        }
     }
     else {
-        auto p = std::find(defendersProvs.begin(), defendersProvs.end(), prov);
+        auto p = std::find(defendersProvs.begin(), defendersProvs.end(), provId);
         if (p == defendersProvs.end())
-            defendersProvs.emplace_back(prov);
+            defendersProvs.emplace_back(provId);
     }
 }
 
-void War::DeleteProv(const std::string & prov)
-{
-    for (int i = 0; i < attackersProvs.size(); i++)
-        if (attackersProvs[i] == prov) {
-            attackersProvs.erase(attackersProvs.begin() + i);
+void War::DeleteProv(int provId) {
+    for (auto it = attackersProvs.begin(); it < attackersProvs.end(); it++) {
+    //for (int i = 0; i < attackersProvs.size(); i++)
+        if (*it == provId) {
+            attackersProvs.erase(it);
             return;
         }
-    for (int i = 0; i < defendersProvs.size(); i++)
-        if (defendersProvs[i] == prov) {
-            defendersProvs.erase(defendersProvs.begin() + i);
+    }
+    for (auto it = defendersProvs.begin(); it < defendersProvs.end(); it++) {
+        if (*it == provId) {
+            defendersProvs.erase(it);
             return;
         }
+    }
 }
 
-void War::Erase(std::string name)
+void War::Erase(int cId)
 {
-    for (int i = 0; i < attackers.size(); i++)
-        if (attackers[i] == name) {
-            attackers.erase(attackers.begin() + i);
+    for (auto it = attackers.begin(); it < attackers.end(); it++) {
+        if (*it == cId) {
+            attackers.erase(it);
             return;
         }
-    for (int i = 0; i < defenders.size(); i++)
-        if (defenders[i] == name) {
-            defenders.erase(defenders.begin() + i);
+    }
+    for (auto it = defenders.begin(); it < defenders.end(); it++) {
+        if (*it == cId) {
+            defenders.erase(it);
             return;
         }
+    }
 }
 
-bool War::ShouldTheyFight(std::string b, std::string c) const
+bool War::ShouldTheyFight(int cId1, int cId2) const
 {
-    if (b == c)
+    if (cId1 == cId2)
         return false;
     
-    for (auto & a : attackers)
-        if (a == b)
-            for (auto & d : defenders)
-                if (d == c)
+    for (auto a : attackers)
+        if (cId1 == a)
+            for (auto d : defenders)
+                if (cId2 == d)
                     return true;
 
-    for (auto & a : attackers)
-        if (a == c)
-            for (auto & d : defenders)
-                if (d == b)
+    for (auto a : attackers)
+        if (cId2 == a)
+            for (auto d : defenders)
+                if (cId1 == d)
                     return true;
 
     return false;
 }
     
-bool War::IsAttacker(std::string c) const
+bool War::IsAttacker(int cId) const
 {
     for (auto & a : attackers)
-        if (a == c)
+        if (cId == a)
             return true;
     return false;
 }
 
-bool War::IsDefender(std::string c) const
+bool War::IsDefender(int cId) const
 {
     for (auto & d : defenders)
-        if (d == c)
+        if (d == cId)
             return true;
     return false;
 }
@@ -112,11 +117,8 @@ bool War::IsDefender(std::string c) const
 int War::GetAttackerWarScore()
 {
     int fromProvs = 0;
-    for (auto & a : attackersProvs)
-        fromProvs -= 10;
-    for (auto & d : defendersProvs)
-        fromProvs += 10;
-
+    fromProvs = 10 * defendersProvs.size();
+    fromProvs -= 10 * attackersProvs.size();
     checkWarScFromMonths(fromProvs);
     
     return attackerWarScore + fromProvs + attWarScFromMonths;

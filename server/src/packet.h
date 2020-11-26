@@ -5,7 +5,7 @@
 class Packet : public sf::Packet
 {
     bool all;        
-    std::vector<std::string> recipants;
+    std::vector<int> recipants;
     
 public:
     Packet(bool all = false)
@@ -13,14 +13,14 @@ public:
         this->all = all;
     }
 
-    bool IsRecipant(std::string r) const
+    bool IsRecipant(int countryId) const
     {
-        auto f = std::find(recipants.begin(), recipants.end(), r);
+        auto f = std::find(recipants.begin(), recipants.end(), countryId);
         return f != recipants.end() || all;
     }
 
-    void PushRecipant(std::string r)
+    void PushRecipant(int countryId)
     {
-        recipants.push_back(r);
+        recipants.push_back(countryId);
     }
 };

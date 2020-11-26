@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <memory>
 #include <vector>
 #include <fstream>
 #include <sstream>
@@ -10,14 +11,15 @@
 
 class ProvinceLoader
 {
-    static void loadFromFile(std::vector<Province> & provinces);
-    static void loadFromMap(std::vector<Province> & provinces, const unsigned char * pixels, int width, int height);
-    static void loadNeighbours(std::vector<Province> & provinces, Color lastColor, Color currentColor, int index);    
+    using vec = std::vector<std::shared_ptr<Province>>;
+    static void loadFromFile(vec & provinces);
+    static void loadFromMap(vec & provinces, const unsigned char * pixels, int width, int height);
+    static void loadNeighbours(vec & provinces, Color lastColor, Color currentColor);    
 
-    static int getProvinceId(const std::vector<Province> & provinces, Color color);
+    static int getProvinceId(const vec & provinces, Color color);
 
 public:
     ProvinceLoader() = delete;
 
-    static std::vector<Province> Load(const unsigned char * pixels, int width, int height);
+    static vec Load(const unsigned char * pixels, int width, int height);
 };

@@ -10,16 +10,18 @@
 struct Move
 {
     glm::vec3 destiny;
+    int destinyId; // provId
     int daysLeft;
 };
 
 class Unit
 {
-    int id;
+    int id, countryId = -1, provId = -1;
 
     glm::vec3 fakePos; // this says on what province unit stays 
     glm::vec3 position; 
-    std::string name, country, fromProvince;
+    std::string name, country;
+    int fromProvinceId;
     int morale = 100;
     float speed = 10;
     int soldiers = 1000;
@@ -35,13 +37,13 @@ class Unit
     
 public:
     static int FreeId;
-    Unit(std::string name, glm::vec3 pos, int soldiers, std::string country, std::string fromProvince);
+    Unit(std::string name, glm::vec3 pos, int soldiers, std::string country, int fromProvinceId, int countryId, int provId);
     
     //Unit(const Unit & u) = delete;
     
     ~Unit();
 
-    void Update();
+    bool Update();
 
     void AddMove(std::vector<Move> ms);
 
@@ -59,13 +61,16 @@ public:
     std::string GetCountry() const { return country; }
     int GetMorale() const { return morale; }
     //int GetProvinceId() const { return provinceId; }
-    int GetId() const { return id; }
+    inline int GetCountryId() const { return countryId; }
+    inline int GetProvId() const { return provId; }
+    inline int GetId() const { return id; }
     int GetSoldiers() const { return soldiers; }
     int GetAttack() const { return attack * soldiers / 20; }
     int GetDefense() const { return defense; }
     glm::vec3 GetFakePos() const { return fakePos; }
     glm::vec3 GetPos() const { return position; }
-    bool IsInBattle() const { return !(fakePos == position); }
+    //bool IsInBattle() const { return !(fakePos == position); }
+    bool IsInBattle() const { return InBattle(); }
     bool InBattle() const { return isInBattle; }
     
     bool IsMoving() const { return moves.size(); }
@@ -74,5 +79,5 @@ public:
 
     int GetAndResetKilled() { int k = killed; killed = 0; return k; }
 
-    std::string GetFromProvince() const { return fromProvince; }
+    int GetFromProvinceId() const { return fromProvinceId; }
 };

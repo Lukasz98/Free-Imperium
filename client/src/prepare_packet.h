@@ -5,12 +5,12 @@
 
 namespace PreparePacket {
 
-    static sf::Packet NewUnit(const std::string & country, const std::string & province, int size)
+    static sf::Packet NewUnit(int ctrId, int provId, int size)//const std::string & country, const std::string & province, int size)
     {
         sf::Packet packet;
         packet << "NewUnit";
-        packet << country;
-        packet << province;
+        packet << ctrId;
+        packet << provId;
         packet << size;
         
         return packet;

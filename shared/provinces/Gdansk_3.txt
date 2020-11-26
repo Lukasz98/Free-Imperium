@@ -4,5 +4,6 @@ province {
     development: ' 3 '
     unitPosition: ' 1017 483 '
     country: ' Prussia '
+    countryId: ' 4 '
     population: ' 300000 '
 }

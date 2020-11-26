@@ -16,7 +16,7 @@ public:
     static std::vector<std::shared_ptr<Country>> Load()
     {
         std::vector<std::shared_ptr<Country>> countries;
-        bool log = 0;
+        //bool log = 0;
         namespace fs = std::experimental::filesystem;
         std::string path = "../shared/countries/";
         for(auto & p : fs::directory_iterator(path))
@@ -26,7 +26,6 @@ public:
             if (txt != std::string::npos)
             {
                 std::size_t sl = s.find_last_of("/") + 1;
-                std::size_t dot = s.find(".");
                 std::string name = s.substr(sl, txt - sl);
 
                 std::cout << "country name: " << name << std::endl;
@@ -47,44 +46,3 @@ public:
         return countries;
     }
 };
-/*
-                    Country country;//();
-                    Color color;
-                    std::string culture, religion;
-                    
-                    std::string line;
-                    while (std::getline(file, line))
-                    {
-                        std::string variable;
-                        if (log)
-                            std::cout << "loaded line: " << line << "\n";
-        
-                        std::size_t hash = s.find("#");
-                        if (hash != std::string::npos)
-                        {
-                            line = s.substr(0, hash);
-                        }
-
-                        std::istringstream stream(line);
-                        while (!stream.eof())
-                        {
-                            std::string word;
-                            stream >> word;
-                            if (log)
-                                std::cout << "variable: " << variable << ", word: " << word << "\n";
-                            if (variable == "rgb")
-                                color.Push(std::stoi(word));
-                            else if (variable == "culture")
-                                culture = word;
-                            else if (variable == "religion")
-                                religion = word;
-                            else
-                                variable = word;
-                        }
-                    }
-                    country.SetName(name);
-                    country.SetColor(color);
-                    country.SetCulture(culture);
-                    country.SetReligion(religion);
-
-*/

@@ -9,6 +9,7 @@
 
 class Country
 {
+    int id;
     Color color;
     std::string name, culture, religion;
     float gold = 0.0f, income = 0.0f;
@@ -47,7 +48,8 @@ public:
     float GetIncome() { return income; }
     float GetArmyMaintenance() { return armyMaintenance; }
     void SetArmyMaintenance(float m) { armyMaintenance = m; }
-        
+
+    inline int GetId() const { return id; }        
     const std::string & GetName() const { return name; }
     std::string GetCulture() const { return culture; }
     std::string GetReligion() const { return religion; }

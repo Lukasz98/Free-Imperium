@@ -28,16 +28,18 @@ void War::Update()
     attWarScFromSiege = 0;
 }
 
-void War::Erase(std::string name)
+void War::Erase(int ctrId)
 {
-    for (auto i = attackers.begin(); i < attackers.end(); i++)
-        if (*i == name) {
-            attackers.erase(i);
+    for (std::size_t i = 0; i < attackers.size(); i++)
+        if (attackersIds[i] == ctrId) {
+            attackers.erase(attackers.begin() + i);
+            attackersIds.erase(attackersIds.begin() + i);
             return;
         }
-    for (auto i = defenders.begin(); i < defenders.end(); i++)
-        if (*i == name) {
-            defenders.erase(i);
+    for (std::size_t i = 0; i < defenders.size(); i++)
+        if (defendersIds[i] == ctrId) {
+            defenders.erase(defenders.begin() + i);
+            defendersIds.erase(defendersIds.begin() + i);
             return;
         }
 }
@@ -47,33 +49,54 @@ bool War::ShouldTheyFight(std::string b, std::string c) const
     if (b == c)
         return false;
     
-    for (auto & a : attackers)
+    for (const auto & a : attackers)
         if (a == b)
-            for (auto & d : defenders)
+            for (const auto & d : defenders)
                 if (d == c)
                     return true;
 
-    for (auto & a : attackers)
+    for (const auto & a : attackers)
         if (a == c)
-            for (auto & d : defenders)
+            for (const auto & d : defenders)
+                if (d == b)
+                    return true;
+
+    return false;
+
+}
+
+bool War::ShouldTheyFight(int b, int c) const
+{
+    if (b == c)
+        return false;
+    
+    for (auto a : attackersIds)
+        if (a == b)
+            for (auto d : defendersIds)
+                if (d == c)
+                    return true;
+
+    for (auto a : attackersIds)
+        if (a == c)
+            for (auto d : defendersIds)
                 if (d == b)
                     return true;
 
     return false;
 }
     
-bool War::IsAttacker(std::string c) const
+bool War::IsAttacker(int ctrId) const
 {
-    for (auto & a : attackers)
-        if (a == c)
+    for (auto a : attackersIds)
+        if (a == ctrId)
             return true;
     return false;
 }
 
-bool War::IsDefender(std::string c) const
+bool War::IsDefender(int ctrId) const
 {
-    for (auto & d : defenders)
-        if (d == c)
+    for (auto d : defendersIds)
+        if (d == ctrId)
             return true;
     return false;
 }

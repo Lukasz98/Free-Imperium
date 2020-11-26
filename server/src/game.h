@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <memory>
+#include <algorithm>
 
 #include <cstdlib> // gen random
 #include <ctime> // gen random
@@ -75,9 +76,8 @@ class Game
 
     std::vector<Packet> toSend;
     std::vector<std::shared_ptr<Country>> & countries;
-    std::vector<Province> provinces;
-    std::vector<std::shared_ptr<Unit>> units;
-    std::vector<War> wars;
+    std::vector<std::shared_ptr<Province>> provinces;
+    std::vector<War*> wars;
     std::vector<Battle> battles;
     Map map;
 
@@ -87,7 +87,7 @@ class Game
 
     void dailyUpdate();
     void monthlyUpdate();
-    float calculateArmyMaintenance(const std::string & country);
+    float calculateArmyMaintenance(std::shared_ptr<Country> & country);
 
     void updateAi();
     void ai_newUnits(std::shared_ptr<Country> & c);
@@ -97,20 +97,21 @@ class Game
     void ai_makePeace(std::shared_ptr<Country> & c);
     void ai_mergeUnits(std::shared_ptr<Country> & c);
     void ai_units(std::shared_ptr<Country> & c);
-    bool ai_unitTryWalkToMerge(std::shared_ptr<Unit> & u);
-    bool ai_unitWalkToFight(std::shared_ptr<Unit> & u, std::vector<std::string> & atWarWith);
-    void ai_unitWalkToSiege(std::shared_ptr<Unit> & u, std::vector<std::string> & atWarWith);
+    bool ai_unitTryWalkToMerge(std::shared_ptr<Unit> & u, std::shared_ptr<Country> & c);
+    bool ai_unitWalkToFight(std::shared_ptr<Unit> & u, const std::vector<int> & atWarWith);
+    void ai_unitWalkToSiege(std::shared_ptr<Unit> & u, const std::vector<int> & atWarWith);
 
     void provincesUpdate();
-    void unitsUpdate();
+    void unitsUpdate(std::shared_ptr<Country> & country);
     void battlesUpdate();
+    void siegingUpdate();
     
     void manageTime();
     void sendPackets();
     void receivePackets();
     void processPacket(std::shared_ptr<Client> client, sf::Packet & p);
 
-    void createUnit(std::string country, std::string prov, int unitSize);
+    void createUnit(int countryId, int provId, int unitSize);
 
 public:
     Game(std::vector<std::shared_ptr<Client>> & clients, std::vector<std::shared_ptr<Country>> & countries);

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <algorithm>
 
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
@@ -9,41 +10,39 @@
 #include "color.h"
 #include "log.h"
 #include "data_object.h"
+#include "unit.h"
+#include "siege.h"
+//#include "war.h"
 
 class Province
 {
-    int id;
+    int id = -1, countryId = -1;
     Color color;
     std::vector<int> neighbours;
     std::string name;
     int development = 1;
     glm::vec3 unitPosition;
     std::string country = "Poland";
+   
+    Siege siege;
 
-    int sieged = 0;
-    int siegeSoldiers = 0;
-    std::string siegeCountry; // who is sieging
-    std::string siegedBy; // who sieged
-    bool siege = false, unsiege = false;
-    
     bool firstUpdate = true;
     int population = 0;
     int manpower = 0;
-    float autonomy = 0.0f;
-    float unrest = 0.0f;
-    float prosperity = 50.0f;
-    float administration = 50.0f;
     float treasury = 0.0f;
     float monthIncome = 0.0f;
     float totalMonthIncome = 0.0f;
 
     int populationGrowth = 0.0f;
     int manpowerRecovery = 0.0f;
-    
+
+    std::vector<std::shared_ptr<Unit>> units;
+
 public:
     Province() = delete;
     Province(int id, DataObj * data);
     ~Province();
+
 
     float MonthUpdate(float tax);
     
@@ -55,6 +54,7 @@ public:
     void EraseManpower(int p) { if (manpower >= p) manpower -= p; }
     void SetUnitPos(glm::vec2 p) { unitPosition = glm::vec3(p, 0.1); }
     
+    inline int GetCountryId() const { return countryId; }
     std::string GetName() const { return name; }
     std::string GetCountry() const { return country; }
     Color GetColor() const { return color; }
@@ -65,10 +65,6 @@ public:
     int GetPopulation() const { return population; }
     int GetManpower() const { return manpower; }
     int GetDevelopment() const { return development; }
-    float GetAutonomy() const { return autonomy; }
-    float GetUnrest() const { return unrest; }
-    float GetProsperity() const { return prosperity; }
-    float GetAdministration() const { return administration; }
     float GetTreasury() const { return treasury; }
     float GetMonthIncome() const { return monthIncome; }
     float GetTotalMonthIncome() const { return totalMonthIncome; }
@@ -83,29 +79,22 @@ public:
             population = 0;
     }
     
-    void SetOwner(std::string owner)
+    void SetOwner(std::string owner, int ownId)
     {
-        sieged = 0;
-        siegeSoldiers = 0;
-        siegeCountry = "";
+        siege = Siege();
         country = owner;
+        countryId = ownId;
     }
     
     void NewDay();
-    
-    bool Siege(int s, const std::string & siegeCountry, int soldiers);
-
-    bool Unsiege(int s, int soldiers, const std::string & c);
-    
-    void SiegeBreak();
-    
-    void SiegeBy(std::string siegeCountry, int soldiers);
-    
-    int GetSieged() const { return sieged; }
-    std::string GetSiegeCountry() const;
-    std::string GetSiegedBy() const;
-    void ResetSiege();
-    int GetSiegeSoldiers() const { return siegeSoldiers; }
+    void Sieging(std::shared_ptr<Unit> & u);
+    void UpdateSiege();
+    bool IsStateChanged() { return siege.IsStateChanged(); }
+    void ResetStateChange() { return siege.ResetStateChande(); }
+ 
+    int GetSiegeLevel() const { return siege.GetLevel(); }
+    int GetSiegeCountryId() const { return siege.GetLeader(); };
+    int GetSiegeSoldiersCount() const { return siege.GetSiegeSoldiersCount(); }
     
     void AddNeighbour(int  n_id);
     void Print();
@@ -114,4 +103,9 @@ public:
     {
         return color == c;
     }
+
+    void AddUnit(std::shared_ptr<Unit> & u);
+    void EraseUnit(std::shared_ptr<Unit> & u);
+    void EraseSiegeUnitsCtr(int ctrId);
+    std::vector<std::shared_ptr<Unit>> GetUnits() { return units; }
 };

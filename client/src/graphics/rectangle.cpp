@@ -35,7 +35,61 @@ Rectangle::Rectangle(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4, glm
     glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(float)*9, (void*)(5 * sizeof(float)));  
     unbind();
 }
-    
+
+Rectangle::Rectangle(glm::vec3 pos, glm::vec2 s, glm::vec2 texC, glm::vec2 tCL)
+    :position{pos}, size{s}, color{0.0f,0.0f,0.0f,1.0f}
+{
+    glCreateVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+    left = true;
+    auto vertInit =
+    {
+        position.x, position.y, position.z,
+        texC.x, texC.y,
+        //texC.x + texCoordLen, texC.y,//1.0f, 0.0f,
+        color.x, color.y, color.z, color.w,
+      
+        position.x, position.y + size.y, position.z,
+        texC.x, texC.y + tCL.y,
+        //texC.x + texCoordLen, texC.y + texCoordLen,//1.0f, 1.0f,
+        color.x, color.y, color.z, color.w,
+
+        position.x + size.x, position.y, position.z,
+        texC.x + tCL.x, texC.y,
+        //texC.x, texC.y,//0.0f, 0.0f,
+        color.x, color.y, color.z, color.w,
+
+        position.x, position.y + size.y, position.z,
+        texC.x, texC.y + tCL.y,
+        //texC.x + texCoordLen, texC.y + texCoordLen,//1.0f, 1.0f,
+        color.x, color.y, color.z, color.w,
+
+        position.x + size.x, position.y + size.y, position.z,
+        texC.x + tCL.x, texC.y + tCL.y,
+        //texC.x, texC.y + texCoordLen,//0.0f, 1.0f,
+        color.x, color.y, color.z, color.w,
+
+        position.x + size.x, position.y, position.z, 
+        texC.x + tCL.x, texC.y,
+        //texC.x, texC.y,//0.0f, 0.0f,
+        color.x, color.y, color.z, color.w
+    };
+    std::copy(vertInit.begin(), vertInit.end(), vertices);
+    bind();
+    glBufferData(GL_ARRAY_BUFFER, 54 * sizeof(float), vertices, GL_STATIC_DRAW);  
+    unbind();        
+
+
+    bind();
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*9, 0);  
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float)*9, (void*)(3 * sizeof(float)));  
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(float)*9, (void*)(5 * sizeof(float)));  
+    unbind();
+}
+
 Rectangle::~Rectangle()
 {
     glDeleteVertexArrays(1, &vao);
@@ -103,10 +157,13 @@ void Rectangle::SetTexture(std::shared_ptr<Texture> t)
     texture = t;
 }
 
-void Rectangle::Draw()
+void Rectangle::Draw(bool patches)
 {
     bind();
-    glDrawArrays(GL_TRIANGLES, 0, 6);  
+    if (patches)
+        glDrawArrays(GL_PATCHES, 0, 6);  
+    else
+        glDrawArrays(GL_TRIANGLES, 0, 6);  
     unbind();
 }
 

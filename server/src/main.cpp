@@ -86,7 +86,7 @@ int main()
             for (auto & cLocal : clients) {
                 sf::Packet packet;
                 packet << "Country";
-
+/*
                 if (cLocal->GetName() == "boot") {
                     int count = 0;
                     for (auto ccLocal : clients)
@@ -100,6 +100,7 @@ int main()
                             packet << ccLocal->GetCountryName();
                 }
                 else
+                */
                     packet << cLocal->GetCountryName();
 
                 cLocal->send(packet);

@@ -1,7 +1,7 @@
 #include "battle.h"
     
-Battle::Battle(int id, int warId, glm::vec3 pos, std::string prov)
-    : id(id), warId(warId), position(pos), provName(prov)
+Battle::Battle(int id, int warId, glm::vec3 pos, std::string prov, int provId)
+   : id(id), warId(warId), position(pos), provName(prov), provId(provId)
 {
 }
 
@@ -68,7 +68,7 @@ void Battle::Update()
     } 
     */       
 }
-    
+    /*
 bool Battle::IsInFight(const std::shared_ptr<Unit> b)
 {
     for (auto & a : attackers)
@@ -85,7 +85,7 @@ bool Battle::IsInFight(const std::shared_ptr<Unit> b)
 bool Battle::ShouldFight(const std::shared_ptr<Unit> b)
 {
     for (auto & a : attackers)
-        if (a->GetCountry() == b->GetCountry())
+        if (a->GetCountryId() == b->GetCountryId())
             return true;
         
     for (auto & d : defenders)
@@ -94,11 +94,13 @@ bool Battle::ShouldFight(const std::shared_ptr<Unit> b)
 
     return false;
 }
-
+*/
 void Battle::AddAttacker(std::shared_ptr<Unit> p)
 {
-    if (!attackers.size())
+    if (!attackers.size()) {
+        attackerId = p->GetCountryId();
         attacker = p->GetCountry();
+    }
     updated = true;
     p->Battle(true, true);
     attackers.push_back(p);
@@ -107,8 +109,10 @@ void Battle::AddAttacker(std::shared_ptr<Unit> p)
     
 void Battle::AddDefender(std::shared_ptr<Unit> p)
 {
-    if (!defenders.size())
+    if (!defenders.size()) {
+        defenderId = p->GetCountryId();
         defender = p->GetCountry();
+    }
     updated = true;
     p->Battle(true, false);
     defenders.push_back(p);
@@ -119,7 +123,7 @@ void Battle::AddUnit(std::shared_ptr<Unit> p)
 {
     //updated = true;
     for (auto & a : attackers)
-        if (a->GetCountry() == p->GetCountry()) {
+        if (a->GetCountryId() == p->GetCountryId()) {
             AddAttacker(p);
             notify(GetValues());
             return;
@@ -127,7 +131,7 @@ void Battle::AddUnit(std::shared_ptr<Unit> p)
             //break;
         }
     for (auto & d : defenders)
-        if (d->GetCountry() == p->GetCountry()) {
+        if (d->GetCountryId() == p->GetCountryId()) {
             AddDefender(p);
             notify(GetValues());
             return;

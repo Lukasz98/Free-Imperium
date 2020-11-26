@@ -1,8 +1,8 @@
 #include "province_loader.h"
 
-std::vector<Province> ProvinceLoader::Load(const unsigned char * pixels, int width, int height)
+std::vector<std::shared_ptr<Province>> ProvinceLoader::Load(const unsigned char * pixels, int width, int height)
 {
-    std::vector<Province> provinces;
+    vec provinces;
     
     loadFromFile(provinces);
     loadFromMap(provinces, pixels, width, height);
@@ -10,7 +10,7 @@ std::vector<Province> ProvinceLoader::Load(const unsigned char * pixels, int wid
     return provinces;
 }
 
-void ProvinceLoader::loadFromFile(std::vector<Province> & provinces)
+void ProvinceLoader::loadFromFile(vec & provinces)
 {
     bool log = false;
     namespace fs = std::experimental::filesystem;
@@ -38,7 +38,7 @@ void ProvinceLoader::loadFromFile(std::vector<Province> & provinces)
                 DataLoader loader;
                 DataObj * data = loader.LoadDataObj(file, "province");
 
-                provinces.emplace_back(std::stoi(provId), data);
+                provinces.emplace_back(std::make_shared<Province>(std::stoi(provId), data));
                 delete data;
                 file.close();
             }
@@ -46,7 +46,7 @@ void ProvinceLoader::loadFromFile(std::vector<Province> & provinces)
     }
 }
 
-void ProvinceLoader::loadFromMap(std::vector<Province> & provinces, const unsigned char * pixels, int width, int height)
+void ProvinceLoader::loadFromMap(vec & provinces, const unsigned char * pixels, int width, int height)
 {
     // load horizontaly
     Color lastColor{255,255,255,255};
@@ -54,7 +54,7 @@ void ProvinceLoader::loadFromMap(std::vector<Province> & provinces, const unsign
         Color currentColor{ pixels[i + 0], pixels[i + 1], pixels[i + 2], pixels[i + 3] };
 
         if (currentColor != lastColor) {
-            loadNeighbours(provinces, lastColor, currentColor, i);
+            loadNeighbours(provinces, lastColor, currentColor);
             lastColor = currentColor;
         }
     }
@@ -67,7 +67,7 @@ void ProvinceLoader::loadFromMap(std::vector<Province> & provinces, const unsign
             Color currentColor{ pixels[index + 0], pixels[index + 1], pixels[index + 2], pixels[index + 3] };
 
             if (currentColor != lastColor) {
-                loadNeighbours(provinces, lastColor, currentColor, index);
+                loadNeighbours(provinces, lastColor, currentColor);
                 lastColor = currentColor;
             }
         }
@@ -85,7 +85,7 @@ void ProvinceLoader::loadFromMap(std::vector<Province> & provinces, const unsign
 #endif
 }
 
-void ProvinceLoader::loadNeighbours(std::vector<Province> & provinces, Color lastColor, Color currentColor, int index)
+void ProvinceLoader::loadNeighbours(vec & provinces, Color lastColor, Color currentColor)
 {
     const Color whiteColor{255,255,255,255};
         
@@ -93,11 +93,11 @@ void ProvinceLoader::loadNeighbours(std::vector<Province> & provinces, Color las
         return;
 
     for (auto & prov : provinces) {
-        if (prov.GetColor() == currentColor) {
-            prov.AddNeighbour(getProvinceId(provinces, lastColor));
+        if (prov->GetColor() == currentColor) {
+            prov->AddNeighbour(getProvinceId(provinces, lastColor));
             for (auto & provv : provinces)
-                if (provv.GetColor() == lastColor) {
-                    provv.AddNeighbour(prov.GetId());
+                if (provv->GetColor() == lastColor) {
+                    provv->AddNeighbour(prov->GetId());
                     break;
                 }
                 
@@ -106,10 +106,10 @@ void ProvinceLoader::loadNeighbours(std::vector<Province> & provinces, Color las
     }
 }
 
-int ProvinceLoader::getProvinceId(const std::vector<Province> & provinces, Color color)
+int ProvinceLoader::getProvinceId(const vec & provinces, Color color)
 {
     for (auto & p : provinces)
-        if (p.GetColor() == color)
-            return p.GetId();
+        if (p->GetColor() == color)
+            return p->GetId();
     return -1;
 }

@@ -33,7 +33,9 @@ void Menu::loop()
         }
 
         if (window.mouseL && !window.mouseR) {
-            auto guiEvent = gui.Click(window.xMouse, window.GetSize().y - window.yMouse);
+            //auto guiEvent = gui.Click(window.xMouse, window.GetSize().y - window.yMouse);
+ std::cout << window.xMouse * resolution.x / window.GetSize().x << " "<<( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y << '\n';           
+auto guiEvent = gui.Click(window.xMouse * resolution.x / window.GetSize().x,( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y);
             bool wasGuiClicked = guiEvent.values.size();
             if (wasGuiClicked) {
                 processGuiEvent(guiEvent);

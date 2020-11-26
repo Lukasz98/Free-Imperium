@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <vector>
 #include "province.h"
 
@@ -13,15 +14,13 @@ struct Posibility
 class PathFinder
 {
     std::vector<Posibility> posibilities;
-    int shortest = 100000; // represent number of provinces in shortest path
+    std::size_t shortest = 100000; // represent number of provinces in shortest path
 
-    void recur(const std::vector<Province> & prov, int current, int goal, Posibility & ps);
+    void recur(const std::vector<std::shared_ptr<Province>> & provs, int current, int goal, Posibility & ps);
     
 public:
-    PathFinder();
-    ~PathFinder();
 
     // first - start province id, goal - end procince id
-    Posibility Find(const std::vector<Province> & prov, int first, int goal);
+    Posibility Find(const std::vector<std::shared_ptr<Province>> & provs, int first, int goal);
 
 };

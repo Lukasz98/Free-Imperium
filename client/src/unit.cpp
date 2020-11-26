@@ -1,8 +1,10 @@
 #include "unit.h"
 
-Unit::Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string country)
-    : Rectangle(pos, glm::vec2(10*4, 15*4))
+Unit::Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string country, Color color, int ctrId, int provId)
+    : Rectangle(pos, glm::vec2(10*4, 15*4)), countryId(ctrId), provId(provId)
 {
+    rotate = glm::mat4{1.0f};
+    //model;
     this->name = name;
     this->soldiers = soldiers;
     this->id = id;
@@ -13,21 +15,31 @@ Unit::Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string co
     visible = false;
 
     DataObj * obj = new DataObj{"label"};
-    obj->values["position:"] = "0.0 0.0 0.1";
-    obj->values["size:"] = "90 30";
-    //obj->values["valueName:"] = "unitSize";
-    obj->values["bgColor:"] = "255 255 255 255";
-    obj->values["contentAlign:"] = "center";
+    obj->values["position:"] = "0.0 0.0 10.1";
+    obj->values["size:"] = "96 44";
+    obj->values["bgColor:"] = "0 0 0 255";
 
-    obj->objects.push_back(new DataObj{"text"});
-    obj->objects.back()->values["color"] = "255 20 20 255";
-    obj->objects.back()->values["valueName:"] = "unitSize";
-    obj->objects.back()->values["content:"] = itos(soldiers);
-    //obj->objects.back()->values["height:"] = "10";
-    obj->objects.back()->values["height:"] = "20";
+    obj->objects.push_back(new DataObj{"label"});
+    obj->objects.back()->values["position:"] = "3.0 2.0 0.1";
+    obj->objects.back()->values["size:"] = "90 40";
+    //obj->values["valueName:"] = "unitSize";
+    std::string lbgc = std::to_string(color.r) + " ";
+    lbgc += std::to_string(color.g) + " ";
+    lbgc += std::to_string(color.b) + " ";
+    lbgc += std::to_string(color.a) + " ";
+     
+    obj->objects.back()->values["bgColor:"] = lbgc;
+    obj->objects.back()->values["contentAlign:"] = "center";
+    obj->objects.back()->values["textColor:"] = "200 200 200 255";
+
+    obj->objects.back()->objects.push_back(new DataObj{"text"});
+    obj->objects.back()->objects.back()->values["position:"] = "0.0, 0.0, 21.0";
+    obj->objects.back()->objects.back()->values["valueName:"] = "unitSize";
+    obj->objects.back()->objects.back()->values["content:"] = itos(soldiers);
+    obj->objects.back()->objects.back()->values["height:"] = "40"; //20
 
     std::vector<GuiClick> clickPatterns;
-    bar = std::make_unique<Label>(glm::vec3{pos.x - 25, pos.y - 25, pos.z}, obj->values, obj->objects, clickPatterns);
+    bar = std::make_unique<Label>(glm::vec3{pos.x - 28, pos.y - 45, pos.z}, obj->values, obj->objects, clickPatterns);
 
     delete obj;    
     
@@ -57,7 +69,7 @@ void Unit::Update(glm::vec3 p, std::vector<glm::vec3> mvs, int soldiersCount)
         position = p;
         fakePos = p;
         Init();
-        bar->SetPos(glm::vec3{position.x - 25, position.y - 25, position.z});
+        bar->SetPos(glm::vec3{position.x - 28, position.y - 48, position.z});
     }
 
     bool newMoves = false;
@@ -114,18 +126,33 @@ void Unit::AddMove(std::vector<Move> ms) // chyba moze byc prywatne
     moves = ms;
 }
 
-void Unit::Draw(bool isSelected)
+void Unit::Draw(glm::mat4 matrix, bool isSelected)
 {
     if (!visible)
         return;
     
-    Rectangle::Draw();
+glm::mat4 model = glm::mat4(1.0);
+model = glm::translate(model, position);
+model = glm::scale(model, glm::vec3{20.0, 20.0, 20.0});
+//glm::mat4 rotat = glm::rotate(glm::mat4{1.0}, 20.0f, g
+//ml = ml * rotat;
+model = glm::rotate(model, 20.0f, glm::vec3{1.0, 0.0, 0.0});
+
+
+glUseProgram(AM::am.shader->GetProgram());
+glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
+glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE, glm::value_ptr(model));
+AM::am.modelTexture->Bind();
+
+AM::am.model->Draw();
+
+    //Rectangle::Draw();
     if (isSelected)
         for (auto & m : moves) {
-            m.arrow->Draw();
+            //m.arrow->Draw();
         }
 
-    bar->Draw();
+    //bar->Draw();
 }
 
 void Unit::Kill(int amount)
