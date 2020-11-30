@@ -43,6 +43,7 @@ public:
 
     bool IsPointInFrustum(glm::vec3 p);
 
+    glm::vec3 GetMouseRay() { return mouseRay; }
     glm::vec3 GetMouseInWorld() { return mouseInWorld; }
     float GetFov() { return fov; }
     glm::vec3 GetEye() { return eye; }

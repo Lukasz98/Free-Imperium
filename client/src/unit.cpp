@@ -114,12 +114,12 @@ void Unit::AddMove(std::vector<Move> ms) // chyba moze byc prywatne
             unitY = ms[i - 1].destiny.y;
         }
 
-        glm::vec3 ap1 = { unitX, unitY, 0.1 };
-        glm::vec3 ap2 = { ms[i].destiny.x, ms[i].destiny.y, 0.1 };
+        glm::vec3 ap1 = { unitX, unitY, 10.0 };
+        glm::vec3 ap2 = { ms[i].destiny.x, ms[i].destiny.y, 10.0 };
         
         double rectWidth = 10.0;
-        glm::vec3 ap3 = { ap1.x + rectWidth, ap1.y + rectWidth, 0.1 };
-        glm::vec3 ap4 = { ap2.x + rectWidth, ap2.y + rectWidth, 0.1 };
+        glm::vec3 ap3 = { ap1.x + rectWidth, ap1.y + rectWidth, 10.0 };
+        glm::vec3 ap4 = { ap2.x + rectWidth, ap2.y + rectWidth, 10.0 };
 
         ms[i].arrow = std::make_shared<Arrow>(ap1, ap2, ap3, ap4);
     }
@@ -131,12 +131,14 @@ void Unit::Draw(glm::mat4 matrix, bool isSelected)
     if (!visible)
         return;
     
-glm::mat4 model = glm::mat4(1.0);
+//glm::mat4 model = glm::mat4(1.0);
+model = glm::mat4(1.0);
 model = glm::translate(model, position);
 model = glm::scale(model, glm::vec3{20.0, 20.0, 20.0});
-//glm::mat4 rotat = glm::rotate(glm::mat4{1.0}, 20.0f, g
-//ml = ml * rotat;
-model = glm::rotate(model, 20.0f, glm::vec3{1.0, 0.0, 0.0});
+//glm::mat4 rotat = glm::rotate(glm::mat4{1.0}, 20.0f, glm::vec3{1.0, 0.0, 0.0}); 
+rotate = glm::rotate(glm::mat4{1.0}, 20.0f, glm::vec3{1.0, 0.0, 0.0}); 
+model = model * rotate;
+//model = glm::rotate(model, 20.0f, glm::vec3{1.0, 0.0, 0.0});
 
 
 glUseProgram(AM::am.shader->GetProgram());
@@ -144,8 +146,8 @@ glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "matrix"), 
 glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE, glm::value_ptr(model));
 AM::am.modelTexture->Bind();
 
+AM::am.model->DrawRect(model);
 AM::am.model->Draw();
-
     //Rectangle::Draw();
     if (isSelected)
         for (auto & m : moves) {
@@ -153,6 +155,29 @@ AM::am.model->Draw();
         }
 
     //bar->Draw();
+}
+
+void Unit::DrawGuiElements(bool isSelected)
+{
+
+//Rectangle::Draw();
+    if (isSelected) {
+        for (auto & m : moves) {
+            //Log(m.arrow->GetSize().x);
+            m.arrow->Draw(false);
+        }
+    }
+    bar->Draw();
+}
+
+bool Unit::Click(glm::vec3 vv, glm::vec3 eye) {
+//bool Click(int x, int y) { 
+    if (!visible) return false; 
+    else {
+        return AM::am.model->Click(model, rotate, vv, eye);
+        //return false;
+    //return false;//Rectangle::Click(x, y); 
+    }
 }
 
 void Unit::Kill(int amount)

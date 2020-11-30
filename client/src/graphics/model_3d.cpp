@@ -127,14 +127,14 @@ void Model3D::unbind()
 }
 
 
-void Model3D::Click(glm::mat4 ml, glm::mat4 mlRot, glm::vec3 vv, glm::vec3 eye)
+bool Model3D::Click(glm::mat4 ml, glm::mat4 mlRot, glm::vec3 vv, glm::vec3 eye)
 {
     glm::vec3 normal{0.0, 0.0, -1.0};
     
     normal = mlRot * glm::vec4{normal, 1.0};
 
     double dn = glm::dot(vv, normal);
-    if (dn == 0.0) return;
+    if (dn == 0.0) return false;
 
     glm::vec3 right{0.0, 0.0, 0.0};
     right = ml * glm::vec4{right, 1.0};
@@ -155,8 +155,12 @@ void Model3D::Click(glm::mat4 ml, glm::mat4 mlRot, glm::vec3 vv, glm::vec3 eye)
 
 
     if (h.x > left.x && h.x < right.x && h.y > bottom.y && h.y < top.y) {
-        Log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBB");
+        return true;
+        //Log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBB");
     }
+    else 
+        return false;
+    //Log("nie");
 } 
 
 

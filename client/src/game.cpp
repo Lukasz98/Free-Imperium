@@ -59,7 +59,7 @@ void Game::Play()
     float framesTime = 0.0f;
     bool display = true;
     int frames = 0;
-    Rectangle testRect = Rectangle{glm::vec3{1000.0, 500.0, 1.0}, glm::vec2{200.0, 200}, glm::vec4{1.0,0.0,0.0,1.0}}; 
+    Rectangle testRect = Rectangle{glm::vec3{1000.0, 900.0, 10.0}, glm::vec2{200.0, 200}, glm::vec4{1.0,0.0,0.0,1.0}}; 
     
     while (!window.ShouldClose()) {
         
@@ -94,16 +94,20 @@ void Game::Play()
                                 int uId = std::stoi(it->second);
                                 if (uId == u->GetId()) {
                                     selected = true;
-                                    u->Draw(matrix, true);
+                                    u->DrawGuiElements(true);
+                                    //u->Draw(matrix, true);
                                 }
                             }
                         }
                         if (!selected)
-                            u->Draw(matrix); 
+                            u->DrawGuiElements(false);
                     }
                     else
-                        u->Draw(matrix);
+                        u->DrawGuiElements(false);
                 }
+
+                for(auto & u : units)
+                    u->Draw(matrix, false); 
             }
         
             matrix = glm::ortho(0.0f, (float)resolution.x, 0.0f, (float)resolution.y);
@@ -332,7 +336,8 @@ bool Game::unitClick(glm::vec2 mouseInWorld)
     std::vector<std::unordered_map<std::string,std::string>> data;
     Subject * unitForObserver = nullptr;
     for (auto & u : units) {
-        if (u->Click(mouseInWorld.x, mouseInWorld.y)) {
+        //if (u->Click(mouseInWorld.x, mouseInWorld.y)) {
+        if (u->Click(camera.GetMouseRay(), camera.GetEye())) {
             auto d = u->GetValues();
             data.push_back(d);
             unitForObserver = u.get();
@@ -375,7 +380,8 @@ bool Game::unitClick(glm::vec2 mouseInWorld)
 
 void Game::unitMove(std::unordered_map<std::string,std::string> & values, glm::vec2 mouseInWorld)
 {
-    Color provinceColor = map.ClickOnProvince(mouseInWorld.x /4, mouseInWorld.y /4);
+    //Color provinceColor = map.ClickOnProvince(mouseInWorld.x /4, mouseInWorld.y /4);
+    Color provinceColor = map.ClickOnProvince(mouseInWorld.x, mouseInWorld.y);
     //auto it = std::find(provinces.begin(), provinces.end(), provinceColor);
     auto it = std::find_if(provinces.begin(), provinces.end(), [provinceColor](std::unique_ptr<Province> & p) { return p->GetColor() == provinceColor; });
     if (it != provinces.end()) {    

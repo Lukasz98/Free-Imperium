@@ -72,7 +72,8 @@ public:
     void AddMove(std::vector<Move> ms);
 
     void Draw(glm::mat4 matrix, bool isSelected = false);
-    
+    void DrawGuiElements(bool isSelected = false);
+
     void Kill(int amount);
 
     void Battle(bool is, bool attacker = false);
@@ -81,10 +82,12 @@ public:
     
     void Visible(bool v) { visible = v; }
 
-    bool Click(int x, int y) { 
-        if (!visible) return false; 
-        else return false;//Rectangle::Click(x, y); 
-    }
+    //bool Click(int x, int y);
+    bool Click(glm::vec3 vv, glm::vec3 eye);
+    // { 
+    //    if (!visible) return false; 
+    //    else return false;//Rectangle::Click(x, y); 
+   // }
 
     inline int GetCountryId() const { return countryId; }
     inline int GeProvId() const { return provId; }

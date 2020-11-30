@@ -27,5 +27,5 @@ public:
     void Draw();
     void DrawRect(glm::mat4 ml);
 
-    void Click(glm::mat4 ml,  glm::mat4 mlRot, glm::vec3 vv, glm::vec3 eye);
+    bool Click(glm::mat4 ml,  glm::mat4 mlRot, glm::vec3 vv, glm::vec3 eye);
 };
