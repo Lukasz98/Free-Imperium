@@ -244,8 +244,8 @@ void Game::input()
     glm::vec2 mouseInWorld = camera.GetMouseInWorld();
 
     if (window.mouseL && !window.mouseR) {
-        Log("MOUSE L");
         map.Unbright();
+        Log("MOUSE L");
         //auto guiEvent = gui.Click(window.xMouse, windowSize.y - window.yMouse);
         //std::cout << window.xMouse * (resolution.x / windowSize.x) << " " << (windowSize.y - window.yMouse) * (resolution.y / windowSize.y) << '\n';
 	    auto guiEvent = gui.Click(window.xMouse * (resolution.x / windowSize.x), (windowSize.y - window.yMouse) * (resolution.y / windowSize.y));
@@ -265,6 +265,7 @@ void Game::input()
     else if (window.mouseR) {
         try {
             if (gui.IsOpen("unit")) {
+                map.Unbright();
                 auto values = gui.GetWinValues("unit");
                 unitMove(values, mouseInWorld);
             }
