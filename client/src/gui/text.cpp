@@ -49,7 +49,10 @@ Text::Text(glm::vec3 parentPos, std::unordered_map<std::string, std::string> & v
         else if (value.first == "clickEvent:") {
             clickEvent = value.second;
         }
-        
+        else {
+            Log(value.first << " ;;;; " << value.second);
+            this->values[value.first] = value.second;
+        }
     }
     
     position = relativePos + parentPos;

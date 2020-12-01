@@ -2,41 +2,41 @@ events {
 
 guiEvent {
     name: ' openCountry '
-    countryName ' '
+    valueName: ' countryName '
 }
 
 guiEvent {
     name: ' decreaseValue '
-    newUnitSize ' '
+    value1: ' newUnitSize '
 }
 
 guiEvent {
     name: ' increaseValue '
-    newUnitSize ' '
+    value1: ' newUnitSize '
 }
 
 guiEvent {
     name: ' newUnit '
-    provName ' '
-    newUnitSize ' '
-    countryName ' '
+    value1: ' provName '
+    value2: ' newUnitSize '
+    value3: ' countryName '
 }
 
 guiEvent {
     name: ' declareWar '
-    countryName ' '
+    valueName: ' countryName '
 }
 
 guiEvent {
     name: ' testEv '
-    countryName ' '
-    diploOption ' '
+    value1: ' countryName '
+    valuee: ' diploOption '
 }
 
 guiEvent {
     name: ' openUnit '
-    unitName ' '
-    unitId ' '
+    value1: ' unitName '
+    value2: ' unitId: '
 }
 
 guiEvent {
@@ -49,13 +49,13 @@ guiEvent {
 
 guiEvent {
     name: ' setSieger '
-    provName ' '
-    sieger ' '
+    value1: ' provName '
+    value2: ' sieger '
 }
 
 guiEvent {
     name: ' offerPeace '
-    countryName ' '
+    value1: ' countryName '
 }
 
 guiEvent {
@@ -64,9 +64,9 @@ guiEvent {
 
 guiEvent {
     name: ' sendPeaceOffer '
-    recipant ' '
-    offeredBy ' '
-    warId ' '
+    value1: ' recipant '
+    value2: ' offeredBy '
+    value3: ' warId '
 }
 
 guiEvent {
@@ -83,17 +83,17 @@ guiEvent {
 
 guiEvent {
     name: ' startImprRel '
-    countryName ' '
+    value1: ' countryName '
 }
 
 guiEvent {
     name: ' stopImprRel '
-    countryName ' '
+    value1: ' countryName '
 }
 
 guiEvent {
     name: ' openWar '
-    countryName ' '
+    value1: ' countryName '
 }
 
 guiEvent {
@@ -102,12 +102,12 @@ guiEvent {
 
 guiEvent {
     name: ' acceptPeace '
-    peaceId ' '
+    value1: ' peaceId '
 }
 
 guiEvent {
     name: ' declinePeace '
-    peaceId ' '
+    value1: ' peaceId '
 }
 
 guiEvent {

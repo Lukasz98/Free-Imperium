@@ -40,6 +40,8 @@ public:
     bool Scroll(int offset, int x, int y) override;
     bool DeleteObj(int _id) override;
     GuiClick GetClick(int x, int y) const override;
-    
+
+    std::vector<std::unordered_map<std::string,std::string>> GetContentsValues(); 
+
 };
 

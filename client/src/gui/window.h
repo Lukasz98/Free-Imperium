@@ -30,5 +30,8 @@ public:
     bool Scroll(int offset, int x, int y) override;
     GuiClick GetClick(int x, int y) const override;
 
+
+    std::vector<std::unordered_map<std::string,std::string>> GetValuesOfListContents(const std::string & listName);
+
     void Notification(std::any n) override;
 };

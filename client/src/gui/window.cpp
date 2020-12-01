@@ -198,12 +198,26 @@ GuiClick GuiWindow::GetClick(int x, int y) const
         }
     }
 
-    #if 0
+    #if 1
+    Log("\n\n\nClickValues");
     for (auto & v : click.values)
         Log(v.first << " " << v.second);
+    Log("\n\n");
     #endif
     
     return click;
+}
+
+std::vector<std::unordered_map<std::string,std::string>> GuiWindow::GetValuesOfListContents(const std::string & listName) {
+    for (auto & o : objects) {
+        if (o->GetType() == "regularList") {
+            if (((RegularList*)o.get())->GetName() == listName) {
+                return ((RegularList*)o.get())->GetContentsValues();
+                break;
+            }
+        }
+    }
+    return std::vector<std::unordered_map<std::string,std::string>>{}; 
 }
 
 void GuiWindow::Notification(std::any n)

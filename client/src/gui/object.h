@@ -50,7 +50,7 @@ public:
     bool IsHoldingValue(const std::string & valueName, int objId = 0) const;
     virtual bool IsClicked(int x, int y) const;
     
-    std::unordered_map<std::string,std::string> GetValues() const { return values; }
+    virtual const std::unordered_map<std::string,std::string> & GetValues() const { return values; }
     virtual GuiClick GetClick(int x, int y) const;
     virtual std::string GetValueName() const { return ""; }
     virtual std::string GetContent() const { return ""; }

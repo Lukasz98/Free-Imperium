@@ -35,4 +35,5 @@ public:
     
     std::unordered_map<std::string,std::string> GetWinValues(std::string type) const;
     std::vector<std::string> GetContentOf(std::string win, std::string valueName) const;
+    std::vector<std::unordered_map<std::string,std::string>> GetValuesOfListContents(const std::string & win, const std::string & listName);
 };

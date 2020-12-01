@@ -21,22 +21,7 @@ public:
     virtual ~GuiAid() { }
     std::vector<sf::Packet> GetPackets() { return packets; }
 };
-/*
-class GA_OpenProv : public GuiAid
-{
-public:
-    GA_OpenProv(Gui & gui, const std::vector<std::unique_ptr<Province>> & provs, const GuiClick & event)
-    {
-        //std::string provName = std::any_cast<std::string>(ev->GetData());
-        std::string provName = "xd";
-        for (auto & p : provs) {
-            if (p->GetName() == provName) {
-                break;
-            }
-        }        
-    }
-};
-*/
+
 class GA_DecreaseValue : public GuiAid
 {
 public:
@@ -54,6 +39,11 @@ class GA_IncreaseValue : public GuiAid
 public:
     GA_IncreaseValue(Gui & gui, GuiClick & event)
     {
+
+    // for (auto & v : event.values) {
+    //    Log(v.first << ",,,"<<v.second);
+    //}
+
         std::unordered_map<std::string,std::string> values;
         int newValue = std::stoi(event.values["newUnitSize:"]) + 100;
         values["newUnitSize"] = std::to_string(newValue);
@@ -180,7 +170,21 @@ public:
         uid_ss << event.values["unitName:"];
         std::string uid_s;
         uid_ss >> uid_s;
-        int unitId = std::stoi(uid_s);
+       
+        for (auto & v : event.values) {
+            Log(v.first << ",,,"<<v.second);
+        }
+
+        int unitId = 0;
+        auto uIdIt = event.values.find("unitId");
+        if (uIdIt == event.values.end()) {
+            Log("DUPA");
+            return;
+        }
+
+        unitId = std::stoi(uIdIt->second);
+
+        //int unitId = std::stoi(uid_s);
         
         for (auto & unit : units) {
             if (unit->GetId() == unitId) {
@@ -423,13 +427,15 @@ class GA_MergeUnits : public GuiAid
 public:
     GA_MergeUnits(Gui & gui, const GuiClick & event)
     {
-        //Log("MERGE UNIT");
+        Log("MERGE UNIT");
         sf::Packet packet;
         packet << "MergeUnits";
 
-        std::vector<std::string> content = gui.GetContentOf("units", "unitName");
+        //std::vector<std::string> content = gui.GetContentOf("units", "unitName");
 
         std::vector<int> ids;
+        
+/*
         for (auto & unit : content) {
             //Log("Content: " << unit);
             std::stringstream ss;
@@ -443,6 +449,19 @@ public:
                 break;
             }
         }
+  */
+        auto listVals = gui.GetValuesOfListContents("units", "units");
+        for (auto & map : listVals) {
+            //for (auto & el : map) {
+                auto uIdIt = map.find("unitId");
+                if (uIdIt == map.end())
+                    continue;
+                ids.push_back(std::stoi(uIdIt->second));
+                //Log(el.first<<"<<<"<<el.second);
+            //}
+        }
+        
+
         packet << (int)ids.size();
         for (auto & id : ids)
             packet << id;

@@ -51,6 +51,9 @@ Label::Label(glm::vec3 parentPos, const std::unordered_map<std::string, std::str
             else
                 hover = false;
         }
+        else {
+            this->values[value.first] = value.second;
+        }
     }
 
     position = relativePos + parentPos;
@@ -132,4 +135,22 @@ void Label::Move(glm::vec3 p)
     for (auto & o : objects) {
         o->Move(p);
     }
+}
+    
+
+std::vector<std::unordered_map<std::string,std::string>> Label::GetContentsValues() {
+    
+    std::vector<std::unordered_map<std::string,std::string>> vals; 
+
+    for (auto & o : objects) {
+        if (o->GetType() != "label") {
+            vals.push_back(o->GetValues());
+        }
+        else {
+            auto vec = ((Label*)o.get())->GetContentsValues();
+            vals.insert(vals.end(), vec.begin(), vec.end());
+        }
+    }
+
+    return vals;
 }

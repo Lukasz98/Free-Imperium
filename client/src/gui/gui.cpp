@@ -172,3 +172,14 @@ std::vector<std::string> Gui::GetContentOf(std::string win, std::string valueNam
     }
     return content;
 }
+
+std::vector<std::unordered_map<std::string,std::string>> Gui::GetValuesOfListContents(const std::string & win, const std::string & listName) {
+
+    for (auto & w : windows) {
+        if (w->GetType() == win) {
+            return w->GetValuesOfListContents(listName);
+        }
+    }
+
+    return std::vector<std::unordered_map<std::string,std::string>>{}; 
+}

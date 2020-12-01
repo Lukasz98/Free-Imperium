@@ -32,16 +32,36 @@ void Object::SetClick(GuiClick c)
     while (counter < guiClick.values.size()) {
         counter++;    
         for (auto & val : guiClick.values) {
+        /*
             if (val.first != "name:" && val.first != "listName:" && val.second.size() != 0) {                
+                // eg. in gui_event.txt we have values like value1: ' provName '
+                // it says that this event wants to know provName
+                // here we switch above to provName: ' '
+                // leter ' ' are filled with value
                 std::string valName = val.first;
                 std::string valSec = val.second;
                 auto nodeHandle = guiClick.values.extract(val.first);
                 nodeHandle.key() = valSec;
                 guiClick.values.insert(std::move(nodeHandle));
+                    Log(val.second << " ]]]]]]]" << val.first);
                 val.second = "";
+
+                // here we check if we dont know the value already
+                auto valuesIt = this->values.find(val.first);
+                if (valuesIt != this->values.end()) {
+                    val.second = valuesIt->second;
+                    Log(val.second << " ][][][][]" << val.first);
+                }
                 break;
             }
+            */
+                 auto valuesIt = this->values.find(val.first);
+                if (valuesIt != this->values.end()) {
+                    val.second = valuesIt->second;
+                    Log(val.second << " ][][][][]" << val.first);
+                }
         }
+        break;
     }
     guiClick.values["id:"] = std::to_string(id);
 }

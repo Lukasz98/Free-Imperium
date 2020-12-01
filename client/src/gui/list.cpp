@@ -265,3 +265,23 @@ GuiClick RegularList::GetClick(int x, int y) const
 
     return GuiClick{};
 }
+
+
+std::vector<std::unordered_map<std::string,std::string>> RegularList::GetContentsValues() { 
+
+    std::vector<std::unordered_map<std::string,std::string>> vals;
+
+    for (auto & o : objects) {
+        if (o->GetType() != "label") {
+            vals.push_back(o->GetValues());
+        }
+        else {
+            auto vec = ((Label*)o.get())->GetContentsValues();
+            vals.insert(vals.end(), vec.begin(), vec.end()); 
+        }
+    }
+    
+    return std::move(vals);
+}
+
+

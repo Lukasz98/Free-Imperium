@@ -23,6 +23,10 @@ public:
     void SetPos(glm::vec3 p) override;
     void Draw() override;
     void Move(glm::vec3 p) override;
+
+
+    std::vector<std::unordered_map<std::string,std::string>> GetContentsValues();
+    
 };
 
 

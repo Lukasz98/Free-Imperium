@@ -59,7 +59,7 @@ void Game::Play()
     float framesTime = 0.0f;
     bool display = true;
     int frames = 0;
-    Rectangle testRect = Rectangle{glm::vec3{1000.0, 900.0, 10.0}, glm::vec2{200.0, 200}, glm::vec4{1.0,0.0,0.0,1.0}}; 
+    //Rectangle testRect = Rectangle{glm::vec3{1000.0, 900.0, 10.0}, glm::vec2{200.0, 200}, glm::vec4{1.0,0.0,0.0,1.0}}; 
     
     while (!window.ShouldClose()) {
         
@@ -81,7 +81,7 @@ void Game::Play()
             glUseProgram(shader.GetProgram()); 
             glUniformMatrix4fv(glGetUniformLocation(shader.GetProgram(), "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));    
 
-            testRect.Draw();
+            //testRect.Draw();
 
             {
                 bool selected = false;
@@ -95,7 +95,6 @@ void Game::Play()
                                 if (uId == u->GetId()) {
                                     selected = true;
                                     u->DrawGuiElements(true);
-                                    //u->Draw(matrix, true);
                                 }
                             }
                         }
@@ -245,34 +244,36 @@ void Game::input()
 
     if (window.mouseL && !window.mouseR) {
         map.Unbright();
-        Log("MOUSE L");
+        //Log("MOUSE L");
         //auto guiEvent = gui.Click(window.xMouse, windowSize.y - window.yMouse);
         //std::cout << window.xMouse * (resolution.x / windowSize.x) << " " << (windowSize.y - window.yMouse) * (resolution.y / windowSize.y) << '\n';
 	    auto guiEvent = gui.Click(window.xMouse * (resolution.x / windowSize.x), (windowSize.y - window.yMouse) * (resolution.y / windowSize.y));
         bool wasGuiClicked = guiEvent.values.size();
         
-        if (!wasGuiClicked) {
-            if (!unitClick(mouseInWorld)) {
-                if (!provClick(mouseInWorld)) {
+        if (wasGuiClicked) {
+            processGuiEvent(guiEvent);
+        }
+        else {
+            if (!wasGuiClicked) {
+                if (!unitClick(mouseInWorld)) {
+                    provClick(mouseInWorld);
                 }
             }
         }
-        else {
-            processGuiEvent(guiEvent);
-        }
+        
         window.mouseL = false;
     }
     else if (window.mouseR) {
-        try {
+        //try {
             if (gui.IsOpen("unit")) {
                 map.Unbright();
                 auto values = gui.GetWinValues("unit");
                 unitMove(values, mouseInWorld);
             }
-        }
-        catch(std::exception e) {
+        //}
+        //catch(std::exception e) {
             //Log(e.what());
-        }
+        //}
         window.mouseR = false;
     }
     else {
@@ -359,8 +360,11 @@ bool Game::unitClick(glm::vec2 mouseInWorld)
             dobj->objects.back()->values["valueName:"] = "unitName";
             dobj->objects.back()->values["content:"] = "";
             for (auto & val : d) {
-                if (val.first == "id")
+                if (val.first == "id") {
+                    //dobj->values["unitId"] = val.second;// + " ";
+                    dobj->objects.back()->values["unitId"] = val.second;// + " ";
                     dobj->objects.back()->values["content:"] += val.second + " ";
+                }
                 else if (val.first == "name")
                     dobj->objects.back()->values["content:"] += val.second + " ";
             }            
@@ -386,14 +390,19 @@ void Game::unitMove(std::unordered_map<std::string,std::string> & values, glm::v
     //auto it = std::find(provinces.begin(), provinces.end(), provinceColor);
     auto it = std::find_if(provinces.begin(), provinces.end(), [provinceColor](std::unique_ptr<Province> & p) { return p->GetColor() == provinceColor; });
     if (it != provinces.end()) {    
+        auto idIt = values.find("id");
+        if (idIt == values.end())
+            return;
         sf::Packet packet;
         packet << "UnitMove";
+        packet << std::stoi(idIt->second);
+ /*
         for (auto & val : values)
             if (val.first == "id") {
                 packet << std::stoi(val.second);
                 break;
             }
-
+*/
         packet << (*it)->GetId();
 
         toSend.push_back(packet);
