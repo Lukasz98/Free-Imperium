@@ -316,7 +316,7 @@ bool Game::provClick(glm::vec2 mouseInWorld)
     }
 
     if (battleIt != battles.end()) {
-        GA_OpenBattle battle{gui, battleIt, provIt};
+        GuiAid::OpenBattle(gui, battleIt, provIt);
         return true;
     }
 
@@ -328,7 +328,7 @@ bool Game::provClick(glm::vec2 mouseInWorld)
         return true;
     }
     else {
-        GA_OpenSiegedProv spr(gui, provIt, wars);
+        GuiAid::OpenSiegedProv(gui, provIt, wars);
         return true;
     }        
 }
@@ -411,65 +411,62 @@ void Game::unitMove(std::unordered_map<std::string,std::string> & values, glm::v
 
 void Game::processGuiEvent(GuiClick & click)
 {
-    GuiAid * aid = nullptr;
+    std::vector<sf::Packet> packets;
     std::string evType = click.GetEventName();
     if (evType == "openCountry") {
-        aid = new GA_OpenCountry(gui, countries, myCountry, wars, click);        
+        GuiAid::OpenCountry(gui, countries, myCountry, wars, click);        
     }
     else if (evType == "newUnit") {
-        aid = new GA_NewUnit(click, provinces);
+        GuiAid::NewUnit(click, provinces, packets);
     }
     else if (evType == "decreaseValue") {
-        aid = new GA_DecreaseValue(gui, click);
+        GuiAid::DecreaseValue(gui, click);
     }
     else if (evType == "increaseValue") {
-        aid = new GA_IncreaseValue(gui, click);
+        GuiAid::IncreaseValue(gui, click);
     }
     else if (evType == "openUnit") {
-        aid = new GA_OpenUnit(gui, click, units);
+        GuiAid::OpenUnit(gui, click, units);
     }
     else if (evType == "eraseObj") {
-        aid = new GA_EraseObj(gui, click);
+        GuiAid::EraseObj(gui, click);
     }
     else if (evType == "mergeUnits") {
-        aid = new GA_MergeUnits(gui, click);
+        GuiAid::MergeUnits(gui, click, packets);
     }
     else if (evType == "declareWar") {
-        aid = new GA_DeclareWar(click, countries);
+        GuiAid::DeclareWar(click, countries, packets);
     }
     else if (evType == "offerPeace") {
-        aid = new GA_OfferPeace(gui, wars, click, myCountry->GetName());
+        GuiAid::OfferPeace(gui, wars, click, myCountry->GetName());
     }
     else if (evType == "sendPeaceOffer") {
-        aid = new GA_SendPeaceOffer(gui, wars, countries, provinces, click);
+        GuiAid::SendPeaceOffer(gui, wars, countries, provinces, click, packets);
     }
     else if (evType == "dateSpeed") {
-        aid = new GA_DateSpeed(click);
+        GuiAid::DateSpeed(click, packets);
     }
     else if (evType == "startImprRel") {
-        aid = new GA_StartImprRel(click, myCountry, countries);
+        GuiAid::StartImprRel(click, myCountry, countries, packets);
     }
     else if (evType == "stopImprRel") {
-        aid = new GA_StopImprRel(click, myCountry, countries);
+        GuiAid::StopImprRel(click, myCountry, countries, packets);
     }
     else if (evType == "openWar") {
-        aid = new GA_OpenWar(gui, click, wars);
+        GuiAid::OpenWar(gui, click, wars);
     }
     else if (evType == "botPeaceOffer") {
-        aid = new GA_BotPeaceOffer(click, gui, peaceOffers, countries, provinces);
+        GuiAid::BotPeaceOffer(click, gui, peaceOffers, countries, provinces);
     }
     else if (evType == "acceptPeace") {
-        aid = new GA_AcceptPeace(click, gui, peaceOffers);
+        GuiAid::AcceptPeace(click, gui, peaceOffers, packets);
     }
     else if (evType == "declinePeace") {
-        aid = new GA_DeclinePeace(click, gui, peaceOffers);
+        GuiAid::DeclinePeace(click, gui, peaceOffers, packets);
     }
 
-    if (aid != nullptr) {
-        auto packets = aid->GetPackets();
+    if (packets.size())
         toSend.insert(toSend.end(), packets.begin(), packets.end());
-        delete aid;
-    }
 }
 
 void Game::sendPackets()

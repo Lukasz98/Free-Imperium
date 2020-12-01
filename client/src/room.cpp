@@ -118,19 +118,16 @@ void Room::loop(bool & play, std::string & country)
 
 void Room::processGuiEvent(GuiClick & click, std::vector<sf::Packet> & toSend, bool & play)
 {
-    GuiAid * aid = nullptr;
+    std::vector<sf::Packet> packets;
     std::string evType = click.GetEventName();
 
     if (evType == "play") {
-        aid = new GA_StartGame();
+        GuiAid::StartGame(packets);
     }
     else if (evType == "setCountry") {
-        aid = new GA_SetCountry(click);
+        GuiAid::SetCountry(click, packets);
     }
 
-    if (aid != nullptr) {
-        auto packets = aid->GetPackets();
+    if (packets.size())
         toSend.insert(toSend.end(), packets.begin(), packets.end());
-        delete aid;
-    }
 }
