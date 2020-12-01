@@ -62,7 +62,7 @@ void Map::Draw(Camera & camera, float dt)
 
     GLuint ts[] = {0, provsMap.GetId(), heightMap.GetId(), grassT.GetId(), stoneT.GetId(), 
                    water.GetId(), countryBorders->GetId(), provsBorders->GetId() };
-    
+
     glBindTextures(ts[0], 8, ts);
     
     for (auto & chunk : chunks) {

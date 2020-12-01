@@ -143,18 +143,18 @@ bool Model3D::Click(glm::mat4 ml, glm::mat4 mlRot, glm::vec3 vv, glm::vec3 eye)
     glm::vec3 qq{vv.x * tt, vv.y * tt, vv.z * tt};
     glm::vec3 h{eye + qq};
 
-    glm::vec2 realSize =  glm::vec4{plane->GetSize(), 1.0, 1.0};
+    glm::vec2 realSize =  glm::vec4{plane->GetSize().x, 0.0, plane->GetSize().y, 1.0};
     glm::vec3 left{-realSize.x, 0.0, 0.0};
     left = ml * glm::vec4{left, 1.0};
 
     glm::vec3 bottom{0, 0.0, 0.0};
     bottom = ml * glm::vec4{bottom, 1.0};
 
-    glm::vec3 top{0, realSize.y, 0.0};
+    glm::vec3 top{0, 0.0, realSize.y};
     top = ml * glm::vec4{top, 1.0};
 
 
-    if (h.x > left.x && h.x < right.x && h.y > bottom.y && h.y < top.y) {
+    if (h.x > left.x && h.x < right.x && h.y > bottom.z && h.z > top.z) {
         return true;
         //Log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBB");
     }

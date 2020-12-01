@@ -84,6 +84,7 @@ void Game::Play()
             //testRect.Draw();
 
             {
+glDepthRange (0, 0.09);
                 bool selected = false;
                 for (auto & u : units) {
                     if (!selected) {
@@ -104,6 +105,7 @@ void Game::Play()
                     else
                         u->DrawGuiElements(false);
                 }
+glDepthRange (0, 1);
 
                 for(auto & u : units)
                     u->Draw(matrix, false); 

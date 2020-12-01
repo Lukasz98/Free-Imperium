@@ -15,13 +15,16 @@ Unit::Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string co
     visible = false;
 
     DataObj * obj = new DataObj{"label"};
-    obj->values["position:"] = "0.0 0.0 10.1";
-    obj->values["size:"] = "96 44";
+    obj->values["position:"] = "0.0 0.0 2.1";
+    //obj->values["size:"] = "96 44";
+    obj->values["size:"] = "70 24";
     obj->values["bgColor:"] = "0 0 0 255";
 
     obj->objects.push_back(new DataObj{"label"});
-    obj->objects.back()->values["position:"] = "3.0 2.0 0.1";
-    obj->objects.back()->values["size:"] = "90 40";
+    //obj->objects.back()->values["position:"] = "3.0 2.0 0.1";
+    obj->objects.back()->values["position:"] = "3.0 1.0 0.1";
+    //obj->objects.back()->values["size:"] = "90 40";
+    obj->objects.back()->values["size:"] = "64 22";
     //obj->values["valueName:"] = "unitSize";
     std::string lbgc = std::to_string(color.r) + " ";
     lbgc += std::to_string(color.g) + " ";
@@ -33,13 +36,13 @@ Unit::Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string co
     obj->objects.back()->values["textColor:"] = "200 200 200 255";
 
     obj->objects.back()->objects.push_back(new DataObj{"text"});
-    obj->objects.back()->objects.back()->values["position:"] = "0.0, 0.0, 21.0";
+    obj->objects.back()->objects.back()->values["position:"] = "0.0, 0.0, 0.1";
     obj->objects.back()->objects.back()->values["valueName:"] = "unitSize";
     obj->objects.back()->objects.back()->values["content:"] = itos(soldiers);
-    obj->objects.back()->objects.back()->values["height:"] = "40"; //20
+    obj->objects.back()->objects.back()->values["height:"] = "15"; //20
 
     std::vector<GuiClick> clickPatterns;
-    bar = std::make_unique<Label>(glm::vec3{pos.x - 28, pos.y - 45, pos.z}, obj->values, obj->objects, clickPatterns);
+    bar = std::make_unique<Label>(glm::vec3{pos.x - labelXOffset, pos.y - labelYOffset, pos.z}, obj->values, obj->objects, clickPatterns);
 
     delete obj;    
     
@@ -69,7 +72,7 @@ void Unit::Update(glm::vec3 p, std::vector<glm::vec3> mvs, int soldiersCount)
         position = p;
         fakePos = p;
         Init();
-        bar->SetPos(glm::vec3{position.x - 28, position.y - 48, position.z});
+        bar->SetPos(glm::vec3{position.x - labelXOffset, position.y - labelYOffset, position.z});
     }
 
     bool newMoves = false;
@@ -131,12 +134,14 @@ void Unit::Draw(glm::mat4 matrix, bool isSelected)
     if (!visible)
         return;
     
-//glm::mat4 model = glm::mat4(1.0);
+glm::mat4 model = glm::mat4(1.0);
 model = glm::mat4(1.0);
 model = glm::translate(model, position);
-model = glm::scale(model, glm::vec3{20.0, 20.0, 20.0});
-//glm::mat4 rotat = glm::rotate(glm::mat4{1.0}, 20.0f, glm::vec3{1.0, 0.0, 0.0}); 
 rotate = glm::rotate(glm::mat4{1.0}, 20.0f, glm::vec3{1.0, 0.0, 0.0}); 
+model = glm::scale(model, glm::vec3{20.0, 20.0, 5.0});
+//glm::mat4 rotat = glm::rotate(glm::mat4{1.0}, 20.0f, glm::vec3{1.0, 0.0, 0.0}); 
+
+this->model = model;
 model = model * rotate;
 //model = glm::rotate(model, 20.0f, glm::vec3{1.0, 0.0, 0.0});
 
@@ -146,7 +151,7 @@ glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "matrix"), 
 glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE, glm::value_ptr(model));
 AM::am.modelTexture->Bind();
 
-AM::am.model->DrawRect(model);
+//AM::am.model->DrawRect(model);
 AM::am.model->Draw();
     //Rectangle::Draw();
     if (isSelected)

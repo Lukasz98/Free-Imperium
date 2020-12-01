@@ -8,7 +8,8 @@ Camera::Camera(glm::vec2 winSize)
     left = 0.0f, bottom = 0.0f;
     fov = 45.0f, fovMax = 46.0f, fovMin = 44.5f;
 
-    near = 5.1f, far = 1000.1f;
+    //near = 5.1f, far = 1000.1f;
+    near = 40.5f, far = 1000.1f;
 
     windowSize = winSize;
     projection = glm::perspectiveFovRH(fov, width, height, near, far);

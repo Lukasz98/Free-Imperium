@@ -56,7 +56,7 @@ Text::Text(glm::vec3 parentPos, std::unordered_map<std::string, std::string> & v
     }
     
     position = relativePos + parentPos;
-
+    
     if (text.size())
         set();
     else {
@@ -130,6 +130,7 @@ void Text::set()
     if (centered) {
         position.x = centerTo.x - textSize.x / 2;
         position.y = centerTo.y - (textSize.y + realBelowBaseline) / 2;
+        position.z = relativePos.z + centerTo.z;
     }
     
     glm::vec3 textPos = position;
@@ -212,11 +213,13 @@ void Text::set()
                          };
     background = std::make_unique<Rectangle>(position, textSize, bgColVec);
     size = textSize;
+//Log("TEXTPOS = " <<position.x << " " << position.y << " " << position.z);
 }
 
 void Text::SetPos(glm::vec3 p)
 {
     position = relativePos + p;
+    //position = p;
     if (background)
         background->SetPosition(position);
     if (content)

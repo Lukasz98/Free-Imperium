@@ -108,7 +108,10 @@ void Label::SetPos(glm::vec3 p)
     }
     for (auto & ob : objects) {
         if (contentAlign == "center") {
-	    glm::vec3 center = { position.x + size.x / 2, position.y + size.y / 2, 0.0};
+	        //glm::vec3 center = { position.x + size.x / 2, position.y + size.y / 2, 0.0};
+	        //glm::vec3 center = { position.x + size.x / 2, position.y + size.y / 2, 0.0};//position.z + 15.1};
+	        glm::vec3 center = { position.x + size.x / 2, position.y + size.y / 2, position.z};
+            //ob->SetPos(position);
             ob->MakeCentered(center);
         }
         else 

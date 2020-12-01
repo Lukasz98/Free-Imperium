@@ -42,6 +42,7 @@ class Unit : public Rectangle, public Subject
     std::shared_ptr<Texture> move_texture[2];
     std::shared_ptr<Texture> battle_texture[2];
 
+    int labelXOffset = 28, labelYOffset = 28;
     float dt;
     int activeFrame;
     
