@@ -24,7 +24,8 @@ namespace ProcessPacket {
     void DailyUpdate(sf::Packet & packet, Gui & gui, std::vector<War> & wars, std::vector<std::unique_ptr<Province>> & provinces, 
                         std::vector<std::shared_ptr<Country>> & countries, Map & map);
     
-    void HourlyUpdate(sf::Packet & packet, Gui & gui, std::vector<std::shared_ptr<Unit>> & units, std::vector<std::unique_ptr<Battle>> & battles);
+    void HourlyUpdate(sf::Packet & packet, Gui & gui, std::vector<std::shared_ptr<Unit>> & units, std::vector<std::unique_ptr<Battle>> & battles,
+                      float mapChunkScale);
     
     void PeaceAccepted(sf::Packet & packet, Gui & gui, std::vector<std::unique_ptr<Province>> & provinces, 
                        std::vector<std::shared_ptr<Country>> & countries, std::vector<War> & wars);

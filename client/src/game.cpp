@@ -75,16 +75,28 @@ void Game::Play()
             window.Refresh();
             input();
         
+glDepthRange (0, 1);
             map.Draw(camera, dt);
 
             glm::mat4  matrix = camera.GetMat();
+          
+ for(auto & u : units)
+                u->Draw(matrix, false); 
+ 
+
+
+
             glUseProgram(shader.GetProgram()); 
             glUniformMatrix4fv(glGetUniformLocation(shader.GetProgram(), "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));    
 
+           
             //testRect.Draw();
 
             {
-glDepthRange (0, 0.09);
+                glDepthRange (0, 0.19);
+                GLuint ts[] = {0};
+                glBindTextures(ts[0], 1, ts);
+                
                 bool selected = false;
                 for (auto & u : units) {
                     if (!selected) {
@@ -105,11 +117,8 @@ glDepthRange (0, 0.09);
                     else
                         u->DrawGuiElements(false);
                 }
-glDepthRange (0, 1);
 
-                for(auto & u : units)
-                    u->Draw(matrix, false); 
-            }
+           }
         
             matrix = glm::ortho(0.0f, (float)resolution.x, 0.0f, (float)resolution.y);
             glUseProgram(shader.GetProgram()); 
@@ -140,7 +149,7 @@ glDepthRange (0, 1);
         if (framesTime >= 1.0f) {
             //Log("Dt: "<<dt );
             framesTime = 0.0f;
-            //Log("FPS: " << frames);
+            Log("FPS: " << frames);
             frames = 0;
         }
     
@@ -168,7 +177,7 @@ void Game::processPacket(sf::Packet packet)
         ProcessPacket::NewUnit(packet, units, countries, myCountry->GetName());
     }
     else if (type == "hourly") {
-        ProcessPacket::HourlyUpdate(packet, gui, units, battles);
+        ProcessPacket::HourlyUpdate(packet, gui, units, battles, map.GetChunkScale());
     }
     else if (type == "NewBattle") {
         ProcessPacket::NewBattle(packet, units, battles, provinces);
@@ -214,10 +223,10 @@ void Game::processPacket(sf::Packet packet)
 
 void Game::input()
 {
-    if (window.keys['A']) camera.MoveHor(-1, drawDt);
-    if (window.keys['D']) camera.MoveHor(1, drawDt);
-    if (window.keys['W']) camera.MoveVer(1, drawDt);
-    if (window.keys['S']) camera.MoveVer(-1, drawDt);
+    if (window.keys['A']) camera.MoveHor(-1, dt);
+    if (window.keys['D']) camera.MoveHor(1, dt);
+    if (window.keys['W']) camera.MoveVer(1, dt);
+    if (window.keys['S']) camera.MoveVer(-1, dt);
     if (window.keys['R']) {
         window.keys['R'] = false;
         gui.Reload();

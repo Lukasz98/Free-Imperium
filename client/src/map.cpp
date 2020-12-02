@@ -9,7 +9,8 @@ Map::Map()
       water{"../shared/water2.png", 64, 64, GL_REPEAT},
       shader{"src/graphics/shaders/map/vert.v", "src/graphics/shaders/map/frag.f",
                "src/graphics/shaders/map/tes_ster.ts",
-               "src/graphics/shaders/map/tes_w.tw"}
+               "src/graphics/shaders/map/tes_w.tw"},
+      chunkScale{2.0f}
 {
     setChunks();
     setProvsBorders();
@@ -25,6 +26,7 @@ Map::~Map()
 void Map::setChunks()
 {
     float w = 32.0f;
+    //float w = 16.0f;
     float x = 0.0f, y = 0.0f;
     glm::vec2 tCL{w / originW, w / originH};
     glm::vec2 texC{0.0f, 0.0f};
@@ -295,8 +297,8 @@ Color Map::ClickOnProvince(int x, int y)
     Log("mouse in world " << x << " " << y);
     const unsigned char * pixels = provsMap.GetPixels();
 
-    x = (float)(0.5f * x + 0.5f);
-    y = (float)(0.5f * y + 0.5f);
+    x = (float)(x) / chunkScale + 0.5f;
+    y = (float)(y) / chunkScale + 0.5f;
     int num = (int)(originW * (y - 1) + x);
 
     if (num * 4 + 3 > originW * originH * 4 + 3 || 0.5f * y - 1 < 0) 

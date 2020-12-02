@@ -9,7 +9,7 @@
 
 class Map : public Rectangle
 {
-    const float chunkScale = 2.0f; // same as map scale
+    const float chunkScale; // same as map scale
     const int originW = 1920, originH = 1088;
 
     struct Chunk {
@@ -66,6 +66,7 @@ public:
     // undo what BrightenProv() does
     void Unbright();
 
+    float GetChunkScale() { return chunkScale; }
     const unsigned char * GetProvsPixels() { return provsMap.GetPixels(); } 
     const unsigned char * GetHeightTerrain() { return heightMap.GetPixels(); }
 };

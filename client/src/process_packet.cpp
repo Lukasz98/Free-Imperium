@@ -147,7 +147,7 @@ void ProcessPacket::DailyUpdate(sf::Packet & packet, Gui & gui, std::vector<War>
     
 }
 
-void ProcessPacket::HourlyUpdate(sf::Packet & packet, Gui & gui, std::vector<std::shared_ptr<Unit>> & units, std::vector<std::unique_ptr<Battle>> & battles)
+void ProcessPacket::HourlyUpdate(sf::Packet & packet, Gui & gui, std::vector<std::shared_ptr<Unit>> & units, std::vector<std::unique_ptr<Battle>> & battles, float mapChunkScale)
 {
     int unitCount;
     packet >> unitCount;
@@ -159,8 +159,8 @@ void ProcessPacket::HourlyUpdate(sf::Packet & packet, Gui & gui, std::vector<std
         packet >> uPos.x;
         packet >> uPos.y;
         packet >> uPos.z;
-       	uPos.x *= 2;
-    	uPos.y *= 2;
+       	uPos.x *= mapChunkScale;
+    	uPos.y *= mapChunkScale;
         uPos.z = 10.0f;
 
         int movesCount = 0;

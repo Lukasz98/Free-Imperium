@@ -3,13 +3,14 @@
 Camera::Camera(glm::vec2 winSize)
 {
     width = 1920, height = 1080.0f;
-    speed = 50.0f;
+    speed = 250.0f;
     baseSpeed = 1000.0f;
     left = 0.0f, bottom = 0.0f;
     fov = 45.0f, fovMax = 46.0f, fovMin = 44.5f;
+    //fov = 45.0f, fovMax = 46.0f, fovMin = 43.5f;
 
-    //near = 5.1f, far = 1000.1f;
-    near = 40.5f, far = 1000.1f;
+    near = 5.1f, far = 1000.1f;
+    //near = 40.5f, far = 1000.1f;
 
     windowSize = winSize;
     projection = glm::perspectiveFovRH(fov, width, height, near, far);
@@ -80,6 +81,9 @@ void Camera::Update(double xMouse, double yMouse, const unsigned char * terrain)
 
 void Camera::Scroll(int z)
 {
+//eye.z += 10.0f * z;
+//setPlanes();
+//return;
     bool ok = false;
     if (fov >= fovMin + 0.1 && z == -1) {
         fov -= .05f;
