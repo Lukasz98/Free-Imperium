@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <memory>
+#include <unordered_map>
 #include "graphics/rectangle.h"
 #include "graphics/shader.h"
 #include "camera.h"
@@ -54,7 +55,9 @@ public:
     Color ClickOnProvince(int x, int y);
 
     // draws borders countries of countries to countryBordersTexture
-    void DrawCountries(std::vector<std::pair<int, Color>> cColor, std::vector<std::pair<Color, int>> pColor);
+    //void DrawCountries(std::vector<std::pair<int, Color>> cColor, std::vector<std::pair<Color, int>> pColor);
+    void DrawCountries(std::unordered_map<Color, Color, CCC::Hash>  & provCToCountryC);
+    //void DrawCountries(std::unordered_map<Color, Color> provCToCountryC);
     
     void Draw(Camera & camera, float dt);
     void DrawSieged(const Color & prov, const Color & siege);

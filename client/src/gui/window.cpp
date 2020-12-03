@@ -198,7 +198,7 @@ GuiClick GuiWindow::GetClick(int x, int y) const
         }
     }
 
-    #if 1
+    #if 0 
     Log("\n\n\nClickValues");
     for (auto & v : click.values)
         Log(v.first << " " << v.second);

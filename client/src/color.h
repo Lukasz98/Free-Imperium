@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 
 struct Color
 {
@@ -22,17 +23,47 @@ struct Color
         pushed++;
     }
     
-    bool operator== (const Color & p)
+    bool operator==(const Color & p) const
     {
         if (r == p.r && g == p.g && b == p.b && a == p.a)
             return true;
         return false;
     }
 
-    bool operator!= (const Color & p)
+    bool operator!= (const Color & p) const
     {
         if (r == p.r && g == p.g && b == p.b && a == p.a)
             return false;
         return true;
     }
+
+    void operator=(const Color & c)
+    {
+
+        r = c.r;
+        g = c.g;
+        b = c.b;
+        a = c.a;
+    }
 };
+
+namespace CCC{
+struct Hash
+    {
+        //std::hash<std::size_t> operator()(const Color & c) const
+        std::size_t operator()(const Color & c) const
+        {
+            union U {
+                std::size_t hash;
+                unsigned char t[4];
+            } u;
+            u.hash = 0;
+            u.t[0] = c.g;
+            u.t[1] = c.r;
+            u.t[2] = c.b;
+            u.t[3] = c.a;
+            return std::hash<std::size_t>{}(u.hash);
+        }
+    };
+}
+

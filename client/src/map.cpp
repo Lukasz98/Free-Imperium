@@ -78,46 +78,11 @@ void Map::Draw(Camera & camera, float dt)
     }
 }
 
-void Map::DrawCountries(std::vector<std::pair<int, Color>> cColor, std::vector<std::pair<Color, int>> pColor)
+void Map::DrawCountries(std::unordered_map<Color, Color, CCC::Hash> & provCToCountryC)
 {
-    std::vector<std::pair<Color, Color>> rainbow;
-    for (auto & p : pColor) {
-        for (auto & c : cColor) {
-            if (p.second == c.first) {
-                rainbow.push_back(std::make_pair(p.first, c.second));
-                break;
-            }
-        }
-    }
+   const unsigned char * provPixels = provsMap.GetPixels();
 
-    const unsigned char * provPixels = provsMap.GetPixels();
-
-    Color white{255,255,255,255};
-    Color lastProvColor{0,0,0,0};
-    Color lastUsedColor{0,0,0,0};
-
-    //drawing borders to tmp buffer countryMap
-    for (int i = 0; i < originW * originH * 4 - 3; i += 4) {
-        Color provColor{ provPixels[i + 0], provPixels[i + 1], provPixels[i + 2], provPixels[i + 3] };
-        if (provColor == white)
-            continue;
-        if (provColor != lastProvColor) {
-            for (auto & r : rainbow) {
-                if (r.first == provColor) {
-                    lastUsedColor = r.second;
-                    lastProvColor = provColor;
-                    break;
-                }
-            }
-        }
-        countryMap[i + 0] = lastUsedColor.r;
-        countryMap[i + 1] = lastUsedColor.g;
-        countryMap[i + 2] = lastUsedColor.b;
-        countryMap[i + 3] = lastUsedColor.a;
-    }
-
-
-    /*
+   /*
         * in following 4 fors :
          * draw country borders from countryMap to countryBorders
          * with offset coloring, so that border is blury
@@ -127,82 +92,156 @@ void Map::DrawCountries(std::vector<std::pair<int, Color>> cColor, std::vector<s
     unsigned char countryBorderPixels[1920 * 1088 * 4];
     std::fill(countryBorderPixels, countryBorderPixels + 1920 * 1088 * 4, 0);
     Color lastColor{255,255,255,255};
+    Color lastProvColor{255,255,255,255};
+    Color white{255,255,255,255};
+    int lastIndex = 0;
     for (int y = 0; y < originH; y++) {
         for (int x = 0; x < originW; x++) {
             int index = y * originW * 4 + x * 4;
-            Color currentColor{ countryMap[index + 0], countryMap[index + 1], countryMap[index + 2], countryMap[index + 3] };
-            if (currentColor == lastColor)
+            Color provColor{ provPixels[index + 0], provPixels[index + 1], provPixels[index + 2], provPixels[index + 3] };
+    
+            if (provColor == lastProvColor) {
+                lastIndex = index;
                 continue;
-            lastColor = currentColor;
-
-            for (int off = 0; off < 3 && x + off < originW; off++) {
-                countryBorderPixels[index + off * 4 + 0] = currentColor.r;
-                countryBorderPixels[index + off * 4 + 1] = currentColor.g;
-                countryBorderPixels[index + off * 4 + 2] = currentColor.b;
-                countryBorderPixels[index + off * 4 + 3] = 255 - (off + 1) * 60;
             }
+            
+            const auto ctryColIt = provCToCountryC.find(provColor);
+            if (ctryColIt == provCToCountryC.end()) {
+                lastIndex = index;
+                continue;
+            }
+
+            if (ctryColIt->second == lastColor) {
+                lastIndex = index;
+                continue;
+            }
+
+            for (int off = 0; off < 3 && x - off >= 0; off++) {
+                int offInd = lastIndex - off * 4;
+                if (countryBorderPixels[offInd + 3] > 0)
+                    continue;
+                countryBorderPixels[offInd + 0] = lastColor.r;
+                countryBorderPixels[offInd + 1] = lastColor.g;
+                countryBorderPixels[offInd + 2] = lastColor.b;
+                countryBorderPixels[offInd + 3] = 255 - (off + 1) * 60;
+            }
+            lastColor = ctryColIt->second;
+            lastIndex = index;
         }
     }
-    
+
+    lastIndex = 0;
     lastColor = {255,255,255,255};
     for (int y = 0; y < originH; y++) {
         for (int x = originW - 1; x >= 0; x--) {
             int index = y * originW * 4 + x * 4;
-            Color currentColor{ countryMap[index + 0], countryMap[index + 1], countryMap[index + 2], countryMap[index + 3] };
-            if (currentColor == lastColor)
+ 
+            Color provColor{ provPixels[index + 0], provPixels[index + 1], provPixels[index + 2], provPixels[index + 3] };
+            if (provColor == lastProvColor) {
+                lastIndex = index;
                 continue;
-            lastColor = currentColor;
-
-            for (int off = 0; off < 3 && x - off >= 0; off++) {
-                countryBorderPixels[index - off * 4 + 0] = currentColor.r;
-                countryBorderPixels[index - off * 4 + 1] = currentColor.g;
-                countryBorderPixels[index - off * 4 + 2] = currentColor.b;
-                countryBorderPixels[index - off * 4 + 3] = 255 - (off + 1) * 60;
             }
+
+            const auto ctryColIt = provCToCountryC.find(provColor);
+            if (ctryColIt == provCToCountryC.end()) {
+                lastIndex = index;
+                continue;
+            }
+
+            if (ctryColIt->second == lastColor) {
+                lastIndex = index;
+                continue;
+            }
+
+            for (int off = 0; off < 3 && x + off < originW; off++) {
+                int offInd = lastIndex + off * 4;
+                if (countryBorderPixels[offInd + 3] > 0)
+                    continue;
+                countryBorderPixels[offInd + 0] = lastColor.r;
+                countryBorderPixels[offInd + 1] = lastColor.g;
+                countryBorderPixels[offInd + 2] = lastColor.b;
+                countryBorderPixels[offInd + 3] = 255 - (off + 1) * 60;
+            }
+            lastColor = ctryColIt->second;
+            lastIndex = index;
         }
     }
-    
+   
+    lastIndex = 0;
     lastColor = {255,255,255,255};
     for (int x = 0; x < originW; x++) {
         for (int y = originH - 1; y >= 0; y--) {
             int index = y * originW * 4 + x * 4;
-            Color currentColor{ countryMap[index + 0], countryMap[index + 1], countryMap[index + 2], countryMap[index + 3] };
-            if (currentColor == lastColor)
+            Color provColor{ provPixels[index + 0], provPixels[index + 1], provPixels[index + 2], provPixels[index + 3] };
+            
+            if (provColor == lastProvColor) {
+                lastIndex = index;
                 continue;
-            lastColor = currentColor;
-
-            for (int off = 0; off < 3 && y - off >= 0; off++) {
-                unsigned char myAlfa = 255 - (off + 1) * 60;
-                unsigned char a = countryBorderPixels[index - off * originW * 4 + 3];
-                if (a > myAlfa)
-                    continue;
-                countryBorderPixels[index - off * originW * 4 + 0] = currentColor.r;
-                countryBorderPixels[index - off * originW * 4 + 1] = currentColor.g;
-                countryBorderPixels[index - off * originW * 4 + 2] = currentColor.b;
-                countryBorderPixels[index - off * originW * 4 + 3] = myAlfa;
             }
+
+            const auto ctryColIt = provCToCountryC.find(provColor);
+            if (ctryColIt == provCToCountryC.end()) {
+                lastIndex = index;
+                continue;
+            }
+
+            if (ctryColIt->second == lastColor) {
+                lastIndex = index;
+                continue;
+            }
+
+            for (int off = 0; off < 3 && y + off < originH; off++) {
+                unsigned char myAlfa = 255 - (off + 1) * 60;
+                unsigned char a = countryBorderPixels[lastIndex + off * originW * 4 + 3];
+                if (a > myAlfa)
+                //if (a > 0)
+                    continue;
+                countryBorderPixels[lastIndex + off * originW * 4 + 0] = lastColor.r;
+                countryBorderPixels[lastIndex + off * originW * 4 + 1] = lastColor.g;
+                countryBorderPixels[lastIndex + off * originW * 4 + 2] = lastColor.b;
+                countryBorderPixels[lastIndex + off * originW * 4 + 3] = myAlfa;
+            }
+            lastColor = ctryColIt->second;
+            lastIndex = index;
         }
     }
 
+    lastIndex = 0;
     lastColor = {255,255,255,255};
     for (int x = 0; x < originW; x++) {
         for (int y = 0; y < originH; y++) {
             int index = y * originW * 4 + x * 4;
-            Color currentColor{ countryMap[index + 0], countryMap[index + 1], countryMap[index + 2], countryMap[index + 3] };
-            if (currentColor == lastColor)
+            Color provColor{ provPixels[index + 0], provPixels[index + 1], provPixels[index + 2], provPixels[index + 3] };
+            
+            if (provColor == lastProvColor) {
+                lastIndex = index;
                 continue;
-            lastColor = currentColor;
+            }
 
-            for (int off = 0; off < 3 && y + off < originH; off++) {
+            const auto ctryColIt = provCToCountryC.find(provColor);
+            if (ctryColIt == provCToCountryC.end()) {
+                lastIndex = index;
+                continue;
+            }
+
+            if (ctryColIt->second == lastColor) {
+                lastIndex = index;
+                continue;
+            }
+            
+            for (int off = 0; off < 3 && y - off >= 0; off++) {
                 unsigned char myAlfa = 255 - (off + 1) * 60;
-                unsigned char a = countryBorderPixels[index + off * originW * 4 + 3];
+                unsigned char a = countryBorderPixels[lastIndex - off * originW * 4 + 3];
+                //if (a > 0)
                 if (a > myAlfa)
                     continue;
-                countryBorderPixels[index + off * originW * 4 + 0] = currentColor.r;
-                countryBorderPixels[index + off * originW * 4 + 1] = currentColor.g;
-                countryBorderPixels[index + off * originW * 4 + 2] = currentColor.b;
-                countryBorderPixels[index + off * originW * 4 + 3] = myAlfa;
+                countryBorderPixels[lastIndex - off * originW * 4 + 0] = lastColor.r;
+                countryBorderPixels[lastIndex - off * originW * 4 + 1] = lastColor.g;
+                countryBorderPixels[lastIndex - off * originW * 4 + 2] = lastColor.b;
+                countryBorderPixels[lastIndex - off * originW * 4 + 3] = myAlfa;
             }
+            lastColor = ctryColIt->second;
+            lastIndex = index;
         }
     }
     
@@ -352,7 +391,7 @@ void Map::Unbright()
         return;
     brightenedProv = false;
 
-    auto provPix = provsMap.GetPixels();
+    //auto provPix = provsMap.GetPixels();
     unsigned char * pix = provsBorders->GetPixToEdit();
     for (int x = 0; x < 1920; x++) {
         for (int y = 0; y < 1088; y++) {

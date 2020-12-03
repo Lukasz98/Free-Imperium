@@ -31,16 +31,20 @@ Game::~Game()
 
 void Game::setCountryMap()
 {
-    std::vector<std::pair<int, Color>> cColor;
-    std::vector<std::pair<Color, int>> pColor;
-    for (auto & c : countries)
-        cColor.push_back(std::make_pair(c->GetId(), c->GetColor()));
+    std::unordered_map<Color, Color, CCC::Hash> provCToCountryC;
     for (auto & p : provinces) {
-        if (p->GetSieged() != 0)
-            continue;
-        pColor.push_back(std::make_pair(p->GetColor(), p->GetCountryId()));
+        //if (p->GetSieged() != 0)
+        //    continue;
+        
+        provCToCountryC[p->GetColor()] = countries[p->GetCountryId()]->GetColor();
     }
-    map.DrawCountries(cColor, pColor);
+    
+    //Log("buckets="<<provCToCountryC.bucket_count());
+    //for (int i = 0; i < provCToCountryC.bucket_count(); i++) {
+    //    Log(provCToCountryC.bucket_size(i));
+    //}
+
+    map.DrawCountries(provCToCountryC);
     /*
     for (auto & prov : provinces) {
         if (prov->GetSieged() == 100) {
