@@ -1,4 +1,5 @@
 #include "model_3d.h"
+#include <math.h>
 
 Model3D::Model3D(const std::string & path, glm::vec3 pos)
 : position{pos}
@@ -127,34 +128,54 @@ void Model3D::unbind()
 }
 
 
-bool Model3D::Click(glm::mat4 ml, glm::mat4 mlRot, glm::vec3 vv, glm::vec3 eye)
+bool Model3D::Click(const glm::mat4 & ml, const glm::mat4 & mlRot, const glm::vec3 & vv, const glm::vec3 & eye, float yScale, float rotateAngle)
 {
     glm::vec3 normal{0.0, 0.0, -1.0};
-    
     normal = mlRot * glm::vec4{normal, 1.0};
 
     double dn = glm::dot(vv, normal);
     if (dn == 0.0) return false;
 
+
     glm::vec3 right{0.0, 0.0, 0.0};
     right = ml * glm::vec4{right, 1.0};
+
+    glm::vec2 realSize =  glm::vec4{plane->GetSize(), 1.0, 1.0};
+    //glm::vec2 realSize =  glm::vec4{plane->GetSize().x, plane->GetSize().y, 1.0, 1.0};
+    glm::vec3 left{-realSize.x, 0.0, 0.0};
+    left = ml * glm::vec4{left, 1.0};
+
     double tt = glm::dot(right - eye, normal) / dn;
     
     glm::vec3 qq{vv.x * tt, vv.y * tt, vv.z * tt};
     glm::vec3 h{eye + qq};
 
-    glm::vec2 realSize =  glm::vec4{plane->GetSize().x, 0.0, plane->GetSize().y, 1.0};
-    glm::vec3 left{-realSize.x, 0.0, 0.0};
-    left = ml * glm::vec4{left, 1.0};
-
-    glm::vec3 bottom{0, 0.0, 0.0};
+    glm::vec3 bottom{0.0, 0.0, 0.0};
     bottom = ml * glm::vec4{bottom, 1.0};
 
-    glm::vec3 top{0, 0.0, realSize.y};
-    top = ml * glm::vec4{top, 1.0};
+    glm::vec3 top{0.0, realSize.y, 0.0};
+    //top = ml * glm::vec4{top, 1.0};
 
+    //Log("\nH= " <<h.x<<", "<<h.y << ", "<<h.z);
+    //Log("bot= " <<bottom.x<<", "<<bottom.y << ", "<<bottom.z);
+    //Log("top= " <<top.x<<", "<<top.y << ", "<<top.z);
 
-    if (h.x > left.x && h.x < right.x && h.y > bottom.z && h.z > top.z) {
+    double model_h = realSize.y * yScale;
+
+#define PI 3.14159265
+    double z = sin(rotateAngle) * model_h;
+    double y = cos(rotateAngle) * z;
+    top = bottom;
+    top.z += z;
+    top.y += y;
+    
+    //Log("top2= " <<top.x<<", "<<top.y << ", "<<top.z);
+    //Log("left= " <<left.x<<", "<<left.y << ", "<<left.z);
+    //Log("right= " <<right.x<<", "<<right.y << ", "<<right.z);
+
+    if (h.x > left.x && h.x < right.x && 
+        h.y > bottom.y && h.y < top.y &&
+        h.z >= bottom.z && h.z <= top.z) {
         return true;
         //Log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBB");
     }
@@ -162,5 +183,6 @@ bool Model3D::Click(glm::mat4 ml, glm::mat4 mlRot, glm::vec3 vv, glm::vec3 eye)
         return false;
     //Log("nie");
 } 
+
 
 

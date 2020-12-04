@@ -34,6 +34,7 @@ struct Move
 class Unit : public Rectangle, public Subject
 {
     glm::mat4 model, rotate;
+    const float rotateX, yScale;
     std::unique_ptr<Label> bar;
 
     // if those three will have different sizes

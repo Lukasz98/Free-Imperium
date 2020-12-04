@@ -153,7 +153,7 @@ glDepthRange (0, 1);
         if (framesTime >= 1.0f) {
             //Log("Dt: "<<dt );
             framesTime = 0.0f;
-            Log("FPS: " << frames);
+            //Log("FPS: " << frames);
             frames = 0;
         }
     
@@ -353,6 +353,7 @@ bool Game::unitClick(glm::vec2 mouseInWorld)
     std::vector<std::unordered_map<std::string,std::string>> data;
     Subject * unitForObserver = nullptr;
     for (auto & u : units) {
+        //if (u->GetCountry() == "Poland")
         //if (u->Click(mouseInWorld.x, mouseInWorld.y)) {
         if (u->Click(camera.GetMouseRay(), camera.GetEye())) {
             auto d = u->GetValues();

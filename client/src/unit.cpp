@@ -1,7 +1,8 @@
 #include "unit.h"
 
 Unit::Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string country, Color color, int ctrId, int provId)
-    : Rectangle(pos, glm::vec2(10*4, 15*4)), countryId(ctrId), provId(provId)
+    : Rectangle(pos, glm::vec2(10*4, 15*4)), countryId(ctrId), provId(provId),
+      rotateX(60.0f*3.1459265f/180.0f), yScale(10.0f)
 {
     rotate = glm::mat4{1.0f};
     //model;
@@ -134,15 +135,17 @@ void Unit::Draw(glm::mat4 matrix, bool isSelected)
     if (!visible)
         return;
     
-glm::mat4 model = glm::mat4(1.0);
+//glm::mat4 model = glm::mat4(1.0);
 model = glm::mat4(1.0);
 model = glm::translate(model, position);
-rotate = glm::rotate(glm::mat4{1.0}, 20.0f, glm::vec3{1.0, 0.0, 0.0}); 
-model = glm::scale(model, glm::vec3{20.0, 20.0, 5.0});
 //glm::mat4 rotat = glm::rotate(glm::mat4{1.0}, 20.0f, glm::vec3{1.0, 0.0, 0.0}); 
 
 this->model = model;
+rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0}); 
+//rotate = glm::rotate(glm::mat4{1.0}, 20.0f, glm::vec3{1.0, 0.0, 0.0}); 
 model = model * rotate;
+model = glm::scale(model, glm::vec3{20.0, yScale, 5.0});
+//model = glm::rotate(model, 0.0f, glm::vec3{1.0, 0.0, 0.0});
 //model = glm::rotate(model, 20.0f, glm::vec3{1.0, 0.0, 0.0});
 
 
@@ -179,7 +182,7 @@ bool Unit::Click(glm::vec3 vv, glm::vec3 eye) {
 //bool Click(int x, int y) { 
     if (!visible) return false; 
     else {
-        return AM::am.model->Click(model, rotate, vv, eye);
+        return AM::am.model->Click(model, rotate, vv, eye, yScale, rotateX);
         //return false;
     //return false;//Rectangle::Click(x, y); 
     }
