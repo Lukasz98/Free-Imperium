@@ -138,7 +138,8 @@ void ProcessPacket::DailyUpdate(sf::Packet & packet, Gui & gui, std::vector<War>
                     //             return ccc->GetName() == cccc;
                     //            });
                     //if (scIt != countries.end())
-                    map.DrawSieged(prov->GetColor(), sctr->GetColor());
+                    map.ScrapSiegeColor(prov->GetColor());
+                    //map.DrawSieged(prov->GetColor(), sctr->GetColor());
                 }
                 prov->ResetSieging();
             }
@@ -203,7 +204,7 @@ void ProcessPacket::HourlyUpdate(sf::Packet & packet, Gui & gui, std::vector<std
 }
 
 void ProcessPacket::PeaceAccepted(sf::Packet & packet, Gui & gui, std::vector<std::unique_ptr<Province>> & provinces, 
-                        std::vector<std::shared_ptr<Country>> & countries, std::vector<War> & wars)
+                        std::vector<std::shared_ptr<Country>> & countries, std::vector<War> & wars, Map & map)
 {
     int provinceCount;
     packet >> provinceCount;
@@ -217,6 +218,7 @@ void ProcessPacket::PeaceAccepted(sf::Packet & packet, Gui & gui, std::vector<st
         assert(provId >= 0 && provId < provinces.size());
         auto & prov = provinces.at(provId);
         prov->SetOwner(ctr->GetName(), ctrId);
+        map.ScrapSiegeColor(prov->GetColor());
         //auto provIt = std::find_if(provinces.begin(), provinces.end(), [name](const std::unique_ptr<Province> & prov){
         //        return prov->GetName() == name;
         //    });

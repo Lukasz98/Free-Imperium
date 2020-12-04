@@ -61,6 +61,7 @@ public:
     
     void Draw(Camera & camera, float dt);
     void DrawSieged(const Color & prov, const Color & siege);
+    void ScrapSiegeColor(const Color & prov);
 
     // lights province of given color by drawing on provsBorders texture
     // (when clicked on given prov for ex.)

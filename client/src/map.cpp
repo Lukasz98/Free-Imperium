@@ -80,11 +80,11 @@ void Map::Draw(Camera & camera, float dt)
 
 void Map::DrawCountries(std::unordered_map<Color, Color, CCC::Hash> & provCToCountryC)
 {
-   const unsigned char * provPixels = provsMap.GetPixels();
+    const unsigned char * provPixels = provsMap.GetPixels();
 
-   /*
+    /*
         * in following 4 fors :
-         * draw country borders from countryMap to countryBorders
+         * draw country borders
          * with offset coloring, so that border is blury
         * going from 4 directions (left, right, top, bottom)
     */
@@ -360,8 +360,50 @@ Color Map::ClickOnProvince(int x, int y)
 
 void Map::DrawSieged(const Color & prov, const Color & siege)
 {
-//    ((MapTexture*)(mapTexture.get()))->DrawSieged(prov, siege);
+    auto provPix = provsMap.GetPixels();
+    auto countryPix = countryBorders->GetPixToEdit();
+    for (int y = 0; y < originH; y += 2) { // change in this loop has to be reviewed in Map::ScrapSiegeColor()
+        for (int x = 0; x < originW; ++x) {
+            int index = ( y * originW + x) * 4;
+            Color currProvC = { provPix[index + 0], provPix[index + 1], provPix[index + 2], provPix[index + 3] };
+            if (currProvC != prov)
+                continue;
+
+            if (countryPix[index + 3] > 0)  // if > 0 there is something drawn
+                continue;
+
+            countryPix[index + 0] = siege.r;
+            countryPix[index + 1] = siege.g;
+            countryPix[index + 2] = siege.b;
+            countryPix[index + 3] = 254; //trick for scraping siege color
+        }
+    }
+    countryBorders->ReloadPixels();
 }
+
+void Map::ScrapSiegeColor(const Color & prov)
+{
+    auto provPix = provsMap.GetPixels();
+    auto countryPix = countryBorders->GetPixToEdit();
+    for (int y = 0; y < originH; y += 2) {
+        for (int x = 0; x < originW; ++x) {
+            int index = ( y * originW + x) * 4;
+            Color currProvC = { provPix[index + 0], provPix[index + 1], provPix[index + 2], provPix[index + 3] };
+            if (currProvC != prov)
+                continue;
+
+            if (countryPix[index + 3] != 254)  // if == 254 there is old siege drawn
+                continue;
+
+            //pix[index + 0] = 0;
+            //pix[index + 1] = 0;
+            //pix[index + 2] = 0;
+            countryPix[index + 3] = 0;
+        }
+    }
+    countryBorders->ReloadPixels();
+}
+
 
 void Map::BrightenProv(Color c)
 {

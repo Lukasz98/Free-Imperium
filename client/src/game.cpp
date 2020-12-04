@@ -45,7 +45,7 @@ void Game::setCountryMap()
     //}
 
     map.DrawCountries(provCToCountryC);
-    /*
+    
     for (auto & prov : provinces) {
         if (prov->GetSieged() == 100) {
             assert(prov->GetSiegeCountryId() >= 0 && prov->GetSiegeCountryId() < countries.size());
@@ -53,7 +53,7 @@ void Game::setCountryMap()
             map.DrawSieged(prov->GetColor(), siegeCountry->GetColor());
         }
     }
-    */
+    
 }
 
 void Game::Play()
@@ -196,7 +196,7 @@ void Game::processPacket(sf::Packet packet)
         ProcessPacket::NewUnitInBattle(packet, units, battles);        
     }
     else if (type == "PeaceAccepted") {
-        ProcessPacket::PeaceAccepted(packet, gui, provinces, countries, wars);
+        ProcessPacket::PeaceAccepted(packet, gui, provinces, countries, wars, map);
         setCountryMap();
     }
     else if (type == "MergeUnits") {

@@ -28,7 +28,7 @@ namespace ProcessPacket {
                       float mapChunkScale);
     
     void PeaceAccepted(sf::Packet & packet, Gui & gui, std::vector<std::unique_ptr<Province>> & provinces, 
-                       std::vector<std::shared_ptr<Country>> & countries, std::vector<War> & wars);
+                       std::vector<std::shared_ptr<Country>> & countries, std::vector<War> & wars, Map & map);
     
     void NewWar(sf::Packet & packet, Gui & gui, std::vector<War> & wars, int myCountryId, std::vector<std::shared_ptr<Country>> & countries);
 

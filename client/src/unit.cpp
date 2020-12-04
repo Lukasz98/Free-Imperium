@@ -144,7 +144,7 @@ this->model = model;
 rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0}); 
 //rotate = glm::rotate(glm::mat4{1.0}, 20.0f, glm::vec3{1.0, 0.0, 0.0}); 
 model = model * rotate;
-model = glm::scale(model, glm::vec3{20.0, yScale, 5.0});
+model = glm::scale(model, glm::vec3{20.0, yScale, 10.0});
 //model = glm::rotate(model, 0.0f, glm::vec3{1.0, 0.0, 0.0});
 //model = glm::rotate(model, 20.0f, glm::vec3{1.0, 0.0, 0.0});
 
