@@ -3,13 +3,13 @@
 Room::Room(Window & window, Settings & s, std::vector<std::shared_ptr<Country>> & countries)
     : Scene(window, s.resolution), settings(s), countries(countries)
 {
-    gui.AddWin("src/gui/room.txt");
+    //gui.AddWin("src/gui/room.txt");
     for (auto & c : countries) {
         DataObj * dobj = new DataObj{"label"};
         dobj->objects.push_back(new DataObj{"text"});
         dobj->objects.back()->values["content:"] = c->GetName();
         dobj->objects.back()->values["clickEvent:"] = "setCountry";
-        gui.AddToList(dobj, "room", "countries");
+//        gui.AddToList(dobj, "room", "countries");
         delete  dobj;
     }
 }
@@ -71,7 +71,7 @@ void Room::loop(bool & play, std::string & country)
             else if (messg == "Players") {
                 int playersCount = 0;
                 packet >> playersCount;
-                gui.ClearList("room", "players");
+  //              gui.ClearList("room", "players");
                 for (int i = 0; i < playersCount; i++) {
                     packet >> messg;
                     //players.emplace_back(messg);
@@ -81,7 +81,7 @@ void Room::loop(bool & play, std::string & country)
                     packet >> messg;
                     obj->objects.back()->values["content:"] += " " + messg;
                     
-                    gui.AddToList(obj, "room", "players");
+    //                gui.AddToList(obj, "room", "players");
 
                     delete obj;
                 }
@@ -89,17 +89,17 @@ void Room::loop(bool & play, std::string & country)
         }
 
         if (window.keys['R']) {
-            gui.Reload();
-            gui.AddWin("src/gui/room.txt");
+            //gui.Reload();
+            //gui.AddWin("src/gui/room.txt");
         }
 
         if (window.mouseL && !window.mouseR) {
-            //auto guiEvent = gui.Click(window.xMouse, window.GetSize().y - window.yMouse);
-            auto guiEvent = gui.Click(window.xMouse *resolution.x/window.GetSize().x, (window.GetSize().y - window.yMouse) * resolution.y/window.GetSize().y);
-            bool wasGuiClicked = guiEvent.values.size();
-            if (wasGuiClicked) {
-                processGuiEvent(guiEvent, toSend, play);
-            }
+      //      //auto guiEvent = gui.Click(window.xMouse, window.GetSize().y - window.yMouse);
+        //    auto guiEvent = gui.Click(window.xMouse *resolution.x/window.GetSize().x, (window.GetSize().y - window.yMouse) * resolution.y/window.GetSize().y);
+        //    bool wasGuiClicked = guiEvent.values.size();
+        //    if (wasGuiClicked) {
+          //      processGuiEvent(guiEvent, toSend, play);
+          //  }
         }
 
         window.mouseL = false;
@@ -116,17 +116,17 @@ void Room::loop(bool & play, std::string & country)
     }
 }
 
-void Room::processGuiEvent(GuiClick & click, std::vector<sf::Packet> & toSend, bool & play)
+void Room::processGuiEvent(std::vector<sf::Packet> & toSend, bool & play)
 {
     std::vector<sf::Packet> packets;
-    std::string evType = click.GetEventName();
+    //std::string evType = click.GetEventName();
 
-    if (evType == "play") {
-        GuiAid::StartGame(packets);
-    }
-    else if (evType == "setCountry") {
-        GuiAid::SetCountry(click, packets);
-    }
+    //if (evType == "play") {
+     //   GuiAid::StartGame(packets);
+    //}
+   // else if (evType == "setCountry") {
+   //     GuiAid::SetCountry(click, packets);
+    //}
 
     if (packets.size())
         toSend.insert(toSend.end(), packets.begin(), packets.end());

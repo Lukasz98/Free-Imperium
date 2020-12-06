@@ -1,6 +1,6 @@
 #include "process_packet.h"
 
-void ProcessPacket::DailyUpdate(sf::Packet & packet, Gui & gui, std::vector<War> & wars, std::vector<std::unique_ptr<Province>> & provinces, 
+void ProcessPacket::DailyUpdate(sf::Packet & packet, std::vector<War> & wars, std::vector<std::unique_ptr<Province>> & provinces, 
                                 std::vector<std::shared_ptr<Country>> & countries, Map & map)
 {
     std::unordered_map<std::string, std::string> values;
@@ -15,19 +15,19 @@ void ProcessPacket::DailyUpdate(sf::Packet & packet, Gui & gui, std::vector<War>
         values["countryName"] = strData;
 
         packet >> floatData;
-        values["countryGold"] = ftos(floatData);
+//        values["countryGold"] = ftos(floatData);
 
         packet >> floatData;
-        values["countryIncome"] = ftos(floatData);
+  //      values["countryIncome"] = ftos(floatData);
     
         packet >> floatData;
-        values["armyMaintenance"] = ftos(floatData);
+    //    values["armyMaintenance"] = ftos(floatData);
 
         packet >> intData;
-        values["countryManpower"] = itos(intData);
+      //  values["countryManpower"] = itos(intData);
 
         packet >> intData;
-        values["countryManpowerRecovery"] = itos(intData);
+        //values["countryManpowerRecovery"] = itos(intData);
 
         packet >> strData;
         values["date"] = strData;
@@ -35,7 +35,7 @@ void ProcessPacket::DailyUpdate(sf::Packet & packet, Gui & gui, std::vector<War>
         packet >> intData;
         values["dateSpeed"] = std::to_string(intData);
     
-        gui.Update(values, "topBar");
+        //gui.Update(values, "topBar");
 
         int provCount;
         packet >> provCount;
@@ -148,7 +148,7 @@ void ProcessPacket::DailyUpdate(sf::Packet & packet, Gui & gui, std::vector<War>
     
 }
 
-void ProcessPacket::HourlyUpdate(sf::Packet & packet, Gui & gui, std::vector<std::shared_ptr<Unit>> & units, std::vector<std::unique_ptr<Battle>> & battles, float mapChunkScale)
+void ProcessPacket::HourlyUpdate(sf::Packet & packet, std::vector<std::shared_ptr<Unit>> & units, std::vector<std::unique_ptr<Battle>> & battles, float mapChunkScale)
 {
     int unitCount;
     packet >> unitCount;
@@ -203,7 +203,7 @@ void ProcessPacket::HourlyUpdate(sf::Packet & packet, Gui & gui, std::vector<std
     }
 }
 
-void ProcessPacket::PeaceAccepted(sf::Packet & packet, Gui & gui, std::vector<std::unique_ptr<Province>> & provinces, 
+void ProcessPacket::PeaceAccepted(sf::Packet & packet, std::vector<std::unique_ptr<Province>> & provinces, 
                         std::vector<std::shared_ptr<Country>> & countries, std::vector<War> & wars, Map & map)
 {
     int provinceCount;
@@ -240,7 +240,7 @@ void ProcessPacket::PeaceAccepted(sf::Packet & packet, Gui & gui, std::vector<st
     std::string peaceType;
     packet >> peaceType;
     if (peaceType == "endWar") {
-        gui.EraseObj("notifications", warIt->GetIdInGui());
+        //gui.EraseObj("notifications", warIt->GetIdInGui());
         wars.erase(warIt);
     }
     else {            
@@ -250,7 +250,7 @@ void ProcessPacket::PeaceAccepted(sf::Packet & packet, Gui & gui, std::vector<st
     }
 }
 
-void ProcessPacket::NewWar(sf::Packet & packet, Gui & gui, std::vector<War> & wars, int myCountryId, std::vector<std::shared_ptr<Country>> & countries)
+void ProcessPacket::NewWar(sf::Packet & packet, std::vector<War> & wars, int myCountryId, std::vector<std::shared_ptr<Country>> & countries)
 {
     int id;
     int attackerId, defenderId;
@@ -306,7 +306,7 @@ void ProcessPacket::NewWar(sf::Packet & packet, Gui & gui, std::vector<War> & wa
         obj->objects.push_back(hoverLabel);
         obj->objects.push_back(icon);
         
-        int idInGui = gui.AddToList(obj, "notifications", "notificationsList");
+        int idInGui = 0;//gui.AddToList(obj, "notifications", "notificationsList");
         delete obj;
 
         War war{id, idInGui};
@@ -469,7 +469,7 @@ void ProcessPacket::ProvincePopulation(sf::Packet & packet, std::vector<std::uni
     }
 }
 
-void ProcessPacket::SetGold(sf::Packet & packet, Gui & gui, std::shared_ptr<Country> & country)
+void ProcessPacket::SetGold(sf::Packet & packet, std::shared_ptr<Country> & country)
 {
     float gold = 0.0f;
     packet >> gold;
@@ -477,17 +477,17 @@ void ProcessPacket::SetGold(sf::Packet & packet, Gui & gui, std::shared_ptr<Coun
     country->SetGold(gold);
 
     std::unordered_map<std::string,std::string> values;
-    values["countryGold"] = ftos(gold);
-    gui.Update(values, "topBar");
+    //values["countryGold"] = ftos(gold);
+    //gui.Update(values, "topBar");
 }
 
-void ProcessPacket::SetSpeed(sf::Packet & packet, Gui & gui)
+void ProcessPacket::SetSpeed(sf::Packet & packet)
 {
     int speed = 1;
     packet >> speed;
     std::unordered_map<std::string,std::string> values;
     values["dateSpeed"] = std::to_string(speed);
-    gui.Update(values, "topBar");
+    //gui.Update(values, "topBar");
 }
 
 
@@ -530,7 +530,7 @@ void ProcessPacket::MonthlyUpdate(sf::Packet & packet, const std::string & myCou
     }
 }
 
-void ProcessPacket::BotPeaceOffer(sf::Packet & packet, Gui & gui, std::vector<PeaceOffer> & peaceOffers, const std::vector<std::shared_ptr<Country>> & countries)
+void ProcessPacket::BotPeaceOffer(sf::Packet & packet, std::vector<PeaceOffer> & peaceOffers, const std::vector<std::shared_ptr<Country>> & countries)
 {
     PeaceOffer peaceOffer;
     int lostProvCount, gainProvCount;
@@ -602,7 +602,7 @@ void ProcessPacket::BotPeaceOffer(sf::Packet & packet, Gui & gui, std::vector<Pe
     obj->objects.push_back(hoverLabel);
     obj->objects.push_back(icon);
         
-    int idInGui = gui.AddToList(obj, "notifications", "notificationsList");
+    int idInGui = 0;//gui.AddToList(obj, "notifications", "notificationsList");
 
     peaceOffer.idInGui = idInGui;
     peaceOffers.push_back(peaceOffer);
@@ -612,7 +612,7 @@ void ProcessPacket::BotPeaceOffer(sf::Packet & packet, Gui & gui, std::vector<Pe
     
 }
 
-void ProcessPacket::PeaceDeclined(sf::Packet & packet, Gui & gui)
+void ProcessPacket::PeaceDeclined(sf::Packet & packet)
 {
     std::string recipant;
     packet >> recipant;
@@ -651,7 +651,7 @@ void ProcessPacket::PeaceDeclined(sf::Packet & packet, Gui & gui)
     obj->objects.push_back(hoverLabel);
     obj->objects.push_back(icon);
 
-    int idInGui = gui.AddToList(obj, "notifications", "notificationsList");
+    int idInGui = 0;//gui.AddToList(obj, "notifications", "notificationsList");
     delete obj;
 }
 

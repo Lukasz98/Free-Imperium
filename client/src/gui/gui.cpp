@@ -1,185 +1,347 @@
 #include "gui.h"
+#include "load_from_png.h"
+#include "../asset_manager.h"
 
 
-Gui::Gui(glm::vec2 res)
-    : resolution(res)
+Gui::TextLabel::~TextLabel()
 {
-
+    delete text;
 }
-
-Gui::~Gui()
+Gui::ClickEventType Gui::TextLabel::Click(const glm::vec2 & mPos)
 {
-
+    if (backgr && backgr->Click(mPos.x, mPos.y))
+        return evName;
+    return Gui::ClickEventType::NONE;
 }
-
-void Gui::eraseWins(std::string priority)
+void Gui::TextLabel::setText(const std::string & text)
 {
-    bool erased = false;
-    do {
-        erased = false;
-        for (std::size_t i = 0; i < windows.size(); i++)
-            if (windows[i]->GetPriority() == priority) {
-                windows.erase(windows.begin() + i);
-                erased = true;
+    if (this->text == nullptr)
+        this->text = new Text{};
+    this->text->text = text;
+    int realCharSize = this->text->height * 0.7f;
+    int charSize = realCharSize * 7;
+    int dpi = 300;
+       
+    FT_Set_Pixel_Sizes(AM::face, 0, charSize);
+
+    glm::vec2 realSize = {(unsigned int)0, 0};
+    unsigned int realBelowBaseline = 0;
+    
+    int charPadding = (int)(100.0f * (1.0f / (float)charSize) + 0.5f);
+    int realCharPadding = (int)(100.0f * (1.0f / (float)realCharSize) + 0.5f);
+    char whiteSpace = '.';
+    unsigned int atlas_w = 0, atlas_h = 0, belowBaseline = 0;
+    int charCount = 0;
+
+    for (auto c : text) {
+        if (c == 32)
+            c = whiteSpace;
+        
+        {
+            // real Size
+            FT_Set_Pixel_Sizes(AM::face, 0, realCharSize);
+            if (FT_Load_Char(AM::face, c, FT_LOAD_RENDER))
+                continue;
+            FT_GlyphSlot g = AM::face->glyph;
+            if (realSize.x + g->bitmap.width + realCharPadding > this->text->maxWidth)
                 break;
-            }
-    } while (erased);
-}
+    
+            realSize.x += g->bitmap.width + realCharPadding;
+            realSize.y = std::max((unsigned int)realSize.y, g->bitmap.rows);
+            if (g->bitmap.rows - g->bitmap_top < 10000)
+                realBelowBaseline = std::max(realBelowBaseline, g->bitmap.rows - g->bitmap_top);
 
-void Gui::eraseWins(std::vector<std::size_t> indices)
-{  
-    std::sort(indices.rbegin(), indices.rend());
-    for (auto i : indices) {
-        Log("Eraase win: " << i);
-        windows.erase(windows.begin() + i);
+        }
+
+        {
+            FT_Set_Pixel_Sizes(AM::face, 0, charSize);
+            if (FT_Load_Char(AM::face, c, FT_LOAD_RENDER))
+                continue;
+            FT_GlyphSlot g = AM::face->glyph;
+            atlas_w += g->bitmap.width + charPadding;
+            atlas_h = std::max(atlas_h, g->bitmap.rows);
+            if (g->bitmap.rows - g->bitmap_top < 10000)
+                belowBaseline = std::max(belowBaseline, g->bitmap.rows - g->bitmap_top);
+        }
+        charCount++;
+    }
+    
+    if (belowBaseline < 10000) {
+        atlas_h += belowBaseline;
+        realSize.y += realBelowBaseline;
+    }
+    glm::vec2 textSize = realSize;
+
+    if (this->text->centered) {
+        this->text->position.x = this->text->centerTo.x - textSize.x / 2;
+        this->text->position.y = this->text->centerTo.y - (textSize.y + realBelowBaseline) / 2;
+        this->text->position.z = this->text->centerTo.z;
+    }
+    
+    glm::vec3 textPos = this->text->position;
+    textPos.y += (this->text->height - realSize.y - realBelowBaseline) / 2;
+
+    if (text == "-")
+        Log(atlas_w << ", " << atlas_h);
+    unsigned char * pixels = new unsigned char[atlas_w * atlas_h * 4];
+
+
+    for (int i = 0; i < atlas_w * atlas_h * 4 - 1; i += 4) {
+        if (i + 3 >= atlas_w * atlas_h * 4 - 1)
+            break;
+        unsigned char xd = 25;
+        pixels[i + 0] = this->text->bgC.r;
+        pixels[i + 1] = this->text->bgC.g;
+        pixels[i + 2] = this->text->bgC.b;
+        pixels[i + 3] = this->text->bgC.a;        
+    }
+    int offsetX = 0;
+
+    FT_Set_Pixel_Sizes(AM::face, 0, charSize);
+
+    int lastColumn = 0;
+    for (auto c : text) {
+        charCount--;
+        if (charCount < 0)
+            break;
+        if (c == ' ') {
+            FT_Load_Char(AM::face, whiteSpace, FT_LOAD_RENDER);
+            FT_GlyphSlot g = AM::face->glyph;
+            offsetX += g->bitmap.width + charPadding;
+            continue;
+        }
+        if(FT_Load_Char(AM::face, c, FT_LOAD_RENDER))
+            continue;
+        FT_GlyphSlot g = AM::face->glyph;
+        for (int x = 0; x < g->bitmap.width; x++) {
+            for (int y = g->bitmap.rows - 1; y >= 1; y--) {
+                int index = 0;
+                if (belowBaseline > 0)
+                    index = (x + offsetX + (y - (g->bitmap.rows - g->bitmap_top) + belowBaseline) * atlas_w)*4;
+                //else
+                //Log(g->bitmap.rows);
+
+                if (offsetX + x >= atlas_w)
+                    break;
+                if (index >= atlas_w * atlas_h * 4)
+                    break;
+
+                unsigned char transparency = g->bitmap.buffer[x + (g->bitmap.rows - y) * g->bitmap.width];
+
+                if (transparency == 255) {  // Draw char 
+                    pixels[index + 0] = this->text->textC.r;
+                    pixels[index + 1] = this->text->textC.g;
+                    pixels[index + 2] = this->text->textC.b;
+                    pixels[index + 3] = transparency;
+                }
+                else { // draw background color 
+                    pixels[index + 0] = this->text->bgC.r;
+                    pixels[index + 1] = this->text->bgC.g;
+                    pixels[index + 2] = this->text->bgC.b;
+                    pixels[index + 3] = this->text->bgC.a;
+                }
+            }
+                
+        }
+        offsetX += g->bitmap.width + charPadding;
+        lastColumn = offsetX;
+    }
+
+    this->text->texture = std::make_unique<Texture>(pixels, atlas_w, atlas_h);
+    this->text->backgr = std::make_unique<Rectangle>(textPos, textSize);
+    //this->text->backgr = std::make_unique<Rectangle>(this->text->position, textSize);
+    //this->text->content->SetTexture(texture);
+
+    delete [] pixels;
+
+    glm::vec4 bgColVec = { (double)this->text->bgC.r / 255, (double)this->text->bgC.g / 255,
+                           (double)this->text->bgC.b / 255, (double)this->text->bgC.a / 255
+                         };
+    //this->backgr = std::make_unique<Rectangle>(this->text->position, textSize, bgColVec);
+    //size = textSize;
+Log("TEXTSIZE = " <<textSize.x << " " << textSize.y);// << " " << textSize.z);
+//Log("TEXTPOS = " <<position.x << " " << position.y << " " << position.z);
+}
+void Gui::TextLabel::Draw()
+{
+Log("drt");
+    if (backgr)
+        backgr->Draw();
+    if (text && text->texture && text->backgr) {
+Log("drt2");
+        text->texture->Bind();
+        //backgr->Draw();
+        text->backgr->Draw();
+        text->texture->Unbind();
     }
 }
 
-void Gui::Reload()
+
+
+
+
+
+
+Gui::IconLabel::~IconLabel()
 {
-    windows.clear();
+    delete icon;
+}
+Gui::ClickEventType Gui::IconLabel::Click(const glm::vec2 & mPos)
+{
+    if (backgr && backgr->Click(mPos.x, mPos.y))
+        return evName;
+    return Gui::ClickEventType::NONE;
+}
+void Gui::IconLabel::setIcon(const std::string & path)
+{
+    if (icon == nullptr)
+        icon = new Icon{};
+    icon->iconPath = path;
+    icon->texture = std::make_unique<Texture>(path);
+    backgr = std::make_unique<Rectangle>(pos, size);
+}
+void Gui::IconLabel::Draw()
+{
+    if (icon && icon->texture)
+        icon->texture->Bind();
+    if (backgr)
+        backgr->Draw();
+    if (icon && icon->texture)
+        icon->texture->Unbind();
 }
 
-GuiClick Gui::Click(int x, int y)
+
+Gui::Group::~Group()
 {
-    std::vector<std::size_t> winsToErase;
-    for (std::size_t i = 0; i < windows.size(); i++) {
-        auto click = windows[i]->GetClick(x, y);
-        
-        if (click.values.size()) {
-            if (click.values["name:"] == "close") {
-                winsToErase.push_back(i);
-                break;
-            }
-            return click;
+    for (auto g : groups)
+        delete g;
+    for (auto text : tLabels)
+        delete text;
+    for (auto icon : iLabels)
+        delete icon;
+}
+bool Gui::Group::Click(Gui::ClickData & clickData, const glm::vec2 & mPos)
+{
+    for (auto g : groups) {
+        if (g->Click(clickData, mPos))
+            return true;
+    }
+    
+    for (auto t : tLabels) {
+        auto ev = t->Click(mPos);
+        if (ev != Gui::ClickEventType::NONE) {
+            clickData.group = this;
+            clickData.evType = ev;
+            return true;
         }
     }
-    eraseWins(winsToErase);
-    return GuiClick{};
+
+    for (auto i : iLabels) {
+        auto ev = i->Click(mPos);
+        if (ev != Gui::ClickEventType::NONE) {
+            clickData.group = this;
+            clickData.evType = ev;
+            return true;
+        }
+    }
+    return false;
 }
+void Gui::Group::Draw()
+{
+    if (backgr)
+        backgr->Draw();
+    for (auto text : tLabels) {
+        text->Draw();
+    }
+    for (auto icon : iLabels) {
+        icon->Draw();
+    }
+}
+
+
+
+Gui::List::~List()
+{
+    for (auto g : groups)
+        delete g;
+}
+bool Gui::List::Click(Gui::ClickData & clickData, const glm::vec2 & mPos)
+{
+    for (auto g : groups) {
+        if (g->Click(clickData, mPos))
+            return true;
+    }
+    return false;
+}
+void Gui::List::Draw()
+{
+    if (backgr)
+        backgr->Draw();
+    for (auto grp : groups)
+        grp->Draw();
+}
+
+
+
+Gui::Window::~Window()
+{
+    for (auto g : groups)
+        delete g;
+}
+bool Gui::Window::GetClick(Gui::ClickData & clickData, glm::vec2 mousPos)
+{
+    for (auto g : groups) {
+        if (g->Click(clickData, mousPos))
+            return true;
+    }
+    return false;
+}
+void Gui::Window::Draw()
+{
+    if (backgr)
+        backgr->Draw();
+    for (auto grp : groups) {
+        grp->Draw();
+    }
+}
+
+
+std::vector<Gui::Window*> windows;
 
 void Gui::Draw()
 {
-    for (auto & w : windows) {
+    for (auto w : windows) {
+        //Log("Draw");
         w->Draw();
     }
 }
 
-void Gui::AddWin(std::string path)
+void Gui::OpenTopBar(const std::vector<std::string> & values)
 {
-    eraseWins("low");
-    for (auto it = windows.begin(); it < windows.end(); it++)
-        if ((*it)->GetPath() == path)
-            windows.erase(it);
-    windows.emplace_back(std::make_unique<GuiWindow>(path, resolution));
-}
+    Window * w = new Window{};
+    windows.push_back(w);
+    w->type = WindowType::TOP_BAR;
+    w->id = 0;
+    w->backgr = std::make_unique<Rectangle>(glm::vec3{100.0, 100.0, 0.0}, glm::vec2{400.0, 400.0}, glm::vec4{1.0, 0.0, 0.0, 1.0});
 
-void Gui::Update(const std::unordered_map<std::string,std::string> & values, std::string type)
-{
-    for (auto & w : windows)
-        if (w->GetType() == type)
-            w->Update(values);
-}
+    Group * grp = new Group{};
+    grp->id = 0;
+    w->groups.push_back(grp);
+    grp->backgr = std::make_unique<Rectangle>(glm::vec3{110.0, 110.0, 1.0}, glm::vec2{200.0, 200.0}, glm::vec4{1.0, 1.0, 0.0, 1.0});
 
-void Gui::ClearList(const std::string & win, const std::string & listName)
-{
-    for (auto & w : windows)
-        if (w->GetType() == win)
-            w->ClearList(listName);
-}
-
-void Gui::Hover(int x, int y)
-{
-    for (auto & w : windows) {
-        if (w->Hover(x, y))
-            return;
-    }
-}
-
-void Gui::EraseObj(const std::string & winType, int objId)
-{
-    for (auto & w : windows) {
-        if (w->GetType() == winType) {
-            w->DeleteObj(objId);
-        }
-    }
-}
-
-void Gui::EraseWin(const std::string & winType)
-{
-    for (auto w = windows.begin(); w < windows.end(); w++) {
-        if ((*w)->GetType() == winType) {
-            windows.erase(w);
-            break;
-        }
-    }
-}
-
-bool Gui::Scroll(double offset, double xMouse, double yMouse)
-{    
-    for (auto & w : windows) {
-        if (w->Hover(xMouse, yMouse)) {
-            w->Scroll(offset, xMouse, yMouse);
-            return true;
-        }
-    }    
-    return false;
-}
-
-bool Gui::IsOpen(std::string type) const
-{
-    for (auto & w : windows) {
-        if (w->GetType() == type)
-            return true;
-    }
-    return false;
-}
-
-int Gui::AddToList(DataObj * newObj, const std::string & win, const std::string & listName)
-{
-    for (auto & w : windows)
-        if (w->GetType() == win)
-            return w->UpdateList(newObj, listName);
-    return -1;
-}
-
-void Gui::ObservationOfLastWin(Subject * s)
-{
-    if (windows.size()) {
-        windows.back()->SetSubject(s);
-        s->AddObserver(windows.back().get());
-    }
-}
-
-std::unordered_map<std::string,std::string> Gui::GetWinValues(std::string type) const
-{
-    for (auto & w : windows) {
-        if (w->GetType() == type)
-            return w->GetValues();
-    }
-    std::unordered_map<std::string,std::string> ddddd;
-    return ddddd;
-}
-
-std::vector<std::string> Gui::GetContentOf(std::string win, std::string valueName) const
-{
-    std::vector<std::string> content;
-    for (auto & w : windows) {
-        if (w->GetType() == win) {
-            content = w->GetContent(valueName, 0);
-            break;
-        }
-    }
-    return content;
-}
-
-std::vector<std::unordered_map<std::string,std::string>> Gui::GetValuesOfListContents(const std::string & win, const std::string & listName) {
-
-    for (auto & w : windows) {
-        if (w->GetType() == win) {
-            return w->GetValuesOfListContents(listName);
-        }
-    }
-
-    return std::vector<std::unordered_map<std::string,std::string>>{}; 
+    TextLabel * title = new TextLabel{};
+    grp->tLabels.push_back(title);
+    title->backgr = std::make_unique<Rectangle>(glm::vec3{100.0, 100.0, 1.0}, glm::vec2{200.0, 200.0}, glm::vec4{.0, 1.0, 0.0, .5});
+   
+    title->id = 0;
+    title->text = new TextLabel::Text{};
+    title->text->height = 140;
+    title->text->textC = Color{0, 0, 255, 255};
+    title->text->bgC = Color{0, 255, 255, 255};
+    title->text->maxWidth = 550;
+    title->text->centered= false;
+    title->text->position = glm::vec3{10.0, 10.0, .1};
+    //title->text->text = values[0];
+    title->setText("huala");//values[0]);
+    
 }

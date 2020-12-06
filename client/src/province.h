@@ -6,7 +6,7 @@
 
 #include <glm/vec2.hpp>
 
-#include "gui/float_to_string.h"
+//#include "gui/float_to_string.h"
 #include "data_object.h"
 #include "color.h"
 #include "observer.h"

@@ -14,7 +14,7 @@ Unit::Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string co
     activeFrame = 0;
     fakePos = pos;
     visible = false;
-
+/*
     DataObj * obj = new DataObj{"label"};
     obj->values["position:"] = "0.0 0.0 2.1";
     //obj->values["size:"] = "96 44";
@@ -42,11 +42,11 @@ Unit::Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string co
     obj->objects.back()->objects.back()->values["content:"] = itos(soldiers);
     obj->objects.back()->objects.back()->values["height:"] = "15"; //20
 
-    std::vector<GuiClick> clickPatterns;
-    bar = std::make_unique<Label>(glm::vec3{pos.x - labelXOffset, pos.y - labelYOffset, pos.z}, obj->values, obj->objects, clickPatterns);
+    //std::vector<GuiClick> clickPatterns;
+    //bar = std::make_unique<Label>(glm::vec3{pos.x - labelXOffset, pos.y - labelYOffset, pos.z}, obj->values, obj->objects, clickPatterns);
 
     delete obj;    
-    
+  */  
     texture[0] = std::make_shared<Texture>(std::string("src/img/unit_1.png"), 40, 40);
     texture[1] = std::make_shared<Texture>(std::string("src/img/unit_2.png"), 40, 40);
     move_texture[0] = std::make_shared<Texture>(std::string("src/img/unit_move_1.png"), 40, 40);
@@ -65,15 +65,15 @@ void Unit::Update(glm::vec3 p, std::vector<glm::vec3> mvs, int soldiersCount)
     visible = true;
     if (soldiers != soldiersCount) {
         soldiers = soldiersCount;
-        std::unordered_map<std::string,std::string> barValues;
-        barValues["unitSize"] = itos(soldiers);
-        bar->Update(barValues);
+       // std::unordered_map<std::string,std::string> barValues;
+     //   barValues["unitSize"] = itos(soldiers);
+      //  bar->Update(barValues);
     }
     if (p != position) {
         position = p;
         fakePos = p;
         Init();
-        bar->SetPos(glm::vec3{position.x - labelXOffset, position.y - labelYOffset, position.z});
+    //    bar->SetPos(glm::vec3{position.x - labelXOffset, position.y - labelYOffset, position.z});
     }
 
     bool newMoves = false;
@@ -168,14 +168,13 @@ AM::am.model->Draw();
 void Unit::DrawGuiElements(bool isSelected)
 {
 
-//Rectangle::Draw();
     if (isSelected) {
         for (auto & m : moves) {
             //Log(m.arrow->GetSize().x);
             m.arrow->Draw(false);
         }
     }
-    bar->Draw();
+    //bar->Draw();
 }
 
 bool Unit::Click(glm::vec3 vv, glm::vec3 eye) {
@@ -246,7 +245,7 @@ std::unordered_map<std::string,std::string> Unit::GetValues() const
     values["id"] = std::to_string(id);
     values["country"] = country;
     values["name"] = name;
-    values["size"] = itos(soldiers);
+    //values["size"] = itos(soldiers);
     values["siegePower"] = std::to_string(siegePower);
     values["attack"] = std::to_string(attack);
     values["defense"] = std::to_string(defense);

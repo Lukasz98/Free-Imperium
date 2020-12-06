@@ -13,7 +13,7 @@ class Room : public Scene
     std::vector<std::shared_ptr<Country>> & countries;
     
     void loop(bool & play, std::string & country);
-    void processGuiEvent(GuiClick & click, std::vector<sf::Packet> & toSend, bool & play);
+    void processGuiEvent( std::vector<sf::Packet> & toSend, bool & play);
     
 public:
     Room(Window & window, Settings & s, std::vector<std::shared_ptr<Country>> & countries);

@@ -3,7 +3,7 @@
 Menu::Menu(Window & window, Settings & s, std::vector<std::shared_ptr<Country>> & countries)
     : Scene(window, s.resolution), settings(s), countries(countries)
 {
-    gui.AddWin("src/gui/menu.txt");
+    //gui.AddWin("src/gui/menu.txt");
 }
 
 Menu::~Menu()
@@ -24,38 +24,48 @@ void Menu::Play()
 
 void Menu::loop()
 {
-    while (!window.ShouldClose()) {
+    Log("tu");
+
+
+std::vector<std::string> vals;
+vals.emplace_back("Polska");
+Gui::OpenTopBar(vals);
+
+
+
+while (!window.ShouldClose()) {
         window.Refresh();
 
         if (window.keys['R']) {
-            gui.Reload();
-            gui.AddWin("src/gui/menu.txt");
+            //gui.Reload();
+            //gui.AddWin("src/gui/menu.txt");
         }
 
         if (window.mouseL && !window.mouseR) {
             //auto guiEvent = gui.Click(window.xMouse, window.GetSize().y - window.yMouse);
  std::cout << window.xMouse * resolution.x / window.GetSize().x << " "<<( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y << '\n';           
-auto guiEvent = gui.Click(window.xMouse * resolution.x / window.GetSize().x,( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y);
+//auto guiEvent = gui.Click(window.xMouse * resolution.x / window.GetSize().x,( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y);
+            
+/*
             bool wasGuiClicked = guiEvent.values.size();
             if (wasGuiClicked) {
                 processGuiEvent(guiEvent);
                 if (localGame || guestGame || quit)
                     break;
             }
+  */
         }
 
         window.mouseL = false;
         window.mouseR = false;
-
+Gui::Draw();
         DrawGui();
-        //gui.Draw();        
-        //window.Update();
     }
 }
 
-void Menu::processGuiEvent(GuiClick & click)
+void Menu::processGuiEvent()
 {
-    //GuiAid * aid = nullptr;
+ /*   //GuiAid * aid = nullptr;
     std::string evType = click.GetEventName();
 
     if (evType == "localGame") {
@@ -69,7 +79,8 @@ void Menu::processGuiEvent(GuiClick & click)
     else if (evType == "quit") {
         quit = true;
     }
-    /*
+   */
+   /*
     if (aid != nullptr) {
         auto packets = aid->GetPackets();
         toSend.insert(toSend.end(), packets.begin(), packets.end());

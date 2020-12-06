@@ -5,8 +5,8 @@
 #include <vector>
 
 #include "graphics/rectangle.h"
-#include "gui/label.h"
-#include "gui/float_to_string.h"
+//#include "gui/label.h"
+//#include "gui/float_to_string.h"
 #include "log.h"
 #include "observer.h"
 #include "asset_manager.h"
@@ -35,7 +35,7 @@ class Unit : public Rectangle, public Subject
 {
     glm::mat4 model, rotate;
     const float rotateX, yScale;
-    std::unique_ptr<Label> bar;
+    //std::unique_ptr<Label> bar;
 
     // if those three will have different sizes
     // code will brake

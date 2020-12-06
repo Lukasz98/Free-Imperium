@@ -14,57 +14,57 @@
 
 namespace GuiAid {
 
-void DecreaseValue(Gui & gui, GuiClick & event);
+void DecreaseValue();
 
-void IncreaseValue(Gui & gui, GuiClick & event);
+void IncreaseValue();
 
-void OpenCountry(Gui & gui, const std::vector<std::shared_ptr<Country>> & countries, const std::shared_ptr<Country> & myCountry, 
-                 const std::vector<War> & wars, const GuiClick & event);
+void OpenCountry(const std::vector<std::shared_ptr<Country>> & countries, const std::shared_ptr<Country> & myCountry, 
+                 const std::vector<War> & wars);
 
-void NewUnit(const GuiClick & event, std::vector<std::unique_ptr<Province>> & provinces, std::vector<sf::Packet> & packets);
+void NewUnit( std::vector<std::unique_ptr<Province>> & provinces, std::vector<sf::Packet> & packets);
 
-void OpenUnit(Gui & gui, GuiClick & event, const std::vector<std::shared_ptr<Unit>> & units);
+void OpenUnit(const std::vector<std::shared_ptr<Unit>> & units);
 
-void EraseObj(Gui & gui, GuiClick & event);
+void EraseObj();
 
-void DeclareWar(GuiClick & event, std::vector<std::shared_ptr<Country>> & countries, std::vector<sf::Packet> & packets);
+void DeclareWar(std::vector<std::shared_ptr<Country>> & countries, std::vector<sf::Packet> & packets);
 
-void OpenWar(Gui & gui, GuiClick & event, const std::vector<War> & wars);
+void OpenWar(const std::vector<War> & wars);
 
-void OpenBattle(Gui & gui, const std::vector<std::unique_ptr<Battle>>::iterator & battleIt, 
+void OpenBattle(const std::vector<std::unique_ptr<Battle>>::iterator & battleIt, 
                 const std::vector<std::unique_ptr<Province>>::iterator & provIt);
 
-void OpenSiegedProv(Gui & gui, const std::vector<std::unique_ptr<Province>>::iterator & provIt, const std::vector<War> & wars);
+void OpenSiegedProv(const std::vector<std::unique_ptr<Province>>::iterator & provIt, const std::vector<War> & wars);
 
-void OfferPeace(Gui & gui, const std::vector<War> & wars, GuiClick & event, const std::string & myCountry);
+void OfferPeace(const std::vector<War> & wars, const std::string & myCountry);
 
-void SendPeaceOffer(Gui & gui, const std::vector<War> & wars, std::vector<std::shared_ptr<Country>> & countries,
-                    std::vector<std::unique_ptr<Province>> & provinces, GuiClick & event, std::vector<sf::Packet> & packets);
+void SendPeaceOffer(const std::vector<War> & wars, std::vector<std::shared_ptr<Country>> & countries,
+                    std::vector<std::unique_ptr<Province>> & provinces, std::vector<sf::Packet> & packets);
 
-void MergeUnits(Gui & gui, const GuiClick & event, std::vector<sf::Packet> & packets);
+void MergeUnits( std::vector<sf::Packet> & packets);
 
-void DateSpeed(GuiClick & event, std::vector<sf::Packet> & packets);
+void DateSpeed(std::vector<sf::Packet> & packets);
 
 void StartGame(std::vector<sf::Packet> & packets);
 
-void SetCountry(GuiClick & click, std::vector<sf::Packet> & packets);
+void SetCountry(std::vector<sf::Packet> & packets);
 
-void StartImprRel(GuiClick & event, std::shared_ptr<Country> & myCountry, std::vector<std::shared_ptr<Country>> & countries, 
+void StartImprRel(std::shared_ptr<Country> & myCountry, std::vector<std::shared_ptr<Country>> & countries, 
                   std::vector<sf::Packet> & packets);
 
-void StopImprRel(GuiClick & event, std::shared_ptr<Country> & myCountry, std::vector<std::shared_ptr<Country>> & countries,
+void StopImprRel(std::shared_ptr<Country> & myCountry, std::vector<std::shared_ptr<Country>> & countries,
                  std::vector<sf::Packet> & packets);
 
-void BotPeaceOffer(GuiClick & event, Gui & gui, std::vector<PeaceOffer> & peaceOffers, const std::vector<std::shared_ptr<Country>> & countries,
+void BotPeaceOffer(std::vector<PeaceOffer> & peaceOffers, const std::vector<std::shared_ptr<Country>> & countries,
                     const std::vector<std::unique_ptr<Province>> & provinces);
  
-void AcceptPeace(GuiClick & event, Gui & gui, std::vector<PeaceOffer> &  peaceOffers, std::vector<sf::Packet> & packets);
+void AcceptPeace(std::vector<PeaceOffer> &  peaceOffers, std::vector<sf::Packet> & packets);
 
-void DeclinePeace(GuiClick & event, Gui & gui, std::vector<PeaceOffer> &  peaceOffers,
+void DeclinePeace(std::vector<PeaceOffer> &  peaceOffers,
                   std::vector<sf::Packet> & packets);
 
 
 
 
 
-} //namespace
+} 

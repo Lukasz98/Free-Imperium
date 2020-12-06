@@ -51,7 +51,7 @@ class Game : public Scene
     bool provClick(glm::vec2 mouseInWorld);
     bool unitClick(glm::vec2 mouseInWorld);
     void unitMove(std::unordered_map<std::string,std::string> & values, glm::vec2 mouseInWorld);
-    void processGuiEvent(GuiClick & click);
+    void processGuiEvent();
     void sendPackets();
     void updateBattles();
     void updateGui();

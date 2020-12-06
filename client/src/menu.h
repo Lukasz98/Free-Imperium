@@ -11,7 +11,7 @@ class Menu : public Scene
 
     bool localGame = false, guestGame = false, quit = false;
     void loop();
-    void processGuiEvent(GuiClick & click);
+    void processGuiEvent();
     
 public:
     Menu(Window & window, Settings & s, std::vector<std::shared_ptr<Country>> & countries);

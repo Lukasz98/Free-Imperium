@@ -21,16 +21,16 @@
 namespace ProcessPacket {
 
     
-    void DailyUpdate(sf::Packet & packet, Gui & gui, std::vector<War> & wars, std::vector<std::unique_ptr<Province>> & provinces, 
+    void DailyUpdate(sf::Packet & packet, std::vector<War> & wars, std::vector<std::unique_ptr<Province>> & provinces, 
                         std::vector<std::shared_ptr<Country>> & countries, Map & map);
     
-    void HourlyUpdate(sf::Packet & packet, Gui & gui, std::vector<std::shared_ptr<Unit>> & units, std::vector<std::unique_ptr<Battle>> & battles,
+    void HourlyUpdate(sf::Packet & packet, std::vector<std::shared_ptr<Unit>> & units, std::vector<std::unique_ptr<Battle>> & battles,
                       float mapChunkScale);
     
-    void PeaceAccepted(sf::Packet & packet, Gui & gui, std::vector<std::unique_ptr<Province>> & provinces, 
+    void PeaceAccepted(sf::Packet & packet, std::vector<std::unique_ptr<Province>> & provinces, 
                        std::vector<std::shared_ptr<Country>> & countries, std::vector<War> & wars, Map & map);
     
-    void NewWar(sf::Packet & packet, Gui & gui, std::vector<War> & wars, int myCountryId, std::vector<std::shared_ptr<Country>> & countries);
+    void NewWar(sf::Packet & packet, std::vector<War> & wars, int myCountryId, std::vector<std::shared_ptr<Country>> & countries);
 
 
     void NewUnit(sf::Packet & packet, std::vector<std::shared_ptr<Unit>> & units, std::vector<std::shared_ptr<Country>> & countries, const std::string & countryName);
@@ -48,13 +48,13 @@ namespace ProcessPacket {
 
     void ProvincePopulation(sf::Packet & packet, std::vector<std::unique_ptr<Province>> & provinces); 
 
-    void SetGold(sf::Packet & packet, Gui & gui, std::shared_ptr<Country> & country);
+    void SetGold(sf::Packet & packet, std::shared_ptr<Country> & country);
 
-    void SetSpeed(sf::Packet & packet, Gui & gui);
+    void SetSpeed(sf::Packet & packet);
 
     void MonthlyUpdate(sf::Packet & packet, const std::string & myCountry, std::vector<std::shared_ptr<Country>> & countries);
 
-    void BotPeaceOffer(sf::Packet & packet, Gui & gui, std::vector<PeaceOffer> & peaceOffers, const std::vector<std::shared_ptr<Country>> & countries);
+    void BotPeaceOffer(sf::Packet & packet, std::vector<PeaceOffer> & peaceOffers, const std::vector<std::shared_ptr<Country>> & countries);
 
-    void PeaceDeclined(sf::Packet & packet, Gui & gui);
+    void PeaceDeclined(sf::Packet & packet);
 }

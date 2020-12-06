@@ -84,11 +84,11 @@ std::unordered_map<std::string, std::string> Province::GetValues()
     
     values["provName"] = name;
     values["countryName"] = country;
-    values["population"] = itos(population);
-    values["manpower"] = itos(manpower);
-    values["monthIncome"] = ftos(monthIncome);
+    //values["population"] = itos(population);
+    //values["manpower"] = itos(manpower);
+    //values["monthIncome"] = ftos(monthIncome);
     values["sieged"] = std::to_string(sieged);
-    values["siegeSoldiers"] = itos(siegeSoldiers);
+   // values["siegeSoldiers"] = itos(siegeSoldiers);
     values["siegeCountry"] = siegeCountry;
 
     // if delete this if, segmentation fault occurs while siege prov win is open and army retakes its prov

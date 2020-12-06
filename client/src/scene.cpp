@@ -1,7 +1,7 @@
 #include "scene.h"
 
 Scene::Scene(Window & win, const glm::vec2 & resolution)
-    : window(win), gui(resolution), 
+    : window(win), 
       shader("src/graphics/shaders/basic/vert.v", 
             "src/graphics/shaders/basic/frag.f", "", ""), 
       camera(window.GetSize())
@@ -29,6 +29,6 @@ void Scene::DrawGui()
     }
 #endif
     clock.restart();
-    gui.Draw();
+    //gui.Draw();
     window.Update();
 }

@@ -1,39 +1,112 @@
 #pragma once
-
+#include <string>
 #include <memory>
 #include <vector>
+#include <glm/vec3.hpp>
+#include <glm/vec2.hpp>
+#include "../graphics/rectangle.h"
+#include "../graphics/texture.h"
+#include "../color.h"
 
-#include "window.h"
-#include "object.h"
 
-class Gui
-{
-    glm::vec2 resolution;
-    std::vector<std::unique_ptr<GuiWindow>> windows;
+namespace Gui {
 
-    void eraseWins(std::vector<std::size_t> indices);
-    void eraseWins(std::string priority);
-   
-public:
-    Gui(glm::vec2 res);
-    ~Gui();
+enum class ClickEventType {
+    NONE = 0
+};
 
-    void Reload();
-    GuiClick Click(int x, int y);
+enum class WindowType {
+    TOP_BAR = 0
+};
+
+struct TextLabel {
+    struct Text {
+        //int id, 
+        int height;
+        bool centered;
+        std::unique_ptr<Rectangle> backgr;
+        std::unique_ptr<Texture> texture;
+        std::string text;
+        Color textC, bgC;
+        int maxWidth;
+        glm::vec3 position, centerTo;
+    };
+    Text * text = nullptr;
+    int id;
+    ClickEventType evName;
+    std::unique_ptr<Rectangle> backgr;
+    ClickEventType Click(const glm::vec2 & mPos);
+    void setText(const std::string & text);
+    void Draw();
+    ~TextLabel();
+};
+
+
+struct IconLabel {
+    struct Icon {
+        //int id;
+        //std::unique<Rectangle> backgr;
+        std::unique_ptr<Texture> texture;
+        std::string iconPath;
+    };
+    Icon * icon = nullptr;
+    int id;
+    ClickEventType evName;
+    std::unique_ptr<Rectangle> backgr;
+    glm::vec3 pos;
+    glm::vec2 size;
 
     void Draw();
-    void AddWin(std::string path);
-    void Update(const std::unordered_map<std::string,std::string> & values, std::string type);
-    void ClearList(const std::string & win, const std::string & listName);
-    void Hover(int x, int y);
-    void EraseObj(const std::string & winType, int objId);
-    void EraseWin(const std::string & winType);
-    bool Scroll(double offset, double xMouse, double yMouse);
-    bool IsOpen(std::string type) const;
-    int AddToList(DataObj * newObj, const std::string & win, const std::string & listName);
-    void ObservationOfLastWin(Subject * s);
-    
-    std::unordered_map<std::string,std::string> GetWinValues(std::string type) const;
-    std::vector<std::string> GetContentOf(std::string win, std::string valueName) const;
-    std::vector<std::unordered_map<std::string,std::string>> GetValuesOfListContents(const std::string & win, const std::string & listName);
+    ClickEventType Click(const glm::vec2 & mPos);
+    void setIcon(const std::string & path);
+    ~IconLabel();
 };
+
+struct Window;
+struct Group;
+struct ClickData {
+    Window * window = nullptr;
+    Group * group = nullptr;
+    ClickEventType evType;
+};
+ 
+
+
+struct Group {
+    std::vector<Group*> groups;
+    std::vector<TextLabel*> tLabels;
+    std::vector<IconLabel*> iLabels;
+    int id;
+    std::unique_ptr<Rectangle> backgr;
+    bool Click(ClickData & clickData, const glm::vec2 & mPos);
+    void Draw();
+    ~Group();
+};
+
+
+struct List {
+    std::vector<Group*> groups;
+    int id;
+    std::unique_ptr<Rectangle> backgr;
+    bool Click(ClickData & clickData, const glm::vec2 & mPos);
+    void Draw();
+    ~List();
+};
+
+
+struct Window
+{
+    std::vector<Group*> groups;
+    WindowType type;
+    int id; // for ex. province id
+    std::unique_ptr<Rectangle> backgr;
+    bool GetClick(ClickData & clickData, glm::vec2 mousPos);
+    void Draw();
+    ~Window();
+};
+
+void Draw();
+void OpenTopBar(const std::vector<std::string> & values);
+
+}
+

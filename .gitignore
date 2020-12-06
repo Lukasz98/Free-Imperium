@@ -8,3 +8,5 @@ server/build/*
 **/Makefile
 
 client/build/*
+
+client/new_gui_sketch
