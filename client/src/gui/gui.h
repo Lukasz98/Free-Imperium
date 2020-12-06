@@ -25,14 +25,19 @@ struct TextLabel {
         int height;
         bool centered;
         std::unique_ptr<Rectangle> backgr;
+        std::vector<std::unique_ptr<Rectangle>> rects;
         std::unique_ptr<Texture> texture;
-        std::string text;
+
+std::string text;
         Color textC, bgC;
         int maxWidth;
         glm::vec3 position, centerTo;
+        glm::vec2 size;
     };
     Text * text = nullptr;
     int id;
+    //glm::vec3 position, o;
+    
     ClickEventType evName;
     std::unique_ptr<Rectangle> backgr;
     ClickEventType Click(const glm::vec2 & mPos);

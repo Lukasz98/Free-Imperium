@@ -15,6 +15,16 @@ struct AM
     std::unique_ptr<Shader> shader;
     std::unique_ptr<Texture> modelTexture;
 
+    GLuint fontAtlas;
+    struct AtlasInfo
+    {
+        bool set = false;
+        float tcX, tcY, tcWidth, tcHeight;
+        int width, height, advanceX, yPos;
+    };
+    static AtlasInfo atlasInfo[128];
+static std::unique_ptr<Texture> atlasTexture;
+static int maxRows, widthSum;
 //    AM() : shader(std::make_unique<Shader>(
   //      "src/graphics/shaders/model_3d/vert.v",
     //    "src/graphics/shaders/model_3d/frag.f", "", "")) 

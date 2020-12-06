@@ -31,7 +31,7 @@ std::vector<std::string> vals;
 vals.emplace_back("Polska");
 Gui::OpenTopBar(vals);
 
-
+Rectangle atlasRect{{0.0, 0.0, 0.1}, {AM::widthSum, AM::maxRows}};
 
 while (!window.ShouldClose()) {
         window.Refresh();
@@ -58,6 +58,11 @@ while (!window.ShouldClose()) {
 
         window.mouseL = false;
         window.mouseR = false;
+
+        AM::atlasTexture->Bind();
+        atlasRect.Draw();
+        AM::atlasTexture->Unbind();
+
 Gui::Draw();
         DrawGui();
     }
