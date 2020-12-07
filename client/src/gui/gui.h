@@ -13,7 +13,8 @@
 namespace Gui {
 
 enum class ClickEventType {
-    NONE = 0
+    NONE = 0,
+    TEST = 1
 };
 
 enum class WindowType {
@@ -23,22 +24,16 @@ enum class WindowType {
 struct TextLabel {
     struct Text {
         enum AM::FontSize fontSize;
-        bool centered = false;//, breakLine = false;
-        //std::unique_ptr<Rectangle> backgr;
+        bool centered = false;
         std::vector<std::unique_ptr<Rectangle>> rects;
-        //std::unique_ptr<Texture> texture;
 
-        //std::string text;
         Color textC, bgC;
-        //int maxWidth;
         glm::vec3 position, centerTo;
-        //glm::vec2 size;
     };
     Text * text = nullptr;
     int id;
-    //glm::vec3 position, o;
     
-    ClickEventType evName;
+    ClickEventType evName = ClickEventType::NONE;
     std::unique_ptr<Rectangle> backgr;
     ClickEventType Click(const glm::vec2 & mPos);
     void setText(const std::string & text);
@@ -49,14 +44,12 @@ struct TextLabel {
 
 struct IconLabel {
     struct Icon {
-        //int id;
-        //std::unique<Rectangle> backgr;
         std::unique_ptr<Texture> texture;
         std::string iconPath;
     };
     Icon * icon = nullptr;
     int id;
-    ClickEventType evName;
+    ClickEventType evName = ClickEventType::NONE;
     std::unique_ptr<Rectangle> backgr;
     glm::vec3 pos;
     glm::vec2 size;
@@ -72,7 +65,7 @@ struct Group;
 struct ClickData {
     Window * window = nullptr;
     Group * group = nullptr;
-    ClickEventType evType;
+    ClickEventType evType = ClickEventType::NONE;
 };
  
 
@@ -113,9 +106,11 @@ struct Window
     ~Window();
 };
 
+ClickData Click(const glm::vec2 & mousePos);
 void Hover(const glm::vec2 & mousePos);
 void Draw();
-void OpenTopBar(const std::vector<std::string> & values);
+
+void OpenTopBar(const std::vector<std::string> & values, const glm::vec2 & resolution);
 
 }
 

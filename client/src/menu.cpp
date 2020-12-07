@@ -29,7 +29,7 @@ void Menu::loop()
 
 std::vector<std::string> vals;
 vals.emplace_back("Polska");
-Gui::OpenTopBar(vals);
+Gui::OpenTopBar(vals, settings.resolution);
 
 //Rectangle atlasRect{{0.0, 0.0, 0.1}, {AM::widthSum, AM::maxRows}};
 
@@ -43,7 +43,13 @@ while (!window.ShouldClose()) {
 
         if (window.mouseL && !window.mouseR) {
             //auto guiEvent = gui.Click(window.xMouse, window.GetSize().y - window.yMouse);
- std::cout << window.xMouse * resolution.x / window.GetSize().x << " "<<( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y << '\n';           
+Gui::ClickData cdata = Gui::Click(
+glm::vec2{window.xMouse * resolution.x / window.GetSize().x, ( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
+if (cdata.evType != Gui::ClickEventType::NONE) {
+    Log("gui click");
+}
+
+std::cout << window.xMouse * resolution.x / window.GetSize().x << " "<<( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y << '\n';           
 //auto guiEvent = gui.Click(window.xMouse * resolution.x / window.GetSize().x,( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y);
             
 /*

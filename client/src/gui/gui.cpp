@@ -228,6 +228,18 @@ void Gui::Window::Draw()
 
 std::vector<Gui::Window*> windows;
 
+Gui::ClickData Gui::Click(const glm::vec2 & mousePos)
+{
+    Gui::ClickData clickData;
+    for (auto w : windows) {
+        if (w->GetClick(clickData, mousePos)) {
+            clickData.window = w;
+            return clickData;
+        }
+    }
+    return clickData;
+}
+
 void Gui::Hover(const glm::vec2 & mousePos)
 {
     for (auto w : windows)
@@ -237,12 +249,11 @@ void Gui::Hover(const glm::vec2 & mousePos)
 void Gui::Draw()
 {
     for (auto w : windows) {
-        //Log("Draw");
         w->Draw();
     }
 }
 
-void Gui::OpenTopBar(const std::vector<std::string> & values)
+void Gui::OpenTopBar(const std::vector<std::string> & values, const glm::vec2 & resolution)
 {
     Window * w = new Window{};
     windows.push_back(w);
@@ -267,6 +278,7 @@ void Gui::OpenTopBar(const std::vector<std::string> & values)
     title2->text->position = glm::vec3{525.0, 325.0, .3};
     title2->text->centered = true;
     title2->text->centerTo = glm::vec3{320.0, 320.0 + 37, .3};
+    title2->evName = ClickEventType::TEST;
     title2->setText(values[0] + "j");
  
 
