@@ -402,7 +402,7 @@ void Gui::OpenUnitsList()
 
     TextLabel * title2 = new TextLabel{};
     grp->tLabels.push_back(title2);
-    title2->backgr = std::make_unique<Rectangle>(glm::vec3{400.0, 310.0, .3}, glm::vec2{390.0, 40.0}, glm::vec4{.4, 1.0, 0.4, .0});
+    title2->backgr = std::make_unique<Rectangle>(glm::vec3{400.0, 310.0, .3}, glm::vec2{360.0, 40.0}, glm::vec4{.4, 1.0, 0.4, 1.0});
    
     title2->id = 0;
     title2->text = new TextLabel::Text{};
@@ -414,5 +414,16 @@ void Gui::OpenUnitsList()
     title2->text->centerTo = glm::vec3{320.0, 320.0 + 37, .4};
     title2->evName = ClickEventType::TEST;
     title2->setText("Mazowsze unit");
+
+    IconLabel * icon = new IconLabel{};
+    grp->iLabels.push_back(icon);
+    icon->icon = new IconLabel::Icon{};
+    icon->icon->iconPath = "src/img/plus.png";
+    //icon->icon->texture = std::make_unique<Texture>(icon->icon->path);
+    //icon->backgr = std::make_unique<Rectangle>(glm::vec3{765.0, 310.0, 0.4}, glm::vec2{30, 30});
+    icon->pos = glm::vec3{765.0, 310.0, 0.4};
+    icon->size = glm::vec2{30, 30};
+    icon->evName = ClickEventType::TEST;
+    icon->setIcon(icon->icon->iconPath);
 
 }
