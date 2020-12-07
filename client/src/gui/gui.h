@@ -18,7 +18,8 @@ enum class ClickEventType {
 };
 
 enum class WindowType {
-    TOP_BAR = 0
+    TOP_BAR = 0,
+    UNITS_LIST = 1
 };
 
 struct TextLabel {
@@ -27,6 +28,7 @@ struct TextLabel {
         bool centered = false;
         std::vector<std::unique_ptr<Rectangle>> rects;
 
+        std::string content;
         Color textC, bgC;
         glm::vec3 position, centerTo;
     };
@@ -75,10 +77,11 @@ struct Group {
     std::vector<TextLabel*> tLabels;
     std::vector<IconLabel*> iLabels;
     int id;
-    bool hoverable = false, hovered = false;
+    bool hoverable = false, hovered = false, visible = true; // visible used only for groups in List
     std::unique_ptr<Rectangle> backgr;
     bool Click(ClickData & clickData, const glm::vec2 & mPos);
     bool Hover(const glm::vec2 & mPos);
+    void Scroll(int amount); // used by List
     void Draw();
     ~Group();
 };
@@ -86,9 +89,11 @@ struct Group {
 
 struct List {
     std::vector<Group*> groups;
+
     int id;
-    std::unique_ptr<Rectangle> backgr;
+    std::unique_ptr<Rectangle> backgr, topRect, bottRect;
     bool Click(ClickData & clickData, const glm::vec2 & mPos);
+    void Scroll(int y); // y = -1 : +1
     void Draw();
     ~List();
 };
@@ -97,6 +102,7 @@ struct List {
 struct Window
 {
     std::vector<Group*> groups;
+    std::vector<List*> lists;
     WindowType type;
     int id; // for ex. province id
     std::unique_ptr<Rectangle> backgr;
@@ -108,9 +114,10 @@ struct Window
 
 ClickData Click(const glm::vec2 & mousePos);
 void Hover(const glm::vec2 & mousePos);
+void Scroll(int y);
 void Draw();
 
 void OpenTopBar(const std::vector<std::string> & values, const glm::vec2 & resolution);
-
+void OpenUnitsList(); 
 }
 

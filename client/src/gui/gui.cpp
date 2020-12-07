@@ -16,6 +16,7 @@ void Gui::TextLabel::setText(const std::string & text)
 {
     if (this->text == nullptr)
         this->text = new Text{};
+    this->text->content = text;
 
     if (this->text->centered) {
         int wSum = 0, maxY = 0;
@@ -120,7 +121,7 @@ Gui::Group::~Group()
 }
 bool Gui::Group::Click(Gui::ClickData & clickData, const glm::vec2 & mPos)
 {
-    if (hoverable && !hovered)
+    if ((hoverable && !hovered) || !visible)
         return false;
     for (auto g : groups) {
         if (g->Click(clickData, mPos))
@@ -148,6 +149,8 @@ bool Gui::Group::Click(Gui::ClickData & clickData, const glm::vec2 & mPos)
 }
 bool Gui::Group::Hover(const glm::vec2 & mPos)
 {
+    if (!visible)
+        return false;
     for (auto g : groups) {
         g->Hover(mPos);
     }
@@ -157,9 +160,31 @@ bool Gui::Group::Hover(const glm::vec2 & mPos)
     return hovered;
         
 }
+void Gui::Group::Scroll(int amount) // used only by List
+{
+    backgr->MoveRect(0, amount);
+    for (auto g : groups) {
+        g->Scroll(amount);
+    }
+    for (auto tL : tLabels) {
+        assert(tL->backgr && tL->text); 
+        tL->backgr->MoveRect(0, amount);
+        tL->text->position.y += amount;
+        tL->text->centerTo.y += amount;
+        for (auto & textRect : tL->text->rects) {
+        //    textRect->MoveRect(0, amount);
+        }
+        tL->setText(tL->text->content);
+    }
+    for (auto iL : iLabels) {
+        assert(iL->backgr);
+        iL->pos.y += amount;
+        iL->backgr->MoveRect(0, amount);
+    }
+}
 void Gui::Group::Draw()
 {
-    if (hoverable && !hovered)
+    if ((hoverable && !hovered) || !visible)
         return;
     hovered = false;
     if (backgr)
@@ -191,10 +216,29 @@ void Gui::List::Draw()
 {
     if (backgr)
         backgr->Draw();
+    if (topRect)
+        topRect->Draw();
+    if (bottRect)
+        bottRect->Draw();
     for (auto grp : groups)
         grp->Draw();
 }
-
+void Gui::List::Scroll(int y)
+{
+    int scrollSpeed = 30;
+    assert(topRect && bottRect);
+    float yTop = topRect->GetPosition().y;
+    float yBott = bottRect->GetPosition().y + bottRect->GetSize().y;
+    for (auto g : groups) {
+        g->Scroll(y * scrollSpeed);
+        int gYBott = g->backgr->GetPosition().y;
+        int gYTop = g->backgr->GetPosition().y + g->backgr->GetSize().y;
+        if (gYBott > yTop || gYTop < yBott)
+            g->visible = false;
+        else
+            g->visible = true;
+    }
+}
 
 
 Gui::Window::~Window()
@@ -206,6 +250,10 @@ bool Gui::Window::GetClick(Gui::ClickData & clickData, glm::vec2 mousPos)
 {
     for (auto g : groups) {
         if (g->Click(clickData, mousPos))
+            return true;
+    }
+    for (auto list : lists) {
+        if (list->Click(clickData, mousPos))
             return true;
     }
     return false;
@@ -223,8 +271,10 @@ void Gui::Window::Draw()
     for (auto grp : groups) {
         grp->Draw();
     }
+    for (auto list: lists) {
+        list->Draw();
+    }
 }
-
 
 std::vector<Gui::Window*> windows;
 
@@ -244,6 +294,14 @@ void Gui::Hover(const glm::vec2 & mousePos)
 {
     for (auto w : windows)
         w->Hover(mousePos);
+}
+
+void Gui::Scroll(int y)
+{
+    for (auto w : windows) {
+        for (auto l : w->lists)
+            l->Scroll(y);
+    }
 }
 
 void Gui::Draw()
@@ -319,5 +377,42 @@ void Gui::OpenTopBar(const std::vector<std::string> & values, const glm::vec2 & 
     title->text->position = glm::vec3{125.0, 125.0, .3};
     title->setText("hujala \"Dag,.");//values[0]);
  */
+
+}
+
+void Gui::OpenUnitsList()
+{
+    Window * w = new Window{};
+    windows.push_back(w);
+    w->type = WindowType::UNITS_LIST;
+    w->id = 0;
+    w->backgr = std::make_unique<Rectangle>(glm::vec3{400.0, 50.0, 0.0}, glm::vec2{400.0, 600.0}, glm::vec4{1.0, 0.0, 0.0, .1});
+
+    List * list = new List{};
+    w->lists.push_back(list);
+    list->backgr = std::make_unique<Rectangle>(glm::vec3{400.0, 50.0, 0.1}, glm::vec2{390.0, 590.0}, glm::vec4{1.0, 0.0, 0.0, .1});
+    list->topRect = std::make_unique<Rectangle>(glm::vec3{400.0, 540.0, 0.5}, glm::vec2{390.0, 40.0}, glm::vec4{1.0, 1.0, 0.0, .5});
+    list->bottRect = std::make_unique<Rectangle>(glm::vec3{400.0, 60.0, 0.5}, glm::vec2{390.0, 40.0}, glm::vec4{1.0, 1.0, 0.0, .5});
+
+
+    Group * grp = new Group{};
+    grp->id = 0;
+    list->groups.push_back(grp);
+    grp->backgr = std::make_unique<Rectangle>(glm::vec3{400.0, 310.0, .2}, glm::vec2{390.0, 40.0}, glm::vec4{.0, 1.0, 1.0, 1.0});
+
+    TextLabel * title2 = new TextLabel{};
+    grp->tLabels.push_back(title2);
+    title2->backgr = std::make_unique<Rectangle>(glm::vec3{400.0, 310.0, .3}, glm::vec2{390.0, 40.0}, glm::vec4{.4, 1.0, 0.4, .0});
+   
+    title2->id = 0;
+    title2->text = new TextLabel::Text{};
+    title2->text->fontSize = AM::FontSize::PX32;
+    title2->text->textC = Color{0, 0, 255, 255};
+    title2->text->bgC = Color{0, 255, 255, 255};
+    title2->text->position = glm::vec3{400.0, 310.0, .4};
+    title2->text->centered = false;
+    title2->text->centerTo = glm::vec3{320.0, 320.0 + 37, .4};
+    title2->evName = ClickEventType::TEST;
+    title2->setText("Mazowsze unit");
 
 }

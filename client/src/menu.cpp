@@ -30,6 +30,7 @@ void Menu::loop()
 std::vector<std::string> vals;
 vals.emplace_back("Polska");
 Gui::OpenTopBar(vals, settings.resolution);
+Gui::OpenUnitsList();
 
 //Rectangle atlasRect{{0.0, 0.0, 0.1}, {AM::widthSum, AM::maxRows}};
 
@@ -48,7 +49,6 @@ glm::vec2{window.xMouse * resolution.x / window.GetSize().x, ( window.GetSize().
 if (cdata.evType != Gui::ClickEventType::NONE) {
     Log("gui click");
 }
-
 std::cout << window.xMouse * resolution.x / window.GetSize().x << " "<<( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y << '\n';           
 //auto guiEvent = gui.Click(window.xMouse * resolution.x / window.GetSize().x,( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y);
             
@@ -64,6 +64,11 @@ std::cout << window.xMouse * resolution.x / window.GetSize().x << " "<<( window.
 
         window.mouseL = false;
         window.mouseR = false;
+if (window.scrollOffset) {
+    Gui::Scroll(window.scrollOffset);
+    window.scrollOffset = 0;
+}
+
 
   //      AM::atlasTexture->Bind();
     //    atlasRect.Draw();
