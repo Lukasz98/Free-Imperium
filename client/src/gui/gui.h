@@ -7,6 +7,7 @@
 #include "../graphics/rectangle.h"
 #include "../graphics/texture.h"
 #include "../color.h"
+#include "../asset_manager.h"
 
 
 namespace Gui {
@@ -21,18 +22,17 @@ enum class WindowType {
 
 struct TextLabel {
     struct Text {
-        //int id, 
-        int height;
-        bool centered;
-        std::unique_ptr<Rectangle> backgr;
+        enum AM::FontSize fontSize;
+        bool centered = false;//, breakLine = false;
+        //std::unique_ptr<Rectangle> backgr;
         std::vector<std::unique_ptr<Rectangle>> rects;
-        std::unique_ptr<Texture> texture;
+        //std::unique_ptr<Texture> texture;
 
-std::string text;
+        //std::string text;
         Color textC, bgC;
-        int maxWidth;
+        //int maxWidth;
         glm::vec3 position, centerTo;
-        glm::vec2 size;
+        //glm::vec2 size;
     };
     Text * text = nullptr;
     int id;

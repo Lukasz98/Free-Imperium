@@ -22,9 +22,19 @@ struct AM
         float tcX, tcY, tcWidth, tcHeight;
         int width, height, advanceX, yPos;
     };
-    static AtlasInfo atlasInfo[128];
-static std::unique_ptr<Texture> atlasTexture;
-static int maxRows, widthSum;
+
+    enum FontSize {
+        PX16 = 0,
+        PX32 = 1,
+        PX64 = 2
+    };
+
+    static AtlasInfo atlasInfo[3][128];
+    static std::unique_ptr<Texture> atlasTexture[3];
+    //static int maxRows, widthSum;
+
+
+
 //    AM() : shader(std::make_unique<Shader>(
   //      "src/graphics/shaders/model_3d/vert.v",
     //    "src/graphics/shaders/model_3d/frag.f", "", "")) 

@@ -1,6 +1,5 @@
 #include "gui.h"
 #include "load_from_png.h"
-#include "../asset_manager.h"
 
 
 Gui::TextLabel::~TextLabel()
@@ -18,17 +17,32 @@ void Gui::TextLabel::setText(const std::string & text)
     if (this->text == nullptr)
         this->text = new Text{};
 
+    if (this->text->centered) {
+        int wSum = 0, maxY = 0;
+        for (auto c : text) {
+            if (AM::atlasInfo[this->text->fontSize][c].set) {
+                wSum += AM::atlasInfo[this->text->fontSize][c].width;
+                if (maxY <  AM::atlasInfo[this->text->fontSize][c].height)
+                    maxY = AM::atlasInfo[this->text->fontSize][c].height;
+            }
+            else {
+                wSum += 20;
+            }
+        }
+        this->text->position.x = this->text->centerTo.x - (float)wSum / 2;
+        this->text->position.y = this->text->centerTo.y - (float)maxY / 2;
+    }
     
     this->text->rects.clear();
     float off = 0.0f;
     for (auto c : text) {
         glm::vec3 rPos;
         glm::vec2 rSize, rLBTC, tcLen;
-        if (AM::atlasInfo[c].set) {
-            rPos = {this->text->position.x + off, this->text->position.y + AM::atlasInfo[c].yPos, this->text->position.z};
-            rSize = {AM::atlasInfo[c].width, AM::atlasInfo[c].height};
-            rLBTC = {AM::atlasInfo[c].tcX, AM::atlasInfo[c].tcY};
-            tcLen = {AM::atlasInfo[c].tcWidth, AM::atlasInfo[c].tcHeight};
+        if (AM::atlasInfo[this->text->fontSize][c].set) {
+            rPos = {this->text->position.x + off, this->text->position.y + AM::atlasInfo[this->text->fontSize][c].yPos, this->text->position.z};
+            rSize = {AM::atlasInfo[this->text->fontSize][c].width, AM::atlasInfo[this->text->fontSize][c].height};
+            rLBTC = {AM::atlasInfo[this->text->fontSize][c].tcX, AM::atlasInfo[this->text->fontSize][c].tcY};
+            tcLen = {AM::atlasInfo[this->text->fontSize][c].tcWidth, AM::atlasInfo[this->text->fontSize][c].tcHeight};
             off += rSize.x;
         }
         else {
@@ -38,8 +52,8 @@ void Gui::TextLabel::setText(const std::string & text)
             tcLen = {0, 0};
             off += rSize.x;
         }
-        Log(rPos.x << " " << rPos.y << " "<<rPos.z);
-        this->text->rects.push_back(std::make_unique<Rectangle>(rPos, rSize, rLBTC, tcLen)); 
+        Log(rSize.x << " " << rSize.y << " "<<rPos.z);
+        //this->text->rects.push_back(std::make_unique<Rectangle>(rPos, rSize, rLBTC, tcLen)); 
     }
 }
 void Gui::TextLabel::Draw()
@@ -48,11 +62,11 @@ void Gui::TextLabel::Draw()
         backgr->Draw();
     //if (text && text->textur && text->backgr) {
     if (text) {
-        AM::atlasTexture->Bind();
+        AM::atlasTexture[this->text->fontSize]->Bind();
         for (auto & rect : text->rects) {
             rect->Draw();
         }
-        AM::atlasTexture->Unbind();
+        AM::atlasTexture[this->text->fontSize]->Unbind();
         //text->texture->Bind();
         //text->backgr->Draw();
         //text->texture->Unbind();
@@ -212,20 +226,53 @@ void Gui::OpenTopBar(const std::vector<std::string> & values)
     w->groups.push_back(grp);
     grp->backgr = std::make_unique<Rectangle>(glm::vec3{110.0, 110.0, .1}, glm::vec2{200.0, 200.0}, glm::vec4{1.0, 1.0, 0.0, 1.0});
 
-    TextLabel * title = new TextLabel{};
+
+    TextLabel * title3 = new TextLabel{};
+    grp->tLabels.push_back(title3);
+    title3->backgr = std::make_unique<Rectangle>(glm::vec3{220.0, 150.0, .2}, glm::vec2{100.0, 34.0}, glm::vec4{.4, 1.0, 0.4, 1.0});
+   
+    title3->id = 0;
+    title3->text = new TextLabel::Text{};
+    title3->text->fontSize = AM::FontSize::PX16;
+    title3->text->textC = Color{0, 0, 255, 255};
+    title3->text->bgC = Color{0, 255, 255, 255};
+    title3->text->position = glm::vec3{125.0, 325.0, .3};
+    title3->text->centered = true;
+    title3->text->centerTo = glm::vec3{270.0, 150.0 + 17, .3};
+    title3->setText("Poljska");
+ 
+
+  
+    TextLabel * title2 = new TextLabel{};
+    grp->tLabels.push_back(title2);
+    title2->backgr = std::make_unique<Rectangle>(glm::vec3{120.0, 320.0, .2}, glm::vec2{400.0, 74.0}, glm::vec4{.4, 1.0, 0.4, 1.0});
+   
+    title2->id = 0;
+    title2->text = new TextLabel::Text{};
+    title2->text->fontSize = AM::FontSize::PX64;
+    title2->text->textC = Color{0, 0, 255, 255};
+    title2->text->bgC = Color{0, 255, 255, 255};
+    title2->text->position = glm::vec3{125.0, 325.0, .3};
+    title2->text->centered = true;
+    title2->text->centerTo = glm::vec3{320.0, 320.0 + 37, .3};
+    title2->setText(values[0] + "j");
+ 
+
+  
+
+
+   
+  TextLabel * title = new TextLabel{};
     grp->tLabels.push_back(title);
     title->backgr = std::make_unique<Rectangle>(glm::vec3{120.0, 120.0, .2}, glm::vec2{100.0, 50.0}, glm::vec4{.0, 1.0, 0.0, .5});
    
     title->id = 0;
     title->text = new TextLabel::Text{};
-    title->text->height = 70;
+    title->text->fontSize = AM::FontSize::PX32;
     title->text->textC = Color{0, 0, 255, 255};
     title->text->bgC = Color{0, 255, 255, 255};
-    title->text->maxWidth = 230;
-    title->text->centered = false;
     title->text->position = glm::vec3{125.0, 125.0, .3};
-    title->text->size = glm::vec2{170.0, 170.0};
-    //title->text->text = values[0];
     title->setText("hujala \"Dag,.");//values[0]);
-    
+ 
+
 }
