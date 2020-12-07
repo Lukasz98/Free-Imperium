@@ -82,8 +82,10 @@ struct Group {
     std::vector<TextLabel*> tLabels;
     std::vector<IconLabel*> iLabels;
     int id;
+    bool hoverable = false, hovered = false;
     std::unique_ptr<Rectangle> backgr;
     bool Click(ClickData & clickData, const glm::vec2 & mPos);
+    bool Hover(const glm::vec2 & mPos);
     void Draw();
     ~Group();
 };
@@ -106,10 +108,12 @@ struct Window
     int id; // for ex. province id
     std::unique_ptr<Rectangle> backgr;
     bool GetClick(ClickData & clickData, glm::vec2 mousPos);
+    void Hover(const glm::vec2 & mPos);
     void Draw();
     ~Window();
 };
 
+void Hover(const glm::vec2 & mousePos);
 void Draw();
 void OpenTopBar(const std::vector<std::string> & values);
 

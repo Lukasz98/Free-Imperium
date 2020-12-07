@@ -63,6 +63,7 @@ while (!window.ShouldClose()) {
     //    atlasRect.Draw();
       //  AM::atlasTexture->Unbind();
 
+Gui::Hover(glm::vec2{window.xMouse * resolution.x / window.GetSize().x, ( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y}); 
 Gui::Draw();
         DrawGui();
     }

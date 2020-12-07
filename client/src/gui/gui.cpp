@@ -52,8 +52,8 @@ void Gui::TextLabel::setText(const std::string & text)
             tcLen = {0, 0};
             off += rSize.x;
         }
-        Log(rSize.x << " " << rSize.y << " "<<rPos.z);
-        //this->text->rects.push_back(std::make_unique<Rectangle>(rPos, rSize, rLBTC, tcLen)); 
+        //Log(rPos.x << " " << rPos.y << " "<<rPos.z);
+        this->text->rects.push_back(std::make_unique<Rectangle>(rPos, rSize, rLBTC, tcLen)); 
     }
 }
 void Gui::TextLabel::Draw()
@@ -66,6 +66,7 @@ void Gui::TextLabel::Draw()
         for (auto & rect : text->rects) {
             rect->Draw();
         }
+        //Log("dt");
         AM::atlasTexture[this->text->fontSize]->Unbind();
         //text->texture->Bind();
         //text->backgr->Draw();
@@ -119,6 +120,8 @@ Gui::Group::~Group()
 }
 bool Gui::Group::Click(Gui::ClickData & clickData, const glm::vec2 & mPos)
 {
+    if (hoverable && !hovered)
+        return false;
     for (auto g : groups) {
         if (g->Click(clickData, mPos))
             return true;
@@ -143,8 +146,22 @@ bool Gui::Group::Click(Gui::ClickData & clickData, const glm::vec2 & mPos)
     }
     return false;
 }
+bool Gui::Group::Hover(const glm::vec2 & mPos)
+{
+    for (auto g : groups) {
+        g->Hover(mPos);
+    }
+    if (hoverable && backgr->Click(mPos.x, mPos.y)) {
+        hovered = true;
+    }
+    return hovered;
+        
+}
 void Gui::Group::Draw()
 {
+    if (hoverable && !hovered)
+        return;
+    hovered = false;
     if (backgr)
         backgr->Draw();
     for (auto text : tLabels) {
@@ -193,6 +210,12 @@ bool Gui::Window::GetClick(Gui::ClickData & clickData, glm::vec2 mousPos)
     }
     return false;
 }
+void Gui::Window::Hover(const glm::vec2 & mPos)
+{
+    for (auto g : groups) {
+        g->Hover(mPos);
+    }
+}
 void Gui::Window::Draw()
 {
     if (backgr)
@@ -204,6 +227,12 @@ void Gui::Window::Draw()
 
 
 std::vector<Gui::Window*> windows;
+
+void Gui::Hover(const glm::vec2 & mousePos)
+{
+    for (auto w : windows)
+        w->Hover(mousePos);
+}
 
 void Gui::Draw()
 {
@@ -219,48 +248,52 @@ void Gui::OpenTopBar(const std::vector<std::string> & values)
     windows.push_back(w);
     w->type = WindowType::TOP_BAR;
     w->id = 0;
-    w->backgr = std::make_unique<Rectangle>(glm::vec3{100.0, 100.0, 0.0}, glm::vec2{400.0, 400.0}, glm::vec4{1.0, 0.0, 0.0, 1.0});
+    w->backgr = std::make_unique<Rectangle>(glm::vec3{100.0, 100.0, 0.0}, glm::vec2{400.0, 400.0}, glm::vec4{1.0, 0.0, 0.0, .1});
 
     Group * grp = new Group{};
     grp->id = 0;
     w->groups.push_back(grp);
-    grp->backgr = std::make_unique<Rectangle>(glm::vec3{110.0, 110.0, .1}, glm::vec2{200.0, 200.0}, glm::vec4{1.0, 1.0, 0.0, 1.0});
+    grp->backgr = std::make_unique<Rectangle>(glm::vec3{110.0, 310.0, .1}, glm::vec2{400.0, 74.0}, glm::vec4{1.0, 1.0, 0.0, .1});
 
-
-    TextLabel * title3 = new TextLabel{};
-    grp->tLabels.push_back(title3);
-    title3->backgr = std::make_unique<Rectangle>(glm::vec3{220.0, 150.0, .2}, glm::vec2{100.0, 34.0}, glm::vec4{.4, 1.0, 0.4, 1.0});
-   
-    title3->id = 0;
-    title3->text = new TextLabel::Text{};
-    title3->text->fontSize = AM::FontSize::PX16;
-    title3->text->textC = Color{0, 0, 255, 255};
-    title3->text->bgC = Color{0, 255, 255, 255};
-    title3->text->position = glm::vec3{125.0, 325.0, .3};
-    title3->text->centered = true;
-    title3->text->centerTo = glm::vec3{270.0, 150.0 + 17, .3};
-    title3->setText("Poljska");
- 
-
-  
     TextLabel * title2 = new TextLabel{};
     grp->tLabels.push_back(title2);
-    title2->backgr = std::make_unique<Rectangle>(glm::vec3{120.0, 320.0, .2}, glm::vec2{400.0, 74.0}, glm::vec4{.4, 1.0, 0.4, 1.0});
+    title2->backgr = std::make_unique<Rectangle>(glm::vec3{120.0, 320.0, .2}, glm::vec2{400.0, 74.0}, glm::vec4{.4, 1.0, 0.4, .2});
    
     title2->id = 0;
     title2->text = new TextLabel::Text{};
-    title2->text->fontSize = AM::FontSize::PX64;
+    title2->text->fontSize = AM::FontSize::PX32;
     title2->text->textC = Color{0, 0, 255, 255};
     title2->text->bgC = Color{0, 255, 255, 255};
-    title2->text->position = glm::vec3{125.0, 325.0, .3};
+    title2->text->position = glm::vec3{525.0, 325.0, .3};
     title2->text->centered = true;
     title2->text->centerTo = glm::vec3{320.0, 320.0 + 37, .3};
     title2->setText(values[0] + "j");
  
 
+    Group * hovG = new Group{};
+    w->groups.push_back(hovG);
+    hovG->hoverable = true;
+    hovG->backgr = std::make_unique<Rectangle>(glm::vec3{120.0, 320.0, .1}, glm::vec2{400.0, 74.0}, glm::vec4{1.0, 1.0, 0.0, .2});
+    TextLabel * title3 = new TextLabel{};
+    hovG->tLabels.push_back(title3);
+    title3->backgr = std::make_unique<Rectangle>(glm::vec3{120.0, 320.0 - 74.0, .2}, glm::vec2{400.0, 74.0}, glm::vec4{.4, 1.0, 0.4, .2});
+   
+    title3->id = 0;
+    title3->text = new TextLabel::Text{};
+    title3->text->fontSize = AM::FontSize::PX64;
+    title3->text->textC = Color{0, 0, 255, 255};
+    title3->text->bgC = Color{0, 255, 255, 255};
+    title3->text->position = glm::vec3{125.0, 320.0 - 74.0 + 5, .3};
+    //title3->text->centered = true;
+    //title3->text->centerTo = glm::vec3{270.0, 150.0 + 17, .3};
+    title3->setText("Poljska2");
+ 
+
+  
+ 
   
 
-
+/*
    
   TextLabel * title = new TextLabel{};
     grp->tLabels.push_back(title);
@@ -273,6 +306,6 @@ void Gui::OpenTopBar(const std::vector<std::string> & values)
     title->text->bgC = Color{0, 255, 255, 255};
     title->text->position = glm::vec3{125.0, 125.0, .3};
     title->setText("hujala \"Dag,.");//values[0]);
- 
+ */
 
 }
