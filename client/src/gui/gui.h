@@ -30,16 +30,18 @@ struct TextLabel {
 
         std::string content;
         Color textC, bgC;
-        glm::vec3 position, centerTo;
+        glm::vec3 relPos, relCenterTo; // relative to TextLabel
     };
     Text * text = nullptr;
     int id;
     
+    //glm::vec3 relPos; // relative to Group
     ClickEventType evName = ClickEventType::NONE;
     std::unique_ptr<Rectangle> backgr;
     ClickEventType Click(const glm::vec2 & mPos);
     void setText(const std::string & text);
     void Draw();
+    //TextLabel(const glm::vec3 & relPos, const glm::vec2 & size, enum AM::FontSize fsize);
     ~TextLabel();
 };
 
@@ -83,6 +85,7 @@ struct Group {
     bool Hover(const glm::vec2 & mPos);
     void Scroll(int amount); // used by List
     void Draw();
+    void SetPos(const glm::vec3 & newPos);
     ~Group();
 };
 
@@ -90,11 +93,14 @@ struct Group {
 struct List {
     std::vector<Group*> groups;
 
-    int id;
+    int id = 0;
+    float groupsOffset = 0.0f, lastItemY = 0.0f;
     std::unique_ptr<Rectangle> backgr, topRect, bottRect;
     bool Click(ClickData & clickData, const glm::vec2 & mPos);
     void Scroll(int y); // y = -1 : +1
     void Draw();
+    void AddGroup(Group * g); // group has to be preset, but its position will be changed
+    List(const glm::vec3 & pos, const glm::vec2 & size, float relYOfContent, const glm::vec4 & bgColor, const glm::vec4 & barColor, float groupsOffset);
     ~List();
 };
 
