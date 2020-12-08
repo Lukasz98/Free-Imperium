@@ -46,7 +46,10 @@ while (!window.ShouldClose()) {
             //auto guiEvent = gui.Click(window.xMouse, window.GetSize().y - window.yMouse);
 Gui::ClickData cdata = Gui::Click(
 glm::vec2{window.xMouse * resolution.x / window.GetSize().x, ( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
-if (cdata.evType != Gui::ClickEventType::NONE) {
+if (cdata.evType == Gui::ClickEventType::DEL_FROM_UNITS_LIST) {
+    Gui::DelFromUnitsList(cdata);
+}
+else if (cdata.evType != Gui::ClickEventType::NONE) {
     Log("gui click");
 }
 std::cout << window.xMouse * resolution.x / window.GetSize().x << " "<<( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y << '\n';           

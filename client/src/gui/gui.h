@@ -14,7 +14,8 @@ namespace Gui {
 
 enum class ClickEventType {
     NONE = 0,
-    TEST = 1
+    TEST = 1,
+    DEL_FROM_UNITS_LIST = 2
 };
 
 enum class WindowType {
@@ -93,18 +94,20 @@ struct Group {
 struct List {
     std::vector<Group*> groups;
 
-    int id = 0;
+    int id = 0, freeGrpId = 0;
     float groupsOffset = 0.0f, lastItemY = 0.0f;
     std::unique_ptr<Rectangle> backgr, topRect, bottRect;
     std::unique_ptr<Rectangle> scroll;
     bool scrollVisible = false;
     float scrollBarSpeed = 0.0f, scrollSpeed = 30.0f;
+    int scrollTickCount = 0;
     bool Click(ClickData & clickData, const glm::vec2 & mPos);
     void Scroll(int y); // y = -1 : +1
     bool Hover(const glm::vec2 & mPos);
     
     void Draw();
     void AddGroup(Group * g); // group has to be preset, but its position will be changed
+    void DeleteGroup(int gid);
     List(const glm::vec3 & pos, const glm::vec2 & size, float relYOfContent, const glm::vec4 & bgColor, const glm::vec4 & barColor, float groupsOffset);
     ~List();
 };
@@ -130,5 +133,7 @@ void Draw();
 
 void OpenTopBar(const std::vector<std::string> & values, const glm::vec2 & resolution);
 void OpenUnitsList(); 
+void DelFromUnitsList(ClickData & clickData);
+
 }
 
