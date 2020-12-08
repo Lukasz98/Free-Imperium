@@ -95,12 +95,12 @@ struct List {
     std::vector<Group*> groups;
 
     int id = 0, freeGrpId = 0;
-    float groupsOffset = 0.0f, lastItemY = 0.0f;
+    float groupsOffset = 0.0f;
+    //lastItemY = 0.0f;
     std::unique_ptr<Rectangle> backgr, topRect, bottRect;
     std::unique_ptr<Rectangle> scroll;
     bool scrollVisible = false;
     float scrollBarSpeed = 0.0f, scrollSpeed = 30.0f;
-    int scrollTickCount = 0;
     bool Click(ClickData & clickData, const glm::vec2 & mPos);
     void Scroll(int y); // y = -1 : +1
     bool Hover(const glm::vec2 & mPos);
