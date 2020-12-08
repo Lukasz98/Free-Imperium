@@ -167,8 +167,7 @@ bool Gui::Group::Hover(const glm::vec2 & mPos)
     if (hoverable && backgr->Click(mPos.x, mPos.y)) {
         hovered = true;
     }
-    return hovered;
-        
+    return hovered;    
 }
 void Gui::Group::Scroll(int amount) // used only by List
 {
@@ -234,6 +233,10 @@ Gui::List::List(const glm::vec3 & pos, const glm::vec2 & size, float relYOfConte
     );
     lastItemY = topRect->GetPosition().y - groupsOffset;
 
+    glm::vec2 scrollSize = glm::vec2{10.0, 100.0};
+    scroll = std::make_unique<Rectangle>(
+                    glm::vec3{pos.x + size.x - scrollSize.x, topRect->GetPosition().y - groupsOffset - scrollSize.y, pos.z + 0.5}, 
+                    scrollSize, glm::vec4{0.1,0.1,0.1,1.0});
 }
 Gui::List::~List()
 {
@@ -250,28 +253,62 @@ bool Gui::List::Click(Gui::ClickData & clickData, const glm::vec2 & mPos)
 }
 void Gui::List::Draw()
 {
-    if (backgr)
-        backgr->Draw();
-    if (topRect)
-        topRect->Draw();
-    if (bottRect)
-        bottRect->Draw();
     for (auto grp : groups)
         grp->Draw();
+    assert(backgr);
+    backgr->Draw();
+    assert(topRect);
+    topRect->Draw();
+    assert(bottRect);
+    bottRect->Draw();
+    if (scrollVisible) {
+        assert(scroll);
+        scroll->Draw();
+    }
 }
 void Gui::List::Scroll(int y)
 {
-    if (groups.size() == 0)
+    if (groups.size() == 0 || scrollVisible == false)
         return;
-    if (y > 0 && groups.back()->backgr->GetPosition().y > bottRect->GetPosition().y + bottRect->GetSize().y)
+    if (y > 0 && groups.back()->backgr->GetPosition().y >= bottRect->GetPosition().y + bottRect->GetSize().y)
         return;
     if (y < 0 && groups[0]->backgr->GetPosition().y + groups[0]->backgr->GetSize().y + groupsOffset <= topRect->GetPosition().y)
         return;
-    int scrollSpeed = 30;
     assert(topRect && bottRect);
     float yTop = topRect->GetPosition().y;
     float yBott = bottRect->GetPosition().y + bottRect->GetSize().y;
-    for (auto g : groups) {
+    
+    
+    auto sPos = scroll->GetPosition();
+    auto sSize = scroll->GetSize();
+    if (sPos.y + sSize.y > topRect->GetPosition().y - groupsOffset) {
+        sPos.y = topRect->GetPosition().y - groupsOffset - sSize.y;
+        
+        scroll->SetPosition(sPos);
+        return;
+    }
+    else if (sPos.y < bottRect->GetPosition().y + bottRect->GetSize().y + groupsOffset) {
+        sPos.y = bottRect->GetPosition().y + bottRect->GetSize().y + groupsOffset;
+        scroll->SetPosition(sPos);
+        return;
+    }
+    Log(scrollBarSpeed);
+    float scrollNewY = sPos.y + scrollBarSpeed * y;
+    if (scrollNewY + sSize.y > yTop - groupsOffset) {
+        scrollNewY = yTop - groupsOffset - sSize.y;
+        Log("1");
+    }
+    else if (scrollNewY < yBott + groupsOffset) {
+    //else if (scrollNewY < yBott + bottRect->GetSize().y + groupsOffset) {
+        Log("2 : " << scrollNewY << " ::" << scrollBarSpeed * y);
+        scrollNewY = yBott + groupsOffset;
+        Log("3 : " << scrollNewY << " ::" << scrollBarSpeed * y);
+    }
+    sPos.y = scrollNewY;
+    scroll->SetPosition(sPos);
+    //scroll->MoveRect(0, scrollBarSpeed * y + 0.5f);
+
+   for (auto g : groups) {
         g->Scroll(y * scrollSpeed);
         int gYBott = g->backgr->GetPosition().y;
         int gYTop = g->backgr->GetPosition().y + g->backgr->GetSize().y;
@@ -280,6 +317,7 @@ void Gui::List::Scroll(int y)
         else
             g->visible = true;
     }
+
 }
 void Gui::List::AddGroup(Group * g)
 {
@@ -290,10 +328,36 @@ void Gui::List::AddGroup(Group * g)
     lastItemY = gPos.y - groupsOffset;
 
     g->SetPos(gPos);
-    if (gPos.y + gSize.y < bottRect->GetPosition().y + bottRect->GetSize().y)
-        g->visible = false;
+    if (gPos.y < bottRect->GetPosition().y + bottRect->GetSize().y) {
+        if (gPos.y + gSize.y < bottRect->GetPosition().y + bottRect->GetSize().y)
+            g->visible = false;
+        scrollVisible = true;
+        assert(scroll);
+        float contentHeight = topRect->GetPosition().y - bottRect->GetPosition().y + bottRect->GetSize().y;
+        auto scrollSize = scroll->GetSize();
+        auto newSize = scrollSize;
+        newSize.y /= 2.0f;
+        auto newPos = scroll->GetPosition();
+        newPos.y += scrollSize.y - newSize.y;
+//        scroll->SetPosition(newPos);
+//        scroll->SetSize(newSize);
+    }
     groups.push_back(g);
+    
+    assert(topRect && bottRect);
+    float yTop = topRect->GetPosition().y;
+    float yBott = bottRect->GetPosition().y + bottRect->GetSize().y;
+   
+    int scrollBarTicks = (float)(yBott + groupsOffset - groups.back()->backgr->GetPosition().y + 0.5f) / scrollSpeed + 0.5f;
+    scrollBarSpeed = (yTop - scroll->GetSize().y - yBott - 2 * groupsOffset) / -scrollBarTicks;
+    Log(scrollBarTicks << "A");
+    Log(scrollBarSpeed << "B");
 }
+bool Gui::List::Hover(const glm::vec2 & mPos)
+{
+    return backgr->Click(mPos.x, mPos.y);    
+}
+
 
 Gui::Window::~Window()
 {
@@ -350,12 +414,17 @@ void Gui::Hover(const glm::vec2 & mousePos)
         w->Hover(mousePos);
 }
 
-void Gui::Scroll(int y)
+bool Gui::Scroll(int y, const glm::vec2 & mousePos)
 {
     for (auto w : windows) {
-        for (auto l : w->lists)
-            l->Scroll(y);
+        for (auto l : w->lists) {
+            if (l->Hover(mousePos)) {
+                l->Scroll(y);
+                return true;
+            }
+        }
     }
+    return false;
 }
 
 void Gui::Draw()
@@ -442,13 +511,13 @@ void Gui::OpenUnitsList()
     w->id = 0;
     w->backgr = std::make_unique<Rectangle>(glm::vec3{700.0, 50.0, 0.0}, glm::vec2{400.0, 600.0}, glm::vec4{1.0, 0.0, 0.0, .1});
 
-    List * list = new List{glm::vec3{700.0, 50.0, 0.1}, glm::vec2{390.0, 590.0}, 40.0, glm::vec4{1.0, 0.0, 0.0, .1}, glm::vec4{1.0, 1.0, 0.0, .5}, 5.0f};
+    List * list = new List{glm::vec3{700.0, 50.0, 0.1}, glm::vec2{390.0, 590.0}, 40.0, glm::vec4{1.0, 0.5, 0.5, 1.0}, glm::vec4{1.0, 1.0, 0.0, 1.0}, 5.0f};
     w->lists.push_back(list);
     //list->backgr = std::make_unique<Rectangle>( }, });
     //list->topRect = std::make_unique<Rectangle>(glm::vec3{400.0, 540.0, 0.5}, glm::vec2{390.0, 40.0}, });
    // list->bottRect = std::make_unique<Rectangle>(glm::vec3{400.0, 60.0, 0.5}, glm::vec2{390.0, 40.0}, glm::vec4{1.0, 1.0, 0.0, .5});
 
-for (int i = 0; i < 16; i++) {
+for (int i = 0; i < 12; i++) {
     Group * grp = new Group{};
     grp->id = 0;
     //list->groups.push_back(grp);

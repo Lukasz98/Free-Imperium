@@ -65,7 +65,7 @@ std::cout << window.xMouse * resolution.x / window.GetSize().x << " "<<( window.
         window.mouseL = false;
         window.mouseR = false;
 if (window.scrollOffset) {
-    Gui::Scroll(window.scrollOffset);
+    Gui::Scroll(window.scrollOffset, glm::vec2{window.xMouse * resolution.x / window.GetSize().x, ( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
     window.scrollOffset = 0;
 }
 

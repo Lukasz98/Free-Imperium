@@ -96,8 +96,13 @@ struct List {
     int id = 0;
     float groupsOffset = 0.0f, lastItemY = 0.0f;
     std::unique_ptr<Rectangle> backgr, topRect, bottRect;
+    std::unique_ptr<Rectangle> scroll;
+    bool scrollVisible = false;
+    float scrollBarSpeed = 0.0f, scrollSpeed = 30.0f;
     bool Click(ClickData & clickData, const glm::vec2 & mPos);
     void Scroll(int y); // y = -1 : +1
+    bool Hover(const glm::vec2 & mPos);
+    
     void Draw();
     void AddGroup(Group * g); // group has to be preset, but its position will be changed
     List(const glm::vec3 & pos, const glm::vec2 & size, float relYOfContent, const glm::vec4 & bgColor, const glm::vec4 & barColor, float groupsOffset);
@@ -120,7 +125,7 @@ struct Window
 
 ClickData Click(const glm::vec2 & mousePos);
 void Hover(const glm::vec2 & mousePos);
-void Scroll(int y);
+bool Scroll(int y, const glm::vec2 & mousePos);
 void Draw();
 
 void OpenTopBar(const std::vector<std::string> & values, const glm::vec2 & resolution);
