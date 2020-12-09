@@ -34,4 +34,8 @@ public:
     double xMouse = 0.0, yMouse = 0.0;
     bool mouseL = false;
     bool mouseR = false;
+    bool mouseLClicked = false;
+    bool mouseRClicked = false;
+
+
 };

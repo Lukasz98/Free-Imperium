@@ -103,24 +103,26 @@ void Window::error_callback(int error, const char* description)
 void Window::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
     Window * w = (Window *)glfwGetWindowUserPointer(window);
-    /*
+    
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
         w->mouseL = true;
     }
-    */
+    
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
     {
-        w->mouseL = true;
+        w->mouseLClicked = true;
+        w->mouseL = false;
     }
-    /*
+    
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
     {
         w->mouseR = true;
     }
-    */
+    
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
     {
-        w->mouseR = true;
+        w->mouseRClicked = true;
+        w->mouseR = false;
     }
 }

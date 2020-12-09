@@ -42,35 +42,42 @@ while (!window.ShouldClose()) {
             //gui.AddWin("src/gui/menu.txt");
         }
 
-        if (window.mouseL && !window.mouseR) {
+        if (window.mouseLClicked && !window.mouseRClicked) {
             //auto guiEvent = gui.Click(window.xMouse, window.GetSize().y - window.yMouse);
-Gui::ClickData cdata = Gui::Click(
-glm::vec2{window.xMouse * resolution.x / window.GetSize().x, ( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
-if (cdata.evType == Gui::ClickEventType::DEL_FROM_UNITS_LIST) {
-    Gui::DelFromUnitsList(cdata);
-}
-else if (cdata.evType != Gui::ClickEventType::NONE) {
-    Log("gui click");
-}
-std::cout << window.xMouse * resolution.x / window.GetSize().x << " "<<( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y << '\n';           
-//auto guiEvent = gui.Click(window.xMouse * resolution.x / window.GetSize().x,( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y);
-            
-/*
+            Gui::ClickData cdata = Gui::Click(
+            glm::vec2{window.xMouse * resolution.x / window.GetSize().x, ( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
+            if (cdata.evType == Gui::ClickEventType::DEL_FROM_UNITS_LIST) {
+                Gui::DelFromUnitsList(cdata);
+            }
+            else if (cdata.evType != Gui::ClickEventType::NONE) {
+                Log("gui click");
+            }
+            std::cout << window.xMouse * resolution.x / window.GetSize().x << " "<<( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y << '\n';           
+            //auto guiEvent = gui.Click(window.xMouse * resolution.x / window.GetSize().x,( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y);
+                        
+            /*
             bool wasGuiClicked = guiEvent.values.size();
             if (wasGuiClicked) {
                 processGuiEvent(guiEvent);
                 if (localGame || guestGame || quit)
                     break;
             }
-  */
+            */
         }
 
-        window.mouseL = false;
-        window.mouseR = false;
-if (window.scrollOffset) {
-    Gui::Scroll(window.scrollOffset, glm::vec2{window.xMouse * resolution.x / window.GetSize().x, ( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
-    window.scrollOffset = 0;
-}
+        window.mouseLClicked = false;
+        window.mouseRClicked = false;
+        if (window.mouseL) {
+            Gui::Drag(glm::vec2{window.xMouse * resolution.x / window.GetSize().x, ( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y}, dt);
+            //Log("mouseL");
+        }
+        if (window.mouseR) {
+            //Log("moseR")
+        }
+        if (window.scrollOffset) {
+            Gui::Scroll(window.scrollOffset, glm::vec2{window.xMouse * resolution.x / window.GetSize().x, ( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
+            window.scrollOffset = 0;
+        }
 
 
   //      AM::atlasTexture->Bind();

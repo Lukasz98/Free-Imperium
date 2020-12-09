@@ -108,6 +108,7 @@ struct List {
     void Draw();
     void AddGroup(Group * g); // group has to be preset, but its position will be changed
     void DeleteGroup(int gid);
+    void SetPos(const glm::vec3 & newPos);
     List(const glm::vec3 & pos, const glm::vec2 & size, float relYOfContent, const glm::vec4 & bgColor, const glm::vec4 & barColor, float groupsOffset);
     ~List();
 };
@@ -119,9 +120,12 @@ struct Window
     std::vector<List*> lists;
     WindowType type;
     int id; // for ex. province id
+    bool dragable = false, dragging = false;
     std::unique_ptr<Rectangle> backgr;
+    glm::vec3 defaultPos;
     bool GetClick(ClickData & clickData, glm::vec2 mousPos);
     void Hover(const glm::vec2 & mPos);
+    void Drag(const glm::vec2 & mPos, float dt);
     void Draw();
     ~Window();
 };
@@ -129,6 +133,7 @@ struct Window
 ClickData Click(const glm::vec2 & mousePos);
 void Hover(const glm::vec2 & mousePos);
 bool Scroll(int y, const glm::vec2 & mousePos);
+bool Drag(const glm::vec2 & mousePos, float dt);
 void Draw();
 
 void OpenTopBar(const std::vector<std::string> & values, const glm::vec2 & resolution);

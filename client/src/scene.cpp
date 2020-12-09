@@ -20,8 +20,8 @@ Scene::~Scene()
 void Scene::DrawGui()
 {
     dt = clock.getElapsedTime().asSeconds();        
-    float frameGoal = 30.0f;
-#if 1
+    float frameGoal = 60.0f;
+#if 1 
     if (dt < 1.0f / frameGoal) {
         float timeForSleep = (1.0f / frameGoal - dt) * 1000.0f; 
         std::this_thread::sleep_for(std::chrono::milliseconds((int)timeForSleep));

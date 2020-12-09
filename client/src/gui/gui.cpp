@@ -1,6 +1,10 @@
 #include "gui.h"
 #include "load_from_png.h"
 
+bool dragging = false;
+glm::vec2 dragRelative;
+const float DRAGING_SPEED = 50.0f;
+
 //Gui::TextLabel::TextLabel(const glm::vec3 & relPos, const glm::vec2 & size, enum AM::FontSize fsize)
 //{
 //
@@ -438,6 +442,18 @@ void Gui::List::DeleteGroup(int gid)
     scroll->SetPosition(scrollPos);
     scrollBarSpeed = sch * scrollSpeed / -cc;
 }
+void Gui::List::SetPos(const glm::vec3 & newPos)
+{
+    auto mPos = backgr->GetPosition();
+    for (auto g : groups) {
+        g->SetPos(newPos + (g->backgr->GetPosition() - backgr->GetPosition()));
+    }
+    topRect->SetPosition(newPos + (topRect->GetPosition() - backgr->GetPosition()));
+    bottRect->SetPosition(newPos + (bottRect->GetPosition() - backgr->GetPosition()));
+    scroll->SetPosition(newPos + (scroll->GetPosition() - backgr->GetPosition()));
+    backgr->SetPosition(newPos);
+}
+
 
 
 Gui::Window::~Window()
@@ -474,12 +490,44 @@ void Gui::Window::Draw()
         list->Draw();
     }
 }
+void Gui::Window::Drag(const glm::vec2 & mPos, float dt)
+{
+    assert(backgr);
+    if (dragging == false)
+        dragRelative = mPos - glm::vec2{backgr->GetPosition().x, backgr->GetPosition().y};
+    glm::vec2 delta = mPos - dragRelative - glm::vec2{backgr->GetPosition().x, backgr->GetPosition().y};
+    delta *= (DRAGING_SPEED * dt);
+    //Log("mPos"<<mPos.x<<", "<<mPos.y);
+    //Log("dragRel"<<dragRelative.x<<", "<<dragRelative.y);
+    //Log("delta"<<delta.x<<", "<<delta.y);
+    backgr->MoveRect(delta.x, delta.y);
+    //glm::vec2 delta = mPos;// - dragStartPos;
+    for (auto g : groups) {
+        assert(g->backgr);
+        auto gPos = g->backgr->GetPosition();
+        gPos.x += (int)delta.x;
+        gPos.y += (int)delta.y;
+        g->SetPos(gPos);
+    }
+    for (auto l : lists) {
+        assert(l->backgr);
+        auto gPos = l->backgr->GetPosition();
+        gPos.x += (int)delta.x;
+        gPos.y += (int)delta.y;
+        l->SetPos(gPos);
+    }
+}
 
 std::vector<Gui::Window*> windows;
 
 Gui::ClickData Gui::Click(const glm::vec2 & mousePos)
 {
     Gui::ClickData clickData;
+    if (dragging) {
+        dragging = false;
+        for (auto w : windows)
+            w->dragging = false;
+    }
     for (auto w : windows) {
         if (w->GetClick(clickData, mousePos)) {
             clickData.window = w;
@@ -508,6 +556,22 @@ bool Gui::Scroll(int y, const glm::vec2 & mousePos)
     return false;
 }
 
+bool Gui::Drag(const glm::vec2 & mousePos, float dt)
+{
+    
+    for (auto w : windows) {
+        if (w->backgr) {
+            if (w->dragable && ((dragging && w->dragging) || !dragging) && w->backgr->Click(mousePos.x, mousePos.y)) {
+                w->Drag(mousePos, dt);
+                dragging = true;
+                w->dragging = true;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 void Gui::Draw()
 {
     for (auto w : windows) {
@@ -519,6 +583,7 @@ void Gui::OpenTopBar(const std::vector<std::string> & values, const glm::vec2 & 
 {
     Window * w = new Window{};
     windows.push_back(w);
+    w->dragable = true;
     w->type = WindowType::TOP_BAR;
     w->id = 0;
     w->backgr = std::make_unique<Rectangle>(glm::vec3{100.0, 100.0, 0.0}, glm::vec2{400.0, 400.0}, glm::vec4{1.0, 0.0, 0.0, .1});
@@ -588,6 +653,7 @@ void Gui::OpenUnitsList()
 {
     Window * w = new Window{};
     windows.push_back(w);
+    w->dragable = true;
     w->type = WindowType::UNITS_LIST;
     w->id = 0;
     w->backgr = std::make_unique<Rectangle>(glm::vec3{700.0, 50.0, 0.0}, glm::vec2{400.0, 600.0}, glm::vec4{1.0, 0.0, 0.0, .1});
