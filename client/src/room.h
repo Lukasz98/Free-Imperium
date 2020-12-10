@@ -19,5 +19,5 @@ public:
     Room(Window & window, Settings & s, std::vector<std::shared_ptr<Country>> & countries);
     ~Room();
 
-    void Play(bool localhost);
+    void Play(bool localhost = true);
 };

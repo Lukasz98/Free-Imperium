@@ -5,12 +5,12 @@ Room::Room(Window & window, Settings & s, std::vector<std::shared_ptr<Country>> 
 {
     //gui.AddWin("src/gui/room.txt");
     for (auto & c : countries) {
-        DataObj * dobj = new DataObj{"label"};
-        dobj->objects.push_back(new DataObj{"text"});
-        dobj->objects.back()->values["content:"] = c->GetName();
-        dobj->objects.back()->values["clickEvent:"] = "setCountry";
+//        DataObj * dobj = new DataObj{"label"};
+//        dobj->objects.push_back(new DataObj{"text"});
+//        dobj->objects.back()->values["content:"] = c->GetName();
+//        dobj->objects.back()->values["clickEvent:"] = "setCountry";
 //        gui.AddToList(dobj, "room", "countries");
-        delete  dobj;
+//        delete  dobj;
     }
 }
 

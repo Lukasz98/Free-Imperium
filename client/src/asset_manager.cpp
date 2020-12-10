@@ -16,7 +16,9 @@ void AM::Init()
     }
 
     //FT_Face face;
-    if(FT_New_Face(ft, "src/img/Hanken-Book.ttf", 0, &face)) {
+    if(FT_New_Face(ft, "src/img/Roboto-Light.ttf", 0, &face)) {
+    //if(FT_New_Face(ft, "src/img/Roboto-LightItalic.ttf", 0, &face)) {
+    //if(FT_New_Face(ft, "src/img/Hanken-Book.ttf", 0, &face)) {
         fprintf(stderr, "Could not open font\n");
     }
 
@@ -92,7 +94,7 @@ std::unique_ptr<Texture> loadFontAtlas(int fSize, enum AM::FontSize fontSizeEnum
         FT_GlyphSlot gs = AM::face->glyph;
         if (maxRows < gs->bitmap.rows)
             maxRows = gs->bitmap.rows;
-        widthSum += gs->bitmap.width;
+        widthSum += gs->bitmap.width + 1;
     }
     
     if (widthSum <= 0 || maxRows <= 0)
@@ -119,10 +121,23 @@ std::unique_ptr<Texture> loadFontAtlas(int fSize, enum AM::FontSize fontSizeEnum
         AM::atlasInfo[fontSizeEnum][c].tcHeight = (float)gs->bitmap.rows / maxRows;
         AM::atlasInfo[fontSizeEnum][c].width = gs->bitmap.width;
         AM::atlasInfo[fontSizeEnum][c].height = gs->bitmap.rows;
-        AM::atlasInfo[fontSizeEnum][c].advanceX = ((float)gs->advance.x / 26.6) - gs->bitmap_left + 0.5; //26.6i is fractional pixel format. no idea what it means
+        AM::atlasInfo[fontSizeEnum][c].advanceX = ((float)gs->advance.x) * 26.6 - gs->bitmap_left + 0.5; //26.6i is fractional pixel format. no idea what it means
         AM::atlasInfo[fontSizeEnum][c].yPos = gs->bitmap_top - gs->bitmap.rows;//this should be negative // - gs->bitmap_top;
-        
-           
+
+        for (int y = 0; y < gs->bitmap.rows; ++y) {
+            for (int x = 0; x < gs->bitmap.width; ++x) {
+                unsigned char glyphColor = gs->bitmap.buffer[x + gs->bitmap.width * y];
+                int atlasIndex = ((gs->bitmap.rows - (y + 1)) * widthSum + lastX + x)*4;
+                atlas[atlasIndex + 0] = 0;
+                atlas[atlasIndex + 1] = 0;
+                atlas[atlasIndex + 2] = 0;
+                atlas[atlasIndex + 3] = glyphColor;
+            }
+        }
+ 
+        lastX += gs->bitmap.width + 1;
+
+  /*         
         //Log(gs->advance.x/ 26.6);
         //Log(gs->linearHoriAdvance);
         for (int y = gs->bitmap.rows - 1; y > 0; --y) {
@@ -135,7 +150,8 @@ std::unique_ptr<Texture> loadFontAtlas(int fSize, enum AM::FontSize fontSizeEnum
                 atlas[atlasIndex + 3] = glyphColor;
             }
         }
-        lastX += gs->bitmap.width;
+        lastX += gs->bitmap.width + 1;
+ */ 
         //Log(c);
     }
     auto atlasT = std::make_unique<Texture>(atlas, widthSum, maxRows);

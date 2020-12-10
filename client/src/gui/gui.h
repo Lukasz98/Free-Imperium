@@ -14,13 +14,18 @@ namespace Gui {
 
 enum class ClickEventType {
     NONE = 0,
-    TEST = 1,
-    DEL_FROM_UNITS_LIST = 2
+    QUIT_GAME = 1,
+    START_ROOM = 2,
+    TEST = 5,
+    DEL_FROM_UNITS_LIST = 5
+    
 };
 
 enum class WindowType {
-    TOP_BAR = 0,
-    UNITS_LIST = 1
+    MENU_SCREEN = 0,
+    ROOM_SCREEN = 1,
+    TOP_BAR = 3,
+    UNITS_LIST = 4
 };
 
 struct TextLabel {
@@ -122,7 +127,7 @@ struct Window
     int id; // for ex. province id
     bool dragable = false, dragging = false;
     std::unique_ptr<Rectangle> backgr;
-    glm::vec3 defaultPos;
+//    glm::vec3 defaultPos;
     bool GetClick(ClickData & clickData, glm::vec2 mousPos);
     void Hover(const glm::vec2 & mPos);
     void Drag(const glm::vec2 & mPos, float dt);
@@ -139,6 +144,14 @@ void Draw();
 void OpenTopBar(const std::vector<std::string> & values, const glm::vec2 & resolution);
 void OpenUnitsList(); 
 void DelFromUnitsList(ClickData & clickData);
+
+
+
+
+void OpenMenuScreen(const glm::vec2 & resolution);
+void CloseMenuScreen();
+void OpenRoomScreen(const glm::vec2 & resolution);
+void CloseRoomScreen();
 
 }
 

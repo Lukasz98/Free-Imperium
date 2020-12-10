@@ -25,11 +25,11 @@ void Gui::TextLabel::setText(const std::string & text)
         this->text = new Text{};
     this->text->content = text;
 
-    glm::vec3 textPos = backgr->GetPosition() + this->text->relPos;
+    glm::vec3 textPos = this->text->relPos + backgr->GetPosition();
 
     if (this->text->centered) {
         glm::vec3 centerTo = backgr->GetPosition() + this->text->relCenterTo;
-        int wSum = 0, maxY = 0;
+        unsigned int wSum = 0, maxY = 0;
         for (auto c : text) {
             if (AM::atlasInfo[this->text->fontSize][c].set) {
                 wSum += AM::atlasInfo[this->text->fontSize][c].width;
@@ -37,13 +37,11 @@ void Gui::TextLabel::setText(const std::string & text)
                     maxY = AM::atlasInfo[this->text->fontSize][c].height;
             }
             else {
-                wSum += 20;
+                wSum += 10;
             }
         }
-        textPos.x = centerTo.x - (float)wSum / 2;
-        textPos.y = centerTo.y - (float)maxY / 2;
-        //this->text->position.x = this->text->centerTo.x - (float)wSum / 2;
-        //this->text->position.y = this->text->centerTo.y - (float)maxY / 2;
+        textPos.x = centerTo.x - ((float)wSum) / 2.0f;
+        textPos.y = centerTo.y - ((float)maxY) / 2.0f;
     }
     
     this->text->rects.clear();
@@ -54,21 +52,28 @@ void Gui::TextLabel::setText(const std::string & text)
         if (AM::atlasInfo[this->text->fontSize][c].set) {
             rPos = {textPos.x + off, textPos.y + AM::atlasInfo[this->text->fontSize][c].yPos, textPos.z};
             //rPos = {this->text->position.x + off, this->text->position.y + AM::atlasInfo[this->text->fontSize][c].yPos, this->text->position.z};
-            rSize = {AM::atlasInfo[this->text->fontSize][c].width, AM::atlasInfo[this->text->fontSize][c].height};
+            rSize = {(float)AM::atlasInfo[this->text->fontSize][c].width, (float)AM::atlasInfo[this->text->fontSize][c].height};
             rLBTC = {AM::atlasInfo[this->text->fontSize][c].tcX, AM::atlasInfo[this->text->fontSize][c].tcY};
             tcLen = {AM::atlasInfo[this->text->fontSize][c].tcWidth, AM::atlasInfo[this->text->fontSize][c].tcHeight};
-            off += rSize.x;
+            off += rSize.x + 1;
+            //off += AM::atlasInfo[this->text->fontSize][c].advanceX;
+            this->text->rects.push_back(std::make_unique<Rectangle>(rPos, rSize, rLBTC, tcLen)); 
+        if (text == "Quit game") {
+        //rSize.s += 0.1f; 
+        Log("tu:"<<this->text->rects.back()->GetPosition().x <<", "<<this->text->rects.back()->GetSize().x
+            << ":: "<<this->text->rects.back()->GetPosition().x + this->text->rects.back()->GetSize().x );
+        //Log("tu2"<<":"<<AM::atlasInfo[this->text->fontSize][c].width);
+        }
         }
         else {
             rPos = {textPos.x + off, textPos.y, textPos.z};
             //rPos = {this->text->position.x + off, this->text->position.y, this->text->position.z};
-            rSize = {20, 20};
+            rSize = {10.0, 10.0};
             rLBTC = {0, 0};
             tcLen = {0, 0};
             off += rSize.x;
         }
         //Log(rPos.x << " " << rPos.y << " "<<rPos.z);
-        this->text->rects.push_back(std::make_unique<Rectangle>(rPos, rSize, rLBTC, tcLen)); 
     }
 }
 void Gui::TextLabel::Draw()
@@ -391,7 +396,7 @@ void Gui::List::DeleteGroup(int gid)
             }
         
         
-
+        delete groups[i];
         groups.erase(groups.begin() + i);
         break;
     }
@@ -676,14 +681,14 @@ for (int i = 0; i < 22; i++) {
    
     title2->id = 0;
     title2->text = new TextLabel::Text{};
-    title2->text->fontSize = AM::FontSize::PX32;
+    title2->text->fontSize = AM::FontSize::PX16;
     title2->text->textC = Color{0, 0, 255, 255};
     title2->text->bgC = Color{0, 255, 255, 255};
-    title2->text->relPos= glm::vec3{0.0, 0.0, .1};
+    title2->text->relPos= glm::vec3{10.123, 10.0, .1};
     title2->text->centered = false;
-    title2->text->relCenterTo = glm::vec3{320.0, 320.0 + 37, .4};
+    //title2->text->relCenterTo = glm::vec3{320.0, 320.0 + 37, .4};
     title2->evName = ClickEventType::TEST;
-    title2->setText("Mazowsze unit " + std::to_string(i));
+    title2->setText("Mazowsze unit" + std::to_string(i));
 
     IconLabel * icon = new IconLabel{};
     grp->iLabels.push_back(icon);
@@ -743,5 +748,82 @@ void Gui::DelFromUnitsList(ClickData & clickData)
 
 //l->DeleteGroup(clickData.group->id);
 }
+
+
+void Gui::OpenMenuScreen(const glm::vec2 & resolution)
+{
+    Window * w = new Window{};
+    windows.push_back(w);
+    w->type = WindowType::MENU_SCREEN;
+    w->backgr = std::make_unique<Rectangle>(glm::vec3{0.0f, 0.0f, 0.0f}, resolution, glm::vec4{0.2f, 0.2f, 0.2f, 1.0f});
+    
+    Group * g = new Group{};
+    w->groups.push_back(g);
+    g->backgr = std::make_unique<Rectangle>(glm::vec3{0.0f, 0.0f, 0.0f}, resolution, glm::vec4{0.2f, 0.2f, 0.2f, 0.0f});
+
+    TextLabel * titleLabel = new TextLabel{};
+    g->tLabels.push_back(titleLabel);
+    titleLabel->backgr = std::make_unique<Rectangle>(glm::vec3{resolution.x * 0.5f, resolution.y * 0.5f, 0.1f}, glm::vec2{500.0f, 200.0f}, glm::vec4{0.5f, 0.5f, 0.5f, 1.0f});
+    titleLabel->text = new TextLabel::Text{};
+    titleLabel->text->centered = true;
+    titleLabel->text->relCenterTo = glm::vec3{250.0f, 100.0f, 0.11f};
+    titleLabel->text->fontSize = AM::FontSize::PX64;
+    titleLabel->setText("Free Imperium");
+
+
+    float labelsOffset = 30.0f;
+    glm::vec2 labelSize{450.f, 100.0f};
+    glm::vec3 labelPos{100.0f, 450.0f, 0.1f};
+   
+    TextLabel * playLabel = new TextLabel{};
+    g->tLabels.push_back(playLabel);
+    playLabel->backgr = std::make_unique<Rectangle>(labelPos, labelSize, glm::vec4{0.5f, 0.5f, 0.5f, 1.0f});
+    playLabel->evName = ClickEventType::START_ROOM;
+    playLabel->text = new TextLabel::Text{};
+    playLabel->text->centered = true;
+    playLabel->text->relCenterTo = glm::vec3{labelSize.x * 0.5f, labelSize.y * 0.5f, 0.11f};
+    playLabel->text->fontSize = AM::FontSize::PX64;
+    playLabel->setText("Play");
+
+    labelPos.y -= labelsOffset + labelSize.y;
+
+    TextLabel * quitLabel = new TextLabel{};
+    g->tLabels.push_back(quitLabel);
+    quitLabel->backgr = std::make_unique<Rectangle>(labelPos, labelSize, glm::vec4{0.0f, 0.5f, 0.5f, 1.0f});
+    quitLabel->evName = ClickEventType::QUIT_GAME;
+    quitLabel->text = new TextLabel::Text{};
+    quitLabel->text->centered = true;
+    quitLabel->text->relCenterTo = glm::vec3{labelSize.x * 0.5f, labelSize.y * 0.5f, 0.11f};
+    //quitLabel->text->relPos = glm::vec3{181.5f, 10.0f, 0.11f};
+    quitLabel->text->fontSize = AM::FontSize::PX16;
+    quitLabel->setText("Quit game");
+
+
+
+}
+
+void Gui::CloseMenuScreen()
+{
+    //for (std::size_t i = 0; i < windows.size(); ++i) {
+    for (auto it = windows.begin(); it != windows.end(); ++it) {
+        if ((*it)->type == WindowType::MENU_SCREEN) {
+            delete *it;
+            windows.erase(it);
+            return;
+        }
+    }
+}
+
+void Gui::OpenRoomScreen(const glm::vec2 & resolution)
+{
+
+}
+
+void Gui::CloseRoomScreen()
+{
+
+}
+
+
 
 
