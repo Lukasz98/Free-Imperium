@@ -8,19 +8,9 @@
 #include "../graphics/texture.h"
 #include "../color.h"
 #include "../asset_manager.h"
+#include "click_event_enum.h"
 
-
-namespace Gui {
-
-enum class ClickEventType {
-    NONE = 0,
-    QUIT_GAME = 1,
-    START_ROOM = 2,
-    TEST = 5,
-    DEL_FROM_UNITS_LIST = 5,
-    PICK_COUNTRY = 6,
-    START_GAME = 7
-};
+namespace Gui::Core {
 
 enum class WindowType {
     MENU_SCREEN = 0,
@@ -39,7 +29,7 @@ struct TextLabel {
         Color textC, bgC;
         glm::vec3 relPos, relCenterTo; // relative to TextLabel
     };
-    Text * text = nullptr;
+    Text text;
     int id;
     
     //glm::vec3 relPos; // relative to Group
@@ -58,7 +48,7 @@ struct IconLabel {
         std::unique_ptr<Texture> texture;
         std::string iconPath;
     };
-    Icon * icon = nullptr;
+    Icon icon;
     int id;
     ClickEventType evName = ClickEventType::NONE;
     std::unique_ptr<Rectangle> backgr;
@@ -73,10 +63,13 @@ struct IconLabel {
 
 struct Window;
 struct Group;
+
 struct ClickData {
     Window * window = nullptr;
     Group * group = nullptr;
     ClickEventType evType = ClickEventType::NONE;
+    ClickData(){ Log("ClickData()");}
+    ~ClickData(){ Log("~ClickData()");}
 };
  
 
@@ -129,35 +122,18 @@ struct Window
     bool dragable = false, dragging = false;
     std::unique_ptr<Rectangle> backgr;
 //    glm::vec3 defaultPos;
-    bool GetClick(ClickData & clickData, glm::vec2 mousPos);
+    ClickEventType GetClick(ClickData & clickData, glm::vec2 mousPos);
     void Hover(const glm::vec2 & mPos);
     void Drag(const glm::vec2 & mPos, float dt);
     void Draw();
     ~Window();
 };
 
-ClickData Click(const glm::vec2 & mousePos);
-void Hover(const glm::vec2 & mousePos);
-bool Scroll(int y, const glm::vec2 & mousePos);
-bool Drag(const glm::vec2 & mousePos, float dt);
-void Draw();
-
-void OpenTopBar(const std::vector<std::string> & values, const glm::vec2 & resolution);
-void OpenUnitsList(); 
-void DelFromUnitsList(ClickData & clickData);
+//void OpenUnitsList(); 
+//void DelFromUnitsList(ClickData & clickData);
 
 
 
-
-void OpenMenuScreen(const glm::vec2 & resolution);
-void CloseMenuScreen();
-
-void OpenRoomScreen(const glm::vec2 & resolution);
-void AddCountryToListRoom(const std::string & countryName);
-void ClearPlayersListRoom();
-void AddPlayerToRoom(const std::string & s);
-std::string GetPickedCountry(ClickData & cd);
-void CloseRoomScreen();
 
 
 }

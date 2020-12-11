@@ -10,7 +10,7 @@
 #include "graphics/window.h"
 #include "graphics/shader.h"
 #include "camera.h"
-#include "gui/gui.h"
+#include "gui/gui_bridge.h"
 
 class Scene
 {

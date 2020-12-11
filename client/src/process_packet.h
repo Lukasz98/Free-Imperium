@@ -9,7 +9,7 @@
 #include "battle.h"
 #include "province.h"
 
-#include "gui/gui.h"
+#include "gui/gui_bridge.h"
 #include "gui_aid.h"
 
 #include "country.h"

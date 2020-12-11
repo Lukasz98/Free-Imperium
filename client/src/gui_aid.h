@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cassert>
 
-#include "gui/gui.h"
+#include "gui/gui_bridge.h"
 #include "country.h"
 #include "battle.h"
 #include "war.h"

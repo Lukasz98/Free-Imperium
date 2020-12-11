@@ -3,16 +3,10 @@
 Room::Room(Window & window, Settings & s, std::vector<std::shared_ptr<Country>> & countries)
     : Scene(window, s.resolution), settings(s), countries(countries)
 {
-    Gui::OpenRoomScreen(resolution);
+    Gui::Room::Open(resolution);
 //gui.AddWin("src/gui/room.txt");
     for (auto & c : countries) {
-        Gui::AddCountryToListRoom(c->GetName());
-//        DataObj * dobj = new DataObj{"label"};
-//        dobj->objects.push_back(new DataObj{"text"});
-//        dobj->objects.back()->values["content:"] = c->GetName();
-//        dobj->objects.back()->values["clickEvent:"] = "setCountry";
-//        gui.AddToList(dobj, "room", "countries");
-//        delete  dobj;
+        Gui::Room::AddCountryToList(c->GetName());
     }
 }
 
@@ -44,7 +38,7 @@ void Room::Play(bool localhost)
     bool play = false;
     loop(play, country);
     
-    Gui::CloseRoomScreen();
+    Gui::Room::Close();
 
     if (play) {
         Game game(window, socket, country, settings.resolution, countries);
@@ -76,29 +70,29 @@ void Room::loop(bool & play, std::string & country)
             else if (messg == "Players") {
                 int playersCount = 0;
                 packet >> playersCount;
-                Gui::ClearPlayersListRoom();
+                Gui::Room::ClearPlayersList();
                 for (int i = 0; i < playersCount; i++) {
                     packet >> messg;
                     std::string text = messg;
                     packet >> messg;
                     text += " " + messg;
-                    Gui::AddPlayerToRoom(text);
+                    Gui::Room::AddPlayerToList(text);
                 }
             }
         }
 
 
         if (window.mouseLClicked && !window.mouseRClicked) {
-            Gui::ClickData cdata = Gui::Click(
-            glm::vec2{window.xMouse * resolution.x / window.GetSize().x, ( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
-            if (cdata.evType == Gui::ClickEventType::PICK_COUNTRY) {
-                auto ctrName = Gui::GetPickedCountry(cdata);
+            ClickEventType cType = Gui::Base::Click(glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
+                                                   (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
+            if (cType == ClickEventType::PICK_COUNTRY) {
+                auto ctrName = Gui::Room::GetPickedCountry();
                 sf::Packet packet;
                 packet << "country";
                 packet << ctrName;
                 toSend.emplace_back(packet);
             }
-            else if (cdata.evType == Gui::ClickEventType::START_GAME) {
+            else if (cType == ClickEventType::START_GAME) {
                 sf::Packet packet;
                 packet << "Start";
                 toSend.emplace_back(packet);
@@ -114,18 +108,18 @@ void Room::loop(bool & play, std::string & country)
         window.mouseLClicked = false;
         window.mouseRClicked = false;
         if (window.mouseL) {
-            Gui::Drag(glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
+            Gui::Base::Drag(glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
                                 (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y}, dt);
         }
         if (window.mouseR) {
         }
         if (window.scrollOffset) {
-            Gui::Scroll(window.scrollOffset, glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
+            Gui::Base::Scroll(window.scrollOffset, glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
                         (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
             window.scrollOffset = 0;
         }
 
-        Gui::Hover(glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
+        Gui::Base::Hover(glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
                              (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y}); 
  
 
@@ -135,7 +129,7 @@ void Room::loop(bool & play, std::string & country)
         }
 
         toSend.clear();
-        Gui::Draw();
+        Gui::Base::Draw();
         DrawGui();
         
         if (play) {
