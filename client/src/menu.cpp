@@ -4,7 +4,7 @@ Menu::Menu(Window & window, Settings & s, std::vector<std::shared_ptr<Country>> 
     : Scene(window, s.resolution), settings(s), countries(countries)
 {
     Gui::OpenMenuScreen(resolution);
-    Gui::OpenUnitsList();
+    //Gui::OpenUnitsList();
 }
 
 Menu::~Menu()

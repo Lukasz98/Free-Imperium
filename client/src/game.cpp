@@ -15,7 +15,7 @@ Game::Game(Window & win, sf::TcpSocket & sock, std::string countryName, glm::vec
     });
 
     setCountryMap();
-
+Log("Ctr name:"<<countryName);
     auto it = std::find_if(countries.begin(), countries.end(), [countryName](const std::shared_ptr<Country> c){return c->GetName() == countryName;});
     if (it != countries.end()) {
         myCountry = *it;

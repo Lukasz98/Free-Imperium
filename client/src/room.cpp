@@ -3,8 +3,10 @@
 Room::Room(Window & window, Settings & s, std::vector<std::shared_ptr<Country>> & countries)
     : Scene(window, s.resolution), settings(s), countries(countries)
 {
-    //gui.AddWin("src/gui/room.txt");
+    Gui::OpenRoomScreen(resolution);
+//gui.AddWin("src/gui/room.txt");
     for (auto & c : countries) {
+        Gui::AddCountryToListRoom(c->GetName());
 //        DataObj * dobj = new DataObj{"label"};
 //        dobj->objects.push_back(new DataObj{"text"});
 //        dobj->objects.back()->values["content:"] = c->GetName();
@@ -41,6 +43,9 @@ void Room::Play(bool localhost)
 
     bool play = false;
     loop(play, country);
+    
+    Gui::CloseRoomScreen();
+
     if (play) {
         Game game(window, socket, country, settings.resolution, countries);
         game.Play();
@@ -71,48 +76,71 @@ void Room::loop(bool & play, std::string & country)
             else if (messg == "Players") {
                 int playersCount = 0;
                 packet >> playersCount;
-  //              gui.ClearList("room", "players");
+                Gui::ClearPlayersListRoom();
                 for (int i = 0; i < playersCount; i++) {
                     packet >> messg;
-                    //players.emplace_back(messg);
-                    DataObj * obj = new DataObj{"label"};
-                    obj->objects.push_back(new DataObj{"text"});
-                    obj->objects.back()->values["content:"] = messg;
+                    std::string text = messg;
                     packet >> messg;
-                    obj->objects.back()->values["content:"] += " " + messg;
-                    
-    //                gui.AddToList(obj, "room", "players");
-
-                    delete obj;
+                    text += " " + messg;
+                    Gui::AddPlayerToRoom(text);
                 }
             }
         }
 
-        if (window.keys['R']) {
-            //gui.Reload();
-            //gui.AddWin("src/gui/room.txt");
+
+        if (window.mouseLClicked && !window.mouseRClicked) {
+            Gui::ClickData cdata = Gui::Click(
+            glm::vec2{window.xMouse * resolution.x / window.GetSize().x, ( window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
+            if (cdata.evType == Gui::ClickEventType::PICK_COUNTRY) {
+                auto ctrName = Gui::GetPickedCountry(cdata);
+                sf::Packet packet;
+                packet << "country";
+                packet << ctrName;
+                toSend.emplace_back(packet);
+            }
+            else if (cdata.evType == Gui::ClickEventType::START_GAME) {
+                sf::Packet packet;
+                packet << "Start";
+                toSend.emplace_back(packet);
+            }
+            //else if (cdata.evType == Gui::ClickEventType::DEL_FROM_UNITS_LIST) {
+            //      Gui::DelFromUnitsList(cdata);
+            //}
+            //else if (cdata.evType != Gui::ClickEventType::NONE) {
+            //    Log("gui click");
+            //}
         }
 
-        if (window.mouseL && !window.mouseR) {
-      //      //auto guiEvent = gui.Click(window.xMouse, window.GetSize().y - window.yMouse);
-        //    auto guiEvent = gui.Click(window.xMouse *resolution.x/window.GetSize().x, (window.GetSize().y - window.yMouse) * resolution.y/window.GetSize().y);
-        //    bool wasGuiClicked = guiEvent.values.size();
-        //    if (wasGuiClicked) {
-          //      processGuiEvent(guiEvent, toSend, play);
-          //  }
+        window.mouseLClicked = false;
+        window.mouseRClicked = false;
+        if (window.mouseL) {
+            Gui::Drag(glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
+                                (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y}, dt);
+        }
+        if (window.mouseR) {
+        }
+        if (window.scrollOffset) {
+            Gui::Scroll(window.scrollOffset, glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
+                        (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
+            window.scrollOffset = 0;
         }
 
-        window.mouseL = false;
-        window.mouseR = false;
-        
+        Gui::Hover(glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
+                             (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y}); 
+ 
+
+
         for (auto & pct : toSend) {
             socket.send(pct);
         }
 
         toSend.clear();
+        Gui::Draw();
         DrawGui();
-        //gui.Draw();        
-        //window.Update();
+        
+        if (play) {
+            break;
+        }
     }
 }
 

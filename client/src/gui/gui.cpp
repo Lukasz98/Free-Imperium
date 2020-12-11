@@ -804,7 +804,6 @@ void Gui::OpenMenuScreen(const glm::vec2 & resolution)
 
 void Gui::CloseMenuScreen()
 {
-    //for (std::size_t i = 0; i < windows.size(); ++i) {
     for (auto it = windows.begin(); it != windows.end(); ++it) {
         if ((*it)->type == WindowType::MENU_SCREEN) {
             delete *it;
@@ -816,12 +815,240 @@ void Gui::CloseMenuScreen()
 
 void Gui::OpenRoomScreen(const glm::vec2 & resolution)
 {
+    Window * w = new Window{};
+    windows.push_back(w);
+    w->type = WindowType::ROOM_SCREEN; 
+    w->backgr = std::make_unique<Rectangle>(glm::vec3{0.0, 0.0, 0.0}, resolution, glm::vec4{.2, 0.2, .2, 1.0});
+   
+    float listsXOffset = 100.0f;
+    glm::vec3 listPos{100.0f, 50.0f, 0.1f};
+    glm::vec2 listSize{500.0f, 600.0f};
 
+    { // bar with titles below lists
+        //glm::vec3 pos = glm::vec3{0.0f, resolution.y - 200.0f, 0.0f};
+        glm::vec3 pos = glm::vec3{listPos.x, listPos.y + listSize.y + 50.0f, 0.0f};
+        Group * listTitlesGroup = new Group{};
+        w->groups.push_back(listTitlesGroup);
+        listTitlesGroup->backgr = std::make_unique<Rectangle>(pos, glm::vec3{listSize.x * 2 + listsXOffset, 100.0f, 0.1f}, 
+                                                              glm::vec4{0.0f, 1.0f, 0.0f, 1.0f});
+    
+        pos.x += 0.0f;
+        pos.y += 50.0f;
+        pos.z += 0.1f;
+        glm::vec2 labelSize{listSize.x,  50.0f};
+        TextLabel * playersLabel = new TextLabel{};
+        listTitlesGroup->tLabels.push_back(playersLabel);
+        playersLabel->backgr = std::make_unique<Rectangle>(pos, labelSize, glm::vec4{.4, 1.0, 0.4, 1.0});
+        playersLabel->id = 0;
+        playersLabel->text = new TextLabel::Text{};
+        playersLabel->text->fontSize = AM::FontSize::PX32;
+        playersLabel->text->textC = Color{0, 0, 255, 255};
+        playersLabel->text->bgC = Color{0, 255, 255, 255};
+        playersLabel->text->centered = true;
+        playersLabel->text->relCenterTo = glm::vec3{labelSize * 0.5f, 0.1f};
+        playersLabel->setText("Players");
+
+        pos.x += listSize.x + listsXOffset;
+        TextLabel * countryLabel = new TextLabel{};
+        listTitlesGroup->tLabels.push_back(countryLabel);
+        countryLabel->backgr = std::make_unique<Rectangle>(pos, labelSize, glm::vec4{.4, 1.0, 0.4, 1.0});
+        countryLabel->id = 0;
+        countryLabel->text = new TextLabel::Text{};
+        countryLabel->text->fontSize = AM::FontSize::PX32;
+        countryLabel->text->textC = Color{0, 0, 255, 255};
+        countryLabel->text->bgC = Color{0, 255, 255, 255};
+        countryLabel->text->centered = true;
+        countryLabel->text->relCenterTo = glm::vec3{labelSize * 0.5f, 0.1f};
+        countryLabel->setText("Pick country");
+    }
+
+    List * playerList = new List{listPos, listSize, 40.0f, glm::vec4{1.0, 0.5, 0.5, 1.0}, 
+                                  glm::vec4{1.0, 1.0, 0.0, 1.0}, 5.0f};
+    w->lists.push_back(playerList);
+    playerList->id = 0;
+
+    listPos.x += listSize.x + listsXOffset;
+    List * countryList = new List{listPos, listSize, 40.0f, glm::vec4{1.0, 0.5, 0.5, 1.0}, 
+                                  glm::vec4{1.0, 1.0, 0.0, 1.0}, 5.0f};
+    w->lists.push_back(countryList);
+    countryList->id = 1;
+
+    { // group with start game button
+        glm::vec3 pos = glm::vec3{listPos.x + listSize.x + listsXOffset, listPos.y, 0.0f};
+        Group * grp = new Group{};
+        w->groups.push_back(grp);
+        grp->backgr = std::make_unique<Rectangle>(pos, glm::vec3{200.0f, 100.0f, 0.1f}, 
+                                                              glm::vec4{0.0f, 1.0f, 0.0f, 1.0f});
+    
+        glm::vec2 labelSize{200.0f,  50.0f};
+        TextLabel * startLabel = new TextLabel{};
+        grp->tLabels.push_back(startLabel);
+        startLabel->backgr = std::make_unique<Rectangle>(pos, labelSize, glm::vec4{.4, 1.0, 0.4, 1.0});
+        startLabel->id = 0;
+        startLabel->text = new TextLabel::Text{};
+        startLabel->text->fontSize = AM::FontSize::PX32;
+        startLabel->text->textC = Color{0, 0, 255, 255};
+        startLabel->text->bgC = Color{0, 255, 255, 255};
+        startLabel->text->centered = true;
+        startLabel->text->relCenterTo = glm::vec3{labelSize * 0.5f, 0.1f};
+        startLabel->evName = ClickEventType::START_GAME;
+        startLabel->setText("Start game");
+    }
+
+/*
+for (int i = 0; i < 22; i++) {
+    Group * grp = new Group{};
+    grp->id = 0;
+    //list->groups.push_back(grp);
+    grp->backgr = std::make_unique<Rectangle>(glm::vec3{700.0, 310.0, .2}, glm::vec2{390.0, 40.0}, glm::vec4{.0, 1.0, 1.0, 1.0});
+    
+    TextLabel * title2 = new TextLabel{};
+    grp->tLabels.push_back(title2);
+    title2->backgr = std::make_unique<Rectangle>(glm::vec3{700.0, 310.0, .3}, glm::vec2{360.0, 40.0}, glm::vec4{.4, 1.0, 0.4, 1.0});
+   
+    title2->id = 0;
+    title2->text = new TextLabel::Text{};
+    title2->text->fontSize = AM::FontSize::PX16;
+    title2->text->textC = Color{0, 0, 255, 255};
+    title2->text->bgC = Color{0, 255, 255, 255};
+    title2->text->relPos= glm::vec3{10.123, 10.0, .1};
+    title2->text->centered = false;
+    //title2->text->relCenterTo = glm::vec3{320.0, 320.0 + 37, .4};
+    title2->evName = ClickEventType::TEST;
+    title2->setText("Mazowsze unit" + std::to_string(i));
+
+    IconLabel * icon = new IconLabel{};
+    grp->iLabels.push_back(icon);
+    icon->icon = new IconLabel::Icon{};
+    icon->icon->iconPath = "src/img/plus.png";
+    //icon->icon->texture = std::make_unique<Texture>(icon->icon->path);
+    //icon->backgr = std::make_unique<Rectangle>(glm::vec3{765.0, 310.0, 0.4}, glm::vec2{30, 30});
+    icon->pos = glm::vec3{1080.0, 310.0, 0.4};
+    icon->size = glm::vec2{30, 30};
+    icon->evName = ClickEventType::DEL_FROM_UNITS_LIST;
+    icon->setIcon(icon->icon->iconPath);
+    
+    list->AddGroup(grp);
+}
+*/
+
+}
+
+void Gui::AddCountryToListRoom(const std::string & countryName)
+{
+    List * countryList = nullptr;
+    for (auto win : windows) {
+        if (win->type == WindowType::ROOM_SCREEN) {
+            for (auto list : win->lists) {
+                if (list->id == 1) {
+                    countryList = list;
+                    break;
+                }
+            }
+            break;
+        }
+    }
+    assert(countryList);
+
+    
+
+    Group * grp = new Group{};
+    grp->id = 0;
+    grp->backgr = std::make_unique<Rectangle>(glm::vec3{0.0, 0.0, .1}, glm::vec2{500.0, 20.0}, glm::vec4{.0, 1.0, 1.0, 1.0});
+    
+    TextLabel * title2 = new TextLabel{};
+    grp->tLabels.push_back(title2);
+    title2->backgr = std::make_unique<Rectangle>(glm::vec3{0.0, 0.0, .11}, glm::vec2{500.0, 20.0}, glm::vec4{.4, 1.0, 0.4, 1.0});
+   
+    title2->id = 0;
+    title2->text = new TextLabel::Text{};
+    title2->text->fontSize = AM::FontSize::PX16;
+    title2->text->textC = Color{0, 0, 255, 255};
+    title2->text->bgC = Color{0, 255, 255, 255};
+    //title2->text->relPos= glm::vec3{10.123, 10.0, .1};
+    title2->text->centered = true;
+    title2->text->relCenterTo = glm::vec3{title2->backgr->GetSize() * 0.5f, .2};
+    title2->evName = ClickEventType::PICK_COUNTRY;
+    title2->setText(countryName);
+   
+    countryList->AddGroup(grp);
+}
+
+void Gui::ClearPlayersListRoom()
+{
+    List * playersList = nullptr;
+    for (auto win : windows) {
+        if (win->type == WindowType::ROOM_SCREEN) {
+            for (auto list : win->lists) {
+                if (list->id == 0) {
+                    playersList = list;
+                    break;
+                }
+            }
+            break;
+        }
+    }
+    assert(playersList);
+
+    for (int i = 0; i < playersList->groups.size(); ++i) {
+        delete playersList->groups[i];
+    }
+    playersList->groups.clear();
+}
+
+void Gui::AddPlayerToRoom(const std::string & s)
+{
+    List * playersList = nullptr;
+    for (auto win : windows) {
+        if (win->type == WindowType::ROOM_SCREEN) {
+            for (auto list : win->lists) {
+                if (list->id == 0) {
+                    playersList = list;
+                    break;
+                }
+            }
+            break;
+        }
+    }
+    assert(playersList);
+
+    Group * grp = new Group{};
+    grp->id = 0;
+    grp->backgr = std::make_unique<Rectangle>(glm::vec3{0.0, 0.0, .1}, glm::vec2{500.0, 20.0}, glm::vec4{.0, 1.0, 1.0, 1.0});
+    
+    TextLabel * title2 = new TextLabel{};
+    grp->tLabels.push_back(title2);
+    title2->backgr = std::make_unique<Rectangle>(glm::vec3{0.0, 0.0, .11}, glm::vec2{500.0, 20.0}, glm::vec4{.4, 1.0, 0.4, 1.0});
+   
+    title2->id = 0;
+    title2->text = new TextLabel::Text{};
+    title2->text->fontSize = AM::FontSize::PX16;
+    title2->text->textC = Color{0, 0, 255, 255};
+    title2->text->bgC = Color{0, 255, 255, 255};
+    //title2->text->relPos= glm::vec3{10.123, 10.0, .1};
+    title2->text->centered = true;
+    title2->text->relCenterTo = glm::vec3{title2->backgr->GetSize() * 0.5f, .2};
+    //title2->evName = ClickEventType::TEST;
+    title2->setText(s);
+   
+    playersList->AddGroup(grp);
+}
+
+std::string Gui::GetPickedCountry(ClickData & cd)
+{
+    assert(cd.group && cd.group->tLabels.size());
+    return cd.group->tLabels[0]->text->content;
 }
 
 void Gui::CloseRoomScreen()
 {
-
+    for (auto it = windows.begin(); it != windows.end(); ++it) {
+        if ((*it)->type == WindowType::ROOM_SCREEN) {
+            delete *it;
+            windows.erase(it);
+            break;
+        }
+    }
 }
 
 

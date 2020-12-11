@@ -17,8 +17,9 @@ enum class ClickEventType {
     QUIT_GAME = 1,
     START_ROOM = 2,
     TEST = 5,
-    DEL_FROM_UNITS_LIST = 5
-    
+    DEL_FROM_UNITS_LIST = 5,
+    PICK_COUNTRY = 6,
+    START_GAME = 7
 };
 
 enum class WindowType {
@@ -150,8 +151,13 @@ void DelFromUnitsList(ClickData & clickData);
 
 void OpenMenuScreen(const glm::vec2 & resolution);
 void CloseMenuScreen();
+
 void OpenRoomScreen(const glm::vec2 & resolution);
+void AddCountryToListRoom(const std::string & countryName);
+void ClearPlayersListRoom();
+void AddPlayerToRoom(const std::string & s);
+std::string GetPickedCountry(ClickData & cd);
 void CloseRoomScreen();
 
-}
 
+}
