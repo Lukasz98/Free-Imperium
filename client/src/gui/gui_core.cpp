@@ -152,9 +152,9 @@ bool Group::Hover(const glm::vec2 & mPos)
 {
     if (!visible)
         return false;
-    for (auto g : groups) {
-        g->Hover(mPos);
-    }
+    //for (auto g : groups) {
+    //    g->Hover(mPos);
+    //}
     if (hoverable && backgr->Click(mPos.x, mPos.y)) {
         hovered = true;
     }
@@ -179,9 +179,6 @@ void Group::Scroll(int amount) // used only by List
 }
 void Group::Draw()
 {
-    if ((hoverable && !hovered) || !visible)
-        return;
-    hovered = false;
     if (backgr)
         backgr->Draw();
     for (auto text : tLabels) {
@@ -190,6 +187,13 @@ void Group::Draw()
     for (auto icon : iLabels) {
         icon->Draw();
     }
+    if ((hoverable && !hovered) || !visible)
+        return;
+    hovered = false;
+    for (auto grp : groups) {
+        grp->Draw();
+    }
+    
 }
 void Group::SetPos(const glm::vec3 & newPos)
 {

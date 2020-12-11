@@ -341,49 +341,93 @@ namespace Gui::TopBar {
 
 void Open(const std::vector<std::string> & values, const glm::vec2 & resolution)
 {
+    glm::vec2 wSize{resolution.x * 0.5f, 100.0f};
+    glm::vec3 wPos{resolution.x * 0.5f - wSize.x * 0.5f, resolution.y - wSize.y, 0.0f};
+
     Window * w = new Window{};
     Gui::Base::windows.push_back(w);
     w->dragable = true;
     w->type = WindowType::TOP_BAR;
     w->id = 0;
-    w->backgr = std::make_unique<Rectangle>(glm::vec3{100.0, 100.0, 0.0}, glm::vec2{400.0, 400.0}, glm::vec4{1.0, 0.0, 0.0, .1});
+    w->backgr = std::make_unique<Rectangle>(wPos, wSize, glm::vec4{1.0, 0.0, 0.0, 1.0});
 
     Group * grp = new Group{};
     grp->id = 0;
     w->groups.push_back(grp);
-    grp->backgr = std::make_unique<Rectangle>(glm::vec3{110.0, 310.0, .1}, glm::vec2{400.0, 74.0}, glm::vec4{1.0, 1.0, 0.0, .1});
+    grp->backgr = std::make_unique<Rectangle>(wPos, wSize, glm::vec4{1.0, 1.0, 0.0, .1});
 
-    TextLabel * title2 = new TextLabel{};
-    grp->tLabels.push_back(title2);
-    title2->backgr = std::make_unique<Rectangle>(glm::vec3{120.0, 320.0, .2}, glm::vec2{400.0, 74.0}, glm::vec4{.4, 1.0, 0.4, .2});
+    glm::vec2 ctrSize{200.0f, 100.0f};
+    glm::vec3 ctrPos{wPos.x + wSize.x * 0.5f - ctrSize.x * 0.5f, wPos.y, 0.1f};
+    TextLabel * ctrName = new TextLabel{};
+    grp->tLabels.push_back(ctrName);
+    ctrName->backgr = std::make_unique<Rectangle>(ctrPos, ctrSize, glm::vec4{.4, 1.0, 0.4, .2});
    
-    title2->id = 0;
-    title2->text.fontSize = AM::FontSize::PX32;
-    title2->text.textC = Color{0, 0, 255, 255};
-    title2->text.bgC = Color{0, 255, 255, 255};
-    title2->text.relPos = glm::vec3{0.0, 0.0, .1};
-    title2->text.centered = true;
-    title2->text.relCenterTo = glm::vec3{200.0, 37, .1};
-    title2->evName = ClickEventType::TEST;
-    title2->setText(values[0] + "j");
+    ctrName->id = 0;
+    ctrName->text.fontSize = AM::FontSize::PX32;
+    ctrName->text.textC = Color{0, 0, 255, 255};
+    ctrName->text.bgC = Color{0, 255, 255, 255};
+    //ctrName->text.relPos = glm::vec3{0.0, 0.0, .1};
+    ctrName->text.centered = true;
+    ctrName->text.relCenterTo = glm::vec3{ctrSize * 0.5f, 0.11f};//glm::vec3{200.0, 37, .1};
+    ctrName->evName = ClickEventType::TEST;
+    ctrName->setText("Polska");
+
+    
+
+    { // cash group
+    
+        float cashNumLen = 60.0f;
+        glm::vec2 cashSize{100.0f, 40.0f};
+        glm::vec3 cashPos{wPos.x + 10.0f, wPos.y + wSize.y * 0.5f, 0.1f};
+        Group * cashG = new Group{};
+        w->groups.push_back(cashG);
+        cashG->backgr = std::make_unique<Rectangle>(cashPos, cashSize, glm::vec4{1.0, 1.0, 0.0, .2});
+        cashG->hoverable = true;
+        
+        TextLabel * cash = new TextLabel{};
+        cashG->tLabels.push_back(cash);
+        cash->backgr = std::make_unique<Rectangle>(cashPos, cashSize, glm::vec4{.4, 1.0, 0.4, .2});   
+        cash->id = 1;
+        cash->text.fontSize = AM::FontSize::PX16;
+        cash->text.textC = Color{0, 0, 255, 255};
+        cash->text.bgC = Color{0, 255, 255, 255};
+        //cash->text.relPos = glm::vec3{0, 0.0, .1};
+        cash->text.centered = true;
+        cash->text.relCenterTo = glm::vec3{(cashSize.x) * 0.5f + 20.0f, cashSize.y * 0.5f, 0.11f};//glm::vec3{200.0, 37, .1};
+        //cash->evName = ClickEventType::TEST;
+        cash->setText("321k");
  
-
-    Group * hovG = new Group{};
-    w->groups.push_back(hovG);
-    hovG->hoverable = true;
-    hovG->backgr = std::make_unique<Rectangle>(glm::vec3{120.0, 320.0, .1}, glm::vec2{400.0, 74.0}, glm::vec4{1.0, 1.0, 0.0, .2});
-    TextLabel * title3 = new TextLabel{};
-    hovG->tLabels.push_back(title3);
-    title3->backgr = std::make_unique<Rectangle>(glm::vec3{120.0, 320.0 - 74.0, .2}, glm::vec2{400.0, 74.0}, glm::vec4{.4, 1.0, 0.4, .2});
+        IconLabel * icon = new IconLabel{};
+        cashG->iLabels.push_back(icon);
+        icon->icon.iconPath = "src/img/gold.png";
+        //icon->icon->texture = std::make_unique<Texture>(icon->icon->path);
+        //icon->backgr = std::make_unique<Rectangle>(glm::vec3{765.0, 310.0, 0.4}, glm::vec2{30, 30});
+        icon->pos = cashPos;//glm::vec3{1080.0, 310.0, 0.4};
+        icon->size = glm::vec2{40, 40};
+        //icon->evName = ClickEventType::DEL_FROM_UNITS_LIST;
+        icon->setIcon(icon->icon.iconPath);
+     
+        cashSize.x *= 1.5f;
+        cashSize.y *= 3.0f;
+        cashPos.y -= cashSize.y;
+        cashPos.z -= 0.05f;
+        Group * cashGHov = new Group{};
+        cashG->groups.push_back(cashGHov);
+        cashGHov->backgr = std::make_unique<Rectangle>(cashPos, cashSize, glm::vec4{1.0, 1.0, 0.0, 1.0});
+       
+        TextLabel * armyCash = new TextLabel{};
+        cashGHov->tLabels.push_back(armyCash);
+        armyCash->backgr = std::make_unique<Rectangle>(cashPos, glm::vec2{cashSize.x, 30.0f}, glm::vec4{.4, 1.0, 1.0, .2});
    
-    title3->id = 0;
-    title3->text.fontSize = AM::FontSize::PX64;
-    title3->text.textC = Color{0, 0, 255, 255};
-    title3->text.bgC = Color{0, 255, 255, 255};
-    title3->text.relPos = glm::vec3{5.0, 5.0, .1};
-    //title3->text->centered = true;
-    //title3->text->centerTo = glm::vec3{270.0, 150.0 + 17, .3};
-    title3->setText("Poljska2");
+        armyCash->id = 0;
+        armyCash->text.fontSize = AM::FontSize::PX16;
+        armyCash->text.textC = Color{0, 0, 255, 255};
+        armyCash->text.bgC = Color{0, 255, 255, 255};
+        armyCash->text.relPos = glm::vec3{5.0, 5.0, .1};
+        //armyCash//title3->text->centered = true;
+        //armyCash//title3->text->centerTo = glm::vec3{270.0, 150.0 + 17, .3};
+        armyCash->setText("Army maintenance");
+    }
 }
 
 } // Gui::TopBar
