@@ -1,11 +1,25 @@
 #include "gui_core.h"
 #include "load_from_png.h"
+#include "log.h"
 
 bool dragging = false;
 glm::vec2 dragRelative;
 const float DRAGING_SPEED = 50.0f;
 
+
 using namespace Gui::Core;
+TextLabel::TextLabel(const glm::vec3 & pos, const glm::vec2 & size, const glm::vec4 & bgColor, enum AM::FontSize fsize, bool centered, const glm::vec3 & relTextPos)
+{
+    text.relCenterTo = {0.0,0.0,0.0};
+    text.relPos = {0.0,0.0,0.0};
+    backgr = std::make_unique<Rectangle>(pos, size, bgColor);
+    text.fontSize = fsize;
+    text.centered = centered;
+    if (centered)
+        text.relCenterTo = relTextPos;
+    else
+        text.relPos = relTextPos;
+}
 
 TextLabel::~TextLabel()
 {
@@ -18,8 +32,9 @@ ClickEventType TextLabel::Click(const glm::vec2 & mPos)
 }
 void TextLabel::setText(const std::string & content)
 {
+//assert(backgr);
+//Log(content);
     text.content = content;
-
     glm::vec3 textPos = text.relPos + backgr->GetPosition();
 
     if (text.centered) {
@@ -51,12 +66,12 @@ void TextLabel::setText(const std::string & content)
             tcLen = {AM::atlasInfo[text.fontSize][c].tcWidth, AM::atlasInfo[text.fontSize][c].tcHeight};
             off += rSize.x + 1;
             text.rects.push_back(std::make_unique<Rectangle>(rPos, rSize, rLBTC, tcLen)); 
-            if (content == "Quit game") {
+            //if (content == "Quit game") {
                 //rSize.s += 0.1f; 
-                Log("tu:"<<text.rects.back()->GetPosition().x <<", "<<text.rects.back()->GetSize().x
-                    << ":: "<<text.rects.back()->GetPosition().x + text.rects.back()->GetSize().x );
+              //  Log("tu:"<<text.rects.back()->GetPosition().x <<", "<<text.rects.back()->GetSize().x
+           //         << ":: "<<text.rects.back()->GetPosition().x + text.rects.back()->GetSize().x );
                 //Log("tu2"<<":"<<AM::atlasInfo[this->text->fontSize][c].width);
-            }
+            //}
         }
         else {
             rPos = {textPos.x + off, textPos.y, textPos.z};
@@ -65,8 +80,9 @@ void TextLabel::setText(const std::string & content)
             tcLen = {0, 0};
             off += rSize.x;
         }
-        //Log(rPos.x << " " << rPos.y << " "<<rPos.z);
+      //  Log(rPos.x << " " << rPos.y << " "<<rPos.z);
     }
+//Log(content << " " << text.rects.size());
 }
 void TextLabel::Draw()
 {
@@ -74,6 +90,8 @@ void TextLabel::Draw()
         backgr->Draw();
     AM::atlasTexture[text.fontSize]->Bind();
     for (auto & rect : text.rects) {
+    //if (text.content == "Play")
+    //Log("play" << rect->GetPosition().x << ", " << rect->GetPosition().z);
         rect->Draw();
     }
     AM::atlasTexture[text.fontSize]->Unbind();
@@ -84,7 +102,10 @@ void TextLabel::Draw()
 
 
 
-
+IconLabel::IconLabel(const glm::vec3 & pos, const glm::vec2 & size)
+{
+    backgr = std::make_unique<Rectangle>(pos, size);
+}
 IconLabel::~IconLabel()
 {
 }
@@ -98,7 +119,6 @@ void IconLabel::setIcon(const std::string & path)
 {
     icon.iconPath = path;
     icon.texture = std::make_unique<Texture>(path);
-    backgr = std::make_unique<Rectangle>(pos, size);
 }
 void IconLabel::Draw()
 {
@@ -110,6 +130,13 @@ void IconLabel::Draw()
         icon.texture->Unbind();
 }
 
+
+
+Group::Group(const glm::vec3 & pos, const glm::vec2 & size, const glm::vec4 & bgCol, bool hoverable)
+{
+    this->hoverable = hoverable;
+    backgr = std::make_unique<Rectangle>(pos, size, bgCol);
+}
 
 Group::~Group()
 {
@@ -134,6 +161,7 @@ bool Group::Click(ClickData & clickData, const glm::vec2 & mPos)
         if (ev != ClickEventType::NONE) {
             clickData.group = this;
             clickData.evType = ev;
+            clickData.val = t->id;
             return true;
         }
     }
@@ -143,6 +171,7 @@ bool Group::Click(ClickData & clickData, const glm::vec2 & mPos)
         if (ev != ClickEventType::NONE) {
             clickData.group = this;
             clickData.evType = ev;
+            clickData.val = i->id;
             return true;
         }
     }
@@ -173,12 +202,14 @@ void Group::Scroll(int amount) // used only by List
     }
     for (auto iL : iLabels) {
         assert(iL->backgr);
-        iL->pos.y += amount;
+        //iL->pos.y += amount;
         iL->backgr->MoveRect(0, amount);
     }
 }
 void Group::Draw()
 {
+    if (!visible)
+        return;
     if (backgr)
         backgr->Draw();
     for (auto text : tLabels) {
@@ -187,7 +218,7 @@ void Group::Draw()
     for (auto icon : iLabels) {
         icon->Draw();
     }
-    if ((hoverable && !hovered) || !visible)
+    if (hoverable && !hovered)
         return;
     hovered = false;
     for (auto grp : groups) {
@@ -217,7 +248,7 @@ List::List(const glm::vec3 & pos, const glm::vec2 & size, float relYOfContent, c
 {
     backgr = std::make_unique<Rectangle>(pos, size, bgColor);
     bottRect = std::make_unique<Rectangle>(
-        glm::vec3{pos.x, pos.y + relYOfContent, pos.z + 0.5},  glm::vec2{size.x, relYOfContent}, barColor);
+        glm::vec3{pos.x, pos.y, pos.z + 0.5},  glm::vec2{size.x, relYOfContent}, barColor);
     topRect = std::make_unique<Rectangle>(
         glm::vec3{pos.x, pos.y + size.y - relYOfContent, pos.z + 0.5}, glm::vec2{size.x, relYOfContent}, barColor
     );
@@ -250,6 +281,8 @@ void List::Draw()
     topRect->Draw();
     assert(bottRect);
     bottRect->Draw();
+    if (titleLabel)
+        titleLabel->Draw();
     if (scrollVisible) {
         assert(scroll);
         scroll->Draw();
@@ -429,12 +462,30 @@ void List::SetPos(const glm::vec3 & newPos)
     }
     topRect->SetPosition(newPos + (topRect->GetPosition() - backgr->GetPosition()));
     bottRect->SetPosition(newPos + (bottRect->GetPosition() - backgr->GetPosition()));
+    if (titleLabel) {
+        titleLabel->backgr->SetPosition(newPos + (titleLabel->backgr->GetPosition() - backgr->GetPosition()));
+        titleLabel->setText(titleLabel->text.content);
+    }
     scroll->SetPosition(newPos + (scroll->GetPosition() - backgr->GetPosition()));
     backgr->SetPosition(newPos);
+}
+void List::SetTitle(const std::string & text, AM::FontSize fsize)
+{
+    auto tsize = topRect->GetSize();
+    auto tpos = topRect->GetPosition();
+    titleLabel = std::make_unique<TextLabel>(tpos, tsize, glm::vec4{0.0, 0.0, 0.0, 0.0}, fsize, true, glm::vec3{tsize * 0.5f, tpos.z + 0.1});
+    titleLabel->setText(text);
 }
 
 
 
+Window::Window(const glm::vec3 & pos, const glm::vec2 & size, const glm::vec4 & bgCol, bool dragable, WindowType wType)
+: type{wType},
+  dragable{dragable}
+
+{
+    backgr = std::make_unique<Rectangle>(pos, size, bgCol);
+}
 Window::~Window()
 {
     for (auto g : groups)

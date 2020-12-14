@@ -3,8 +3,10 @@
 Menu::Menu(Window & window, Settings & s, std::vector<std::shared_ptr<Country>> & countries)
     : Scene(window, s.resolution), settings(s), countries(countries)
 {
-    Gui::Menu::Open(resolution);
-    Gui::TopBar::Open(std::vector<std::string>{},resolution);
+    //Gui::Menu::Open(resolution);
+    Gui::Prov::Open(resolution);    
+    Gui::ProvSiege::Open(resolution);    
+    //Gui::TopBar::Open(std::vector<std::string>{},resolution);
     //Gui::OpenUnitsList();
 }
 
@@ -42,6 +44,12 @@ void Menu::loop()
                 startGame = true;
                 break;
             }
+            else if (cType == ClickEventType::PROV_SWITCH_TAB) {
+                Log("switch tab");
+                Gui::Prov::SwitchTab();
+                Gui::Base::ResetClick();
+            }
+
             //else if (cdata.evType == Gui::ClickEventType::DEL_FROM_UNITS_LIST) {
             //      Gui::DelFromUnitsList(cdata);
             //}

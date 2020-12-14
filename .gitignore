@@ -10,3 +10,6 @@ server/build/*
 client/build/*
 
 client/new_gui_sketch
+client/src/vgcore*
+server/src/vgcore*
+client/src/gui/font_renderer.*

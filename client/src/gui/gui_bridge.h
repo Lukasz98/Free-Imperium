@@ -12,6 +12,7 @@ namespace Gui::Base {
     bool Scroll(int y, const glm::vec2 & mousePos);
     bool Drag(const glm::vec2 & mousePos, float dt);
     void Draw();
+    void ResetClick();
 }
 
 namespace Gui::Menu {
@@ -33,3 +34,13 @@ namespace Gui::TopBar {
     void Open(const std::vector<std::string> & values, const glm::vec2 & resolution);
 }
 
+namespace Gui::Prov {
+    void Open(const glm::vec2 & resolution);
+    void Close();
+    void SwitchTab();
+}
+
+namespace Gui::ProvSiege {
+    void Open(const glm::vec2 & resolution);
+    void Close();
+}

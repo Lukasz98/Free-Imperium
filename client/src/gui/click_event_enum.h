@@ -10,7 +10,11 @@ enum class ClickEventType {
     DEL_FROM_UNITS_LIST = 5,
     
     PICK_COUNTRY = 6,
-    START_GAME = 7
+    START_GAME = 7,
+
+    PROV_SWITCH_TAB = 8,
+    OPEN_PROV = 9,
+    OPEN_COUNTRY = 10
 };
 
 

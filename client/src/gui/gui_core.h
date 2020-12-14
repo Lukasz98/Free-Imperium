@@ -16,7 +16,10 @@ enum class WindowType {
     MENU_SCREEN = 0,
     ROOM_SCREEN = 1,
     TOP_BAR = 3,
-    UNITS_LIST = 4
+    UNITS_LIST = 4,
+    PROV = 5,
+    PROV_SIEGE = 6,
+    UNIT = 7
 };
 
 struct TextLabel {
@@ -30,7 +33,7 @@ struct TextLabel {
         glm::vec3 relPos, relCenterTo; // relative to TextLabel
     };
     Text text;
-    int id;
+    int id = -1;
     
     //glm::vec3 relPos; // relative to Group
     ClickEventType evName = ClickEventType::NONE;
@@ -38,7 +41,7 @@ struct TextLabel {
     ClickEventType Click(const glm::vec2 & mPos);
     void setText(const std::string & text);
     void Draw();
-    //TextLabel(const glm::vec3 & relPos, const glm::vec2 & size, enum AM::FontSize fsize);
+    TextLabel(const glm::vec3 & pos, const glm::vec2 & size, const glm::vec4 & bgColor, enum AM::FontSize fsize, bool centered, const glm::vec3 & textPos);
     ~TextLabel();
 };
 
@@ -49,15 +52,14 @@ struct IconLabel {
         std::string iconPath;
     };
     Icon icon;
-    int id;
+    int id = -1;
     ClickEventType evName = ClickEventType::NONE;
     std::unique_ptr<Rectangle> backgr;
-    glm::vec3 pos;
-    glm::vec2 size;
 
     void Draw();
     ClickEventType Click(const glm::vec2 & mPos);
     void setIcon(const std::string & path);
+    IconLabel(const glm::vec3 & pos, const glm::vec2 & size);
     ~IconLabel();
 };
 
@@ -65,6 +67,7 @@ struct Window;
 struct Group;
 
 struct ClickData {
+    int val = -1;
     Window * window = nullptr;
     Group * group = nullptr;
     ClickEventType evType = ClickEventType::NONE;
@@ -78,7 +81,7 @@ struct Group {
     std::vector<Group*> groups;
     std::vector<TextLabel*> tLabels;
     std::vector<IconLabel*> iLabels;
-    int id;
+    int id = -1;
     bool hoverable = false, hovered = false, visible = true; // visible used only for groups in List
     std::unique_ptr<Rectangle> backgr;
     bool Click(ClickData & clickData, const glm::vec2 & mPos);
@@ -86,6 +89,8 @@ struct Group {
     void Scroll(int amount); // used by List
     void Draw();
     void SetPos(const glm::vec3 & newPos);
+    
+    Group(const glm::vec3 & pos, const glm::vec2 & size, const glm::vec4 & bgCol, bool hoverable);
     ~Group();
 };
 
@@ -93,11 +98,12 @@ struct Group {
 struct List {
     std::vector<Group*> groups;
 
-    int id = 0, freeGrpId = 0;
+    int id = -1, freeGrpId = 0;
     float groupsOffset = 0.0f;
     //lastItemY = 0.0f;
     std::unique_ptr<Rectangle> backgr, topRect, bottRect;
     std::unique_ptr<Rectangle> scroll;
+    std::unique_ptr<TextLabel> titleLabel;
     bool scrollVisible = false;
     float scrollBarSpeed = 0.0f, scrollSpeed = 30.0f;
     bool Click(ClickData & clickData, const glm::vec2 & mPos);
@@ -108,6 +114,7 @@ struct List {
     void AddGroup(Group * g); // group has to be preset, but its position will be changed
     void DeleteGroup(int gid);
     void SetPos(const glm::vec3 & newPos);
+    void SetTitle(const std::string & text, AM::FontSize fsize); 
     List(const glm::vec3 & pos, const glm::vec2 & size, float relYOfContent, const glm::vec4 & bgColor, const glm::vec4 & barColor, float groupsOffset);
     ~List();
 };
@@ -118,7 +125,7 @@ struct Window
     std::vector<Group*> groups;
     std::vector<List*> lists;
     WindowType type;
-    int id; // for ex. province id
+    int id = -1; // for ex. province id
     bool dragable = false, dragging = false;
     std::unique_ptr<Rectangle> backgr;
 //    glm::vec3 defaultPos;
@@ -126,6 +133,7 @@ struct Window
     void Hover(const glm::vec2 & mPos);
     void Drag(const glm::vec2 & mPos, float dt);
     void Draw();
+    Window(const glm::vec3 & pos, const glm::vec2 & size, const glm::vec4 & bgCol, bool dragable, WindowType wType);
     ~Window();
 };
 

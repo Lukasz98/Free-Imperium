@@ -128,9 +128,9 @@ std::unique_ptr<Texture> loadFontAtlas(int fSize, enum AM::FontSize fontSizeEnum
             for (int x = 0; x < gs->bitmap.width; ++x) {
                 unsigned char glyphColor = gs->bitmap.buffer[x + gs->bitmap.width * y];
                 int atlasIndex = ((gs->bitmap.rows - (y + 1)) * widthSum + lastX + x)*4;
-                atlas[atlasIndex + 0] = 0;
-                atlas[atlasIndex + 1] = 0;
-                atlas[atlasIndex + 2] = 0;
+                atlas[atlasIndex + 0] = 200;
+                atlas[atlasIndex + 1] = 200;
+                atlas[atlasIndex + 2] = 200;
                 atlas[atlasIndex + 3] = glyphColor;
             }
         }
