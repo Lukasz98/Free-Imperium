@@ -93,14 +93,14 @@ namespace Gui::Menu {
 
 void Open(const glm::vec2 & resolution)
 {
-    Window * w = new Window{glm::vec3{0.0f, 0.0f, 0.0f}, resolution, glm::vec4{0.2f, 0.2f, 0.2f, 1.0f}, false, WindowType::MENU_SCREEN};
+    Window * w = new Window{glm::vec3{0.0f, 0.0f, 0.0f}, resolution, darkBrown, false, WindowType::MENU_SCREEN};
     Gui::Base::windows.push_back(w);
     
-    Group * g = new Group{glm::vec3{0.0f, 0.0f, 0.0f}, resolution, glm::vec4{0.2f, 0.2f, 0.2f, 0.0f}, false};
+    Group * g = new Group{glm::vec3{0.0f, 0.0f, 0.0f}, resolution, darkBrown, false};
     w->groups.push_back(g);
 
     TextLabel * titleLabel = new TextLabel{glm::vec3{resolution.x * 0.5f, resolution.y * 0.5f, 0.1f}, glm::vec2{500.0f, 200.0f},
-                                glm::vec4{0.5f, 0.5f, 0.5f, 1.0f}, AM::FontSize::PX64, true, glm::vec3{250.0f, 100.0f, 0.21f}};
+                                           weirdBrown, AM::FontSize::PX64, true, glm::vec3{250.0f, 100.0f, 0.21f}};
     g->tLabels.push_back(titleLabel);
     titleLabel->setText("Free Imperium");
 
@@ -109,7 +109,7 @@ void Open(const glm::vec2 & resolution)
     glm::vec2 labelSize{450.f, 100.0f};
     glm::vec3 labelPos{100.0f, 450.0f, 0.1f};
    
-    TextLabel * playLabel = new TextLabel{labelPos, labelSize, glm::vec4{0.5f, 0.5f, 0.5f, 1.0f}, AM::FontSize::PX64, true,
+    TextLabel * playLabel = new TextLabel{labelPos, labelSize, weirdBrown, AM::FontSize::PX64, true,
                                           glm::vec3{labelSize.x * 0.5f, labelSize.y * 0.5f, 0.21f}};
     g->tLabels.push_back(playLabel);
     playLabel->evName = ClickEventType::START_ROOM;
@@ -117,7 +117,7 @@ void Open(const glm::vec2 & resolution)
 
     labelPos.y -= labelsOffset + labelSize.y;
 
-    TextLabel * quitLabel = new TextLabel{labelPos, labelSize, glm::vec4{0.0f, 0.5f, 0.5f, 1.0f}, AM::FontSize::PX16, true,
+    TextLabel * quitLabel = new TextLabel{labelPos, labelSize, weirdBrown, AM::FontSize::PX16, true,
                                           glm::vec3{labelSize.x * 0.5f, labelSize.y * 0.5f, 0.21f}};
     g->tLabels.push_back(quitLabel);
     quitLabel->evName = ClickEventType::QUIT_GAME;
@@ -144,13 +144,13 @@ namespace Gui::Room {
 
 void Open(const glm::vec2 & resolution)
 {
-    Window * w = new Window{glm::vec3{0.0, 0.0, 0.0}, resolution, glm::vec4{.2, 0.2, .2, 1.0}, false, WindowType::ROOM_SCREEN};
+    Window * w = new Window{glm::vec3{0.0, 0.0, 0.0}, resolution, darkBrown, false, WindowType::ROOM_SCREEN};
     Gui::Base::windows.push_back(w);
    
     float listsXOffset = 100.0f;
     glm::vec3 listPos{100.0f, 50.0f, 0.1f};
     glm::vec2 listSize{500.0f, 600.0f};
-
+/*
     { // bar with titles below lists
         glm::vec3 pos = glm::vec3{listPos.x, listPos.y + listSize.y + 50.0f, 0.0f};
         Group * listTitlesGroup = new Group{pos, glm::vec3{listSize.x * 2 + listsXOffset, 100.0f, 0.1f}, glm::vec4{0.0f, 1.0f, 0.0f, 1.0f}, false};
@@ -171,25 +171,27 @@ void Open(const glm::vec2 & resolution)
         listTitlesGroup->tLabels.push_back(countryLabel);
         countryLabel->setText("Pick country");
     }
-
-    List * playerList = new List{listPos, listSize, 40.0f, glm::vec4{1.0, 0.5, 0.5, 1.0}, 
-                                  glm::vec4{1.0, 1.0, 0.0, 1.0}, 5.0f};
+*/
+    List * playerList = new List{listPos, listSize, 40.0f, brown, 
+                                  lightBrown, 5.0f};
     w->lists.push_back(playerList);
     playerList->id = 0;
+    playerList->SetTitle("Players", AM::FontSize::PX32);
 
     listPos.x += listSize.x + listsXOffset;
-    List * countryList = new List{listPos, listSize, 40.0f, glm::vec4{1.0, 0.5, 0.5, 1.0}, 
-                                  glm::vec4{1.0, 1.0, 0.0, 1.0}, 5.0f};
+    List * countryList = new List{listPos, listSize, 40.0f, brown, 
+                                  lightBrown, 5.0f};
     w->lists.push_back(countryList);
     countryList->id = 1;
+    countryList->SetTitle("Pick country", AM::FontSize::PX32);
 
     { // group with start game button
         glm::vec3 pos = glm::vec3{listPos.x + listSize.x + listsXOffset, listPos.y, 0.0f};
-        Group * grp = new Group{pos, glm::vec3{200.0f, 100.0f, 0.1f}, glm::vec4{0.0f, 1.0f, 0.0f, 1.0f}, false};
+        Group * grp = new Group{pos, glm::vec3{200.0f, 100.0f, 0.1f}, weirdBrown, false};
         w->groups.push_back(grp);
     
         glm::vec2 labelSize{200.0f,  50.0f};
-        TextLabel * startLabel = new TextLabel{pos, labelSize, glm::vec4{.4, 1.0, 0.4, 1.0}, AM::FontSize::PX32, true,
+        TextLabel * startLabel = new TextLabel{pos, labelSize, weirdBrown, AM::FontSize::PX32, true,
                                                glm::vec3{labelSize * 0.5f, 0.2f}};
         grp->tLabels.push_back(startLabel);
         startLabel->evName = ClickEventType::START_GAME;
@@ -215,9 +217,9 @@ void AddCountryToList(const std::string & countryName)
     assert(countryList);
 Log("asdasd");
 
-    Group * grp = new Group{glm::vec3{0.0, 0.0, .1}, glm::vec2{500.0, 20.0}, glm::vec4{.0, 1.0, 1.0, 1.0}, false};
+    Group * grp = new Group{glm::vec3{0.0, 0.0, .1}, glm::vec2{500.0, 20.0}, weirdBrown, false};
     
-    TextLabel * title2 = new TextLabel{glm::vec3{0.0, 0.0, .11}, glm::vec2{500.0, 20.0}, glm::vec4{.4, 1.0, 0.4, 1.0}, AM::FontSize::PX16,
+    TextLabel * title2 = new TextLabel{glm::vec3{0.0, 0.0, .11}, glm::vec2{500.0, 20.0}, weirdBrown, AM::FontSize::PX16,
                                        true, glm::vec3{grp->backgr->GetSize() * 0.5f, .2}};
     grp->tLabels.push_back(title2);
     title2->evName = ClickEventType::PICK_COUNTRY;
@@ -265,9 +267,9 @@ void AddPlayerToList(const std::string & s)
     }
     assert(playersList);
 
-    Group * grp = new Group{glm::vec3{0.0, 0.0, .1}, glm::vec2{500.0, 20.0}, glm::vec4{.0, 1.0, 1.0, 1.0}, false};
+    Group * grp = new Group{glm::vec3{0.0, 0.0, .1}, glm::vec2{500.0, 20.0}, weirdBrown, false};
     
-    TextLabel * title2 = new TextLabel{glm::vec3{0.0, 0.0, .11}, glm::vec2{500.0, 20.0}, glm::vec4{.4, 1.0, 0.4, 1.0},
+    TextLabel * title2 = new TextLabel{glm::vec3{0.0, 0.0, .11}, glm::vec2{500.0, 20.0}, weirdBrown,
                                        AM::FontSize::PX16, true, glm::vec3{grp->backgr->GetSize() * 0.5f, .2}};
     grp->tLabels.push_back(title2);
     title2->setText(s);
@@ -305,15 +307,15 @@ void Open(const std::vector<std::string> & values, const glm::vec2 & resolution)
     glm::vec2 wSize{resolution.x * 0.5f, 100.0f};
     glm::vec3 wPos{resolution.x * 0.5f - wSize.x * 0.5f, resolution.y - wSize.y, 0.0f};
 
-    Window * w = new Window{wPos, wSize, glm::vec4{1.0, 0.0, 0.0, 1.0}, true, WindowType::TOP_BAR};
+    Window * w = new Window{wPos, wSize, darkBrown, false, WindowType::TOP_BAR};
     Gui::Base::windows.push_back(w);
 
-    Group * grp = new Group{wPos, wSize, glm::vec4{1.0, 1.0, 0.0, .1}, false};
+    Group * grp = new Group{wPos, wSize, darkBrown, false};
     w->groups.push_back(grp);
 
     glm::vec2 ctrSize{200.0f, 100.0f};
     glm::vec3 ctrPos{wPos.x + wSize.x * 0.5f - ctrSize.x * 0.5f, wPos.y, 0.1f};
-    TextLabel * ctrName = new TextLabel{ctrPos, ctrSize, glm::vec4{.4, 1.0, 0.4, .2}, AM::FontSize::PX32, true, glm::vec3{ctrSize * 0.5f, 0.11f}};
+    TextLabel * ctrName = new TextLabel{ctrPos, ctrSize, weirdBrown, AM::FontSize::PX32, true, glm::vec3{ctrSize * 0.5f, 0.11f}};
     grp->tLabels.push_back(ctrName);
     ctrName->setText("Polska");
 
@@ -321,10 +323,10 @@ void Open(const std::vector<std::string> & values, const glm::vec2 & resolution)
         float cashNumLen = 60.0f;
         glm::vec2 cashSize{100.0f, 40.0f};
         glm::vec3 cashPos{wPos.x + 10.0f, wPos.y + wSize.y * 0.5f, 0.1f};
-        Group * cashG = new Group{cashPos, cashSize, glm::vec4{1.0, 1.0, 0.0, .2}, true};
+        Group * cashG = new Group{cashPos, cashSize, brown, true};
         w->groups.push_back(cashG);
         
-        TextLabel * cash = new TextLabel{cashPos, cashSize, glm::vec4{.4, 1.0, 0.4, .2}, AM::FontSize::PX16, true,
+        TextLabel * cash = new TextLabel{cashPos, cashSize, weirdBrown, AM::FontSize::PX16, true,
                                          glm::vec3{cashSize.x * 0.5f + 20.0f, cashSize.y * 0.5f, 0.11f}};
         cashG->tLabels.push_back(cash);
         cash->setText("321k");
@@ -337,26 +339,26 @@ void Open(const std::vector<std::string> & values, const glm::vec2 & resolution)
         cashSize.y *= 3.0f;
         cashPos.y -= cashSize.y;
         cashPos.z = 0.5f;
-        Group * cashGHov = new Group{cashPos, cashSize, glm::vec4{1.0, 1.0, 0.0, 1.0}, false};
+        Group * cashGHov = new Group{cashPos, cashSize, brown, false};
         cashG->groups.push_back(cashGHov);
     
         glm::vec2 labelSize{cashSize.x, 20.0f};
         float labelOffset = 3.0f;
         glm::vec3 labelPos{cashPos.x, cashPos.y + cashSize.y - labelSize.y - labelOffset, cashPos.z + 0.1f};
         
-        TextLabel * income = new TextLabel{labelPos, labelSize, glm::vec4{.4, 1.0, 1.0, .2}, AM::FontSize::PX16, false, glm::vec3{5.0, 5.0, .1}};
+        TextLabel * income = new TextLabel{labelPos, labelSize, weirdBrown, AM::FontSize::PX16, false, glm::vec3{5.0, 5.0, .1}};
         cashGHov->tLabels.push_back(income);
         income->setText("Income: +32.0");
   
-        labelPos.y -= labelSize.y - labelOffset;
+        labelPos.y -= (labelSize.y + labelOffset);
         
-        TextLabel * armyCash = new TextLabel{labelPos, labelSize, glm::vec4{.4, 1.0, 1.0, .2}, AM::FontSize::PX16, false, glm::vec3{5.0, 5.0, .1}};
+        TextLabel * armyCash = new TextLabel{labelPos, labelSize, weirdBrown, AM::FontSize::PX16, false, glm::vec3{5.0, 5.0, .1}};
         cashGHov->tLabels.push_back(armyCash);
         armyCash->setText("Army maintenance: -10.0");
    
-        labelPos.y -= labelSize.y - labelOffset;
+        labelPos.y -= (labelSize.y + labelOffset);
          
-        TextLabel * armyRecov = new TextLabel{labelPos, labelSize, glm::vec4{.4, 1.0, 1.0, .2}, AM::FontSize::PX16, false, glm::vec3{5.0, 5.0, .1}};
+        TextLabel * armyRecov = new TextLabel{labelPos, labelSize, weirdBrown, AM::FontSize::PX16, false, glm::vec3{5.0, 5.0, .1}};
         cashGHov->tLabels.push_back(armyRecov);
         armyRecov->setText("Army recovery: -10.0");
  
