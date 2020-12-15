@@ -44,3 +44,14 @@ namespace Gui::ProvSiege {
     void Open(const glm::vec2 & resolution);
     void Close();
 }
+
+namespace Gui::Unit {
+    void Open(const glm::vec2 & resolution);
+    void Close();
+}
+
+namespace Gui::UnitsList {
+    void Open(const glm::vec2 & resolution);
+    void Close();
+}
+

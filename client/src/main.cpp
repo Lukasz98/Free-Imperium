@@ -23,7 +23,7 @@ int main()
     glm::vec2 resolution = windowSize;
     //glm::vec2 resolution = {windowSize.x * 2, windowSize.y * 2};
     //glm::vec2 resolution = {1280, 720};
-   // glm::vec2 resolution = {1920, 1080};
+    //glm::vec2 resolution = {1920, 1080};
     std::string title = "Free_Imperium";
 
     Window window(windowSize, title);

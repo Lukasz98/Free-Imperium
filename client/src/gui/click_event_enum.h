@@ -14,7 +14,8 @@ enum class ClickEventType {
 
     PROV_SWITCH_TAB = 8,
     OPEN_PROV = 9,
-    OPEN_COUNTRY = 10
+    OPEN_COUNTRY = 10,
+    OPEN_UNIT = 11
 };
 
 

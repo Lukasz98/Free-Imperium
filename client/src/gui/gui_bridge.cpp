@@ -6,10 +6,10 @@ using namespace Gui::Core;
 static ClickData clickData;
 
 
-    glm::vec4 darkBrown{0.294, 0.227, 0.223, 1.0};
-    glm::vec4 brown{0.388, 0.298, 0.290, 1.0};
-    glm::vec4 lightBrown{0.568, 0.435, 0.427, 1.0};
-    glm::vec4 weirdBrown{.333, .258, 0.258, 1.0};
+glm::vec4 darkBrown{0.294, 0.227, 0.223, 1.0};
+glm::vec4 brown{0.388, 0.298, 0.290, 1.0};
+glm::vec4 lightBrown{0.568, 0.435, 0.427, 1.0};
+glm::vec4 weirdBrown{.333, .258, 0.258, 1.0};
 
 
 
@@ -150,28 +150,6 @@ void Open(const glm::vec2 & resolution)
     float listsXOffset = 100.0f;
     glm::vec3 listPos{100.0f, 50.0f, 0.1f};
     glm::vec2 listSize{500.0f, 600.0f};
-/*
-    { // bar with titles below lists
-        glm::vec3 pos = glm::vec3{listPos.x, listPos.y + listSize.y + 50.0f, 0.0f};
-        Group * listTitlesGroup = new Group{pos, glm::vec3{listSize.x * 2 + listsXOffset, 100.0f, 0.1f}, glm::vec4{0.0f, 1.0f, 0.0f, 1.0f}, false};
-        w->groups.push_back(listTitlesGroup);
-    
-        pos.x += 0.0f;
-        pos.y += 50.0f;
-        pos.z += 0.1f;
-        glm::vec2 labelSize{listSize.x,  50.0f};
-        TextLabel * playersLabel = new TextLabel{pos, labelSize, glm::vec4{.4, 1.0, 0.4, 1.0}, AM::FontSize::PX32, true, 
-                                                 glm::vec3{labelSize * 0.5f, 0.2f}};
-        listTitlesGroup->tLabels.push_back(playersLabel);
-        playersLabel->setText("Players");
-
-        pos.x += listSize.x + listsXOffset;
-        TextLabel * countryLabel = new TextLabel{pos, labelSize, glm::vec4{.4, 1.0, 0.4, 1.0}, AM::FontSize::PX32, true,
-                                                 glm::vec3{labelSize * 0.5f, 0.2f}};
-        listTitlesGroup->tLabels.push_back(countryLabel);
-        countryLabel->setText("Pick country");
-    }
-*/
     List * playerList = new List{listPos, listSize, 40.0f, brown, 
                                   lightBrown, 5.0f};
     w->lists.push_back(playerList);
@@ -688,8 +666,191 @@ void Close()
     }
 }
 
-
-
-
 } // Gui::ProvSiege
+
+
+
+namespace Gui::Unit {
+
+void Open(const glm::vec2 & resolution)
+{
+    glm::vec2 wSize{400.0f, 400.0f};
+    glm::vec3 wPos{20.0f, 20.0f, 0.0f};
+    
+    glm::vec2 offset{5.0f, 2.5f};
+
+    Window * w = new Window{wPos, wSize, darkBrown, true, WindowType::UNIT};
+    Gui::Base::windows.push_back(w);
+
+    glm::vec2 unitNameSize{wSize.x - 2 * offset.x, 40.0f - 2 * offset.y};
+    glm::vec3 unitNamePos{wPos.x + offset.x , wPos.y + wSize.y - unitNameSize.y - offset.y, 0.1f};
+    { // unit name
+        Group * grp = new Group{unitNamePos, unitNameSize, brown, false};
+        w->groups.push_back(grp);
+
+        glm::vec3 textPos{unitNameSize.x * 0.5f, unitNameSize.y * 0.5f, 0.11f};
+        TextLabel * unitName = new TextLabel{unitNamePos, unitNameSize, brown, AM::FontSize::PX16, true, textPos};
+        grp->tLabels.push_back(unitName);
+        unitName->setText("Mazowsze unit");
+    }
+
+    glm::vec2 countrySize{unitNameSize.x, unitNameSize.y};
+    glm::vec3 countryPos{unitNamePos.x, unitNamePos.y - countrySize.y  - offset.y, 0.11f};
+    { // country group
+        Group * grp = new Group{countryPos, countrySize, brown, false};
+        w->groups.push_back(grp);
+
+        glm::vec2 textLabSize{countrySize.x, countrySize.y};
+        glm::vec3 textLabPos{countryPos.x, countryPos.y, 0.12f};
+        glm::vec3 textPos{textLabSize.x * 0.5f, textLabSize.y * 0.5f, 0.13f};
+        TextLabel * ctrName = new TextLabel{textLabPos, textLabSize, weirdBrown, AM::FontSize::PX16, true, textPos};
+        grp->tLabels.push_back(ctrName);
+        ctrName->setText("Poland");
+        ctrName->evName = ClickEventType::OPEN_COUNTRY;
+    }
+
+
+    { // prov properties group
+        glm::vec2 groupSize{countrySize.x, countryPos.y - wPos.y - offset.y * 2.0f};
+        glm::vec3 groupPos{countryPos.x, wPos.y + offset.y, 0.11f};
+        Group * grp = new Group{groupPos, groupSize, brown, false};
+        w->groups.push_back(grp);
+           
+        glm::vec2 propGrpSize{(groupSize.x - offset.x * 2.0f) * 0.65f, groupSize.y};
+        glm::vec3 propGrpPos{groupPos.x + offset.x, groupPos.y + groupSize.y - offset.y - propGrpSize.y, 0.12f};
+        Group * propGrp = new Group{propGrpPos, propGrpSize, brown, false};
+        grp->groups.push_back(propGrp);
+        
+        glm::vec2 valGrpSize = glm::vec2{(groupSize.x - offset.x * 2.0f) - propGrpSize.x, propGrpSize.y};//{groupSize.x * 0.5f, groupSize.y};
+        glm::vec3 valGrpPos{groupPos.x + propGrpSize.x + offset.x, groupPos.y + groupSize.y - offset.y - valGrpSize.y, 0.12f};
+        Group * valGrp = new Group{valGrpPos, valGrpSize, brown, false};
+        grp->groups.push_back(valGrp);
+        
+        glm::vec2 propNameSize{propGrpSize.x, 25.0f};
+        glm::vec3 propNamePos{propGrpPos.x, propGrpPos.y + propGrpSize.y - propNameSize.y - offset.y, 0.13f};
+        glm::vec2 valNameSize{valGrpSize.x, 25.0f};
+        glm::vec3 valNamePos{valGrpPos.x, valGrpPos.y + valGrpSize.y - valNameSize.y - offset.y, 0.13f};
+        { // size 
+            TextLabel * nameLab = new TextLabel{propNamePos, propNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{propNameSize * 0.5f, 0.13f}};
+            propGrp->tLabels.push_back(nameLab);
+            nameLab->setText("Size");
+            
+            TextLabel * valLab = new TextLabel{valNamePos, valNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{valNameSize * 0.5f, 0.13f}};
+            valGrp->tLabels.push_back(valLab);
+            valLab->setText("130k");
+        }
+
+        propNamePos.y -= (propNameSize.y + offset.y);
+        valNamePos.y -= (valNameSize.y + offset.y);
+
+        { // morale
+            TextLabel * nameLab = new TextLabel{propNamePos, propNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{propNameSize * 0.5f, 0.13f}};
+            propGrp->tLabels.push_back(nameLab);
+            nameLab->setText("Morale");
+         
+            TextLabel * valLab = new TextLabel{valNamePos, valNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{valNameSize * 0.5f, 0.13f}};
+            valGrp->tLabels.push_back(valLab);
+            valLab->setText("100");
+        }
+
+        propNamePos.y -= (propNameSize.y + offset.y);
+        valNamePos.y -= (valNameSize.y + offset.y);
+
+        { // discipline
+            TextLabel * nameLab = new TextLabel{propNamePos, propNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{propNameSize * 0.5f, 0.13f}};
+            propGrp->tLabels.push_back(nameLab);
+            nameLab->setText("Discipline");
+            
+            TextLabel * valLab = new TextLabel{valNamePos, valNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{valNameSize * 0.5f, 0.13f}};
+            valGrp->tLabels.push_back(valLab);
+            valLab->setText("55");
+        }
+    }
+}
+
+void Close()
+{
+    for (auto it = Gui::Base::windows.begin(); it != Gui::Base::windows.end(); ++it) {
+        if ((*it)->type == WindowType::UNIT) {
+            delete *it;
+            Gui::Base::windows.erase(it);
+            break;
+        }
+    }
+}
+
+} // Gui::Unit
+
+
+namespace Gui::UnitsList {
+
+void Open(const glm::vec2 & resolution)
+{
+    glm::vec2 wSize{400.0f, 400.0f};
+    glm::vec3 wPos{20.0f, 100.0f, 0.0f};
+    
+    glm::vec2 offset{5.0f, 2.5f};
+
+    Window * w = new Window{wPos, wSize, darkBrown, true, WindowType::UNITS_LIST};
+    Gui::Base::windows.push_back(w);
+
+    glm::vec2 winNameSize{wSize.x - 2 * offset.x, 40.0f - 2 * offset.y};
+    glm::vec3 winNamePos{wPos.x + offset.x , wPos.y + wSize.y - winNameSize.y - offset.y, 0.1f};
+    { // unit name
+        Group * grp = new Group{winNamePos, winNameSize, brown, false};
+        w->groups.push_back(grp);
+
+        glm::vec3 textPos{winNameSize.x * 0.5f, winNameSize.y * 0.5f, 0.11f};
+        TextLabel * winName = new TextLabel{winNamePos, winNameSize, brown, AM::FontSize::PX16, true, textPos};
+        grp->tLabels.push_back(winName);
+        winName->setText("Units");
+    }
+
+    glm::vec2 mergeSize{wSize.x * 0.3f, 40.0f - 2 * offset.y};
+    glm::vec3 mergePos{wPos.x + wSize.x - offset.x - mergeSize.x, winNamePos.y - offset.y - mergeSize.y, 0.1f};
+    { // merge button
+        Group * grp = new Group{mergePos, mergeSize, brown, false};
+        w->groups.push_back(grp);
+
+        glm::vec3 textPos{mergeSize.x * 0.5f, mergeSize.y * 0.5f, 0.11f};
+        TextLabel * merge = new TextLabel{mergePos, mergeSize, brown, AM::FontSize::PX16, true, textPos};
+        grp->tLabels.push_back(merge);
+        merge->setText("Merge");
+    }
+
+    //float listsXOffset = 100.0f;
+    glm::vec3 listPos{winNamePos.x, wPos.y + offset.y, 0.1f};
+    glm::vec2 listSize{winNameSize.x, mergePos.y - offset.y * 2.0f - wPos.y};
+    List * unitsList = new List{listPos, listSize, 40.0f, brown, 
+                                  lightBrown, 5.0f};
+    w->lists.push_back(unitsList);
+    unitsList->id = 0;
+    //unitsList->SetTitle("Players", AM::FontSize::PX32);
+
+    for (int i = 0; i < 25; ++i) {
+        Group * grp = new Group{glm::vec3{0.0, 0.0, .12f}, glm::vec2{listSize.x, 20.0}, weirdBrown, false};
+        TextLabel * title2 = new TextLabel{glm::vec3{0.0, 0.0, .13}, glm::vec2{listSize.x, 20.0}, weirdBrown, AM::FontSize::PX16,
+                                           true, glm::vec3{grp->backgr->GetSize() * 0.5f, .2}};
+        grp->tLabels.push_back(title2);
+        title2->evName = ClickEventType::OPEN_UNIT;
+        title2->setText("Unit " + std::to_string(i));
+        unitsList->AddGroup(grp);
+    }
+
+}
+
+
+void Close()
+{
+    for (auto it = Gui::Base::windows.begin(); it != Gui::Base::windows.end(); ++it) {
+        if ((*it)->type == WindowType::UNITS_LIST) {
+            delete *it;
+            Gui::Base::windows.erase(it);
+            break;
+        }
+    }
+}
+
+} // Gui::UnitsList
+
 
