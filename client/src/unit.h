@@ -31,7 +31,7 @@ struct Move
     std::shared_ptr<Arrow> arrow;
 };
 
-class Unit : public Rectangle, public Subject
+class Unit : public Rectangle //, public Subject
 {
     glm::mat4 model, rotate;
     const float rotateX, yScale;

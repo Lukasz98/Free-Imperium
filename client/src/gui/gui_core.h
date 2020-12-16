@@ -9,6 +9,7 @@
 #include "../color.h"
 #include "../asset_manager.h"
 #include "click_event_enum.h"
+#include "../observer.h"
 
 namespace Gui::Core {
 
@@ -122,6 +123,7 @@ struct List {
 
 struct Window
 {
+    Observer observer;
     std::vector<Group*> groups;
     std::vector<List*> lists;
     WindowType type;
@@ -133,6 +135,7 @@ struct Window
     void Hover(const glm::vec2 & mPos);
     void Drag(const glm::vec2 & mPos, float dt);
     void Draw();
+    void UpdateValues();
     Window(const glm::vec3 & pos, const glm::vec2 & size, const glm::vec4 & bgCol, bool dragable, WindowType wType);
     ~Window();
 };

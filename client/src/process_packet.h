@@ -9,7 +9,6 @@
 #include "battle.h"
 #include "province.h"
 
-#include "gui/gui_bridge.h"
 #include "gui_aid.h"
 
 #include "country.h"
@@ -17,12 +16,13 @@
 #include "log.h"
 #include "peace_offer.h"
 
+#include "gui/gui_structs.h"
 
 namespace ProcessPacket {
 
     
     void DailyUpdate(sf::Packet & packet, std::vector<War> & wars, std::vector<std::unique_ptr<Province>> & provinces, 
-                        std::vector<std::shared_ptr<Country>> & countries, Map & map);
+                        std::vector<std::shared_ptr<Country>> & countries, Map & map, TopBarData & topBarData);
     
     void HourlyUpdate(sf::Packet & packet, std::vector<std::shared_ptr<Unit>> & units, std::vector<std::unique_ptr<Battle>> & battles,
                       float mapChunkScale);

@@ -1,7 +1,9 @@
 #include "process_packet.h"
+#include "gui/gui_bridge.h"
+#include "gui/num_to_string.h"
 
 void ProcessPacket::DailyUpdate(sf::Packet & packet, std::vector<War> & wars, std::vector<std::unique_ptr<Province>> & provinces, 
-                                std::vector<std::shared_ptr<Country>> & countries, Map & map)
+                                std::vector<std::shared_ptr<Country>> & countries, Map & map, TopBarData & topBarData)
 {
     std::unordered_map<std::string, std::string> values;
     std::string strData;
@@ -11,31 +13,46 @@ void ProcessPacket::DailyUpdate(sf::Packet & packet, std::vector<War> & wars, st
     packet >> countryCounter;
 
     for (int i = 0; i < countryCounter; i++) {
+        std::vector<GuiStruct> vals;
+
         packet >> strData;
-        values["countryName"] = strData;
+//        values["countryName"] = strData;
+        //vals.push_back({1, strData});
+std::string ctrN = strData;
 
         packet >> floatData;
+        ftos(floatData);
 //        values["countryGold"] = ftos(floatData);
-
+        //vals.push_back({2, ftos(floatData)});
+float gold = floatData;
         packet >> floatData;
   //      values["countryIncome"] = ftos(floatData);
-    
+        //vals.push_back({3, ftos(floatData)});
+     float inc = floatData;
         packet >> floatData;
     //    values["armyMaintenance"] = ftos(floatData);
-
+        //vals.push_back({4, ftos(floatData)});
+float armyMain = floatData;
         packet >> intData;
       //  values["countryManpower"] = itos(intData);
-
+        //vals.push_back({5, itos(intData)});
+int manp = intData;
         packet >> intData;
         //values["countryManpowerRecovery"] = itos(intData);
-
+        //vals.push_back({6, itos(intData)});
+ int manpRec = intData;
         packet >> strData;
-        values["date"] = strData;
-    
+  //      values["date"] = strData;
+        //vals.push_back({7, strData});
+     std::string date = strData;
         packet >> intData;
-        values["dateSpeed"] = std::to_string(intData);
-    
+    //    values["dateSpeed"] = std::to_string(intData);
+        //vals.push_back({8, itos(intData)});
+    int dateSp = intData;
+
         //gui.Update(values, "topBar");
+    //void update(std::string ctrN, std::string date, float gold, float inc, float armyMain, int manp, int manpRec, int dateSp)
+    topBarData.Update(ctrN, date, gold, inc, armyMain, manp, manpRec, dateSp);
 
         int provCount;
         packet >> provCount;

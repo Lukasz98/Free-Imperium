@@ -1,12 +1,14 @@
 #include "game.h"
+#include "gui/gui_structs.h"
 
+TopBarData topBarData;
 
 Game::Game(Window & win, sf::TcpSocket & sock, std::string countryName, glm::vec2 res, std::vector<std::shared_ptr<Country>> & countries)
     : Scene{win, res}, socket(sock), resolution(res), countries(countries)
 {    
     //gui.AddWin("src/gui/top_bar.txt");
     //gui.AddWin("src/gui/notifications.txt");
-
+    topBarData.subject.AddObserver(Gui::TopBar::Open(std::vector<std::string>{}, resolution));
     windowSize = window.GetSize();
     
     provinces = ProvinceLoader::Load(map.GetProvsPixels(), 1920, 1088);
@@ -133,11 +135,14 @@ glDepthRange (0, 1);
             GLuint ts[] = {0};
 	        glBindTextures(ts[0], 1, ts);
 
+            Gui::Base::Draw();
             //gui.Draw();
             window.Update();
             frames++;
         }
-    
+
+        Gui::Base::UpdateVals();
+
         dt = glfwGetTime() - currTime;
 
         displayTime += dt;
@@ -177,7 +182,7 @@ void Game::processPacket(sf::Packet packet)
     packet >> type;
     
     if (type == "daily") {
-        ProcessPacket::DailyUpdate(packet, wars, provinces, countries, map);
+        ProcessPacket::DailyUpdate(packet, wars, provinces, countries, map, topBarData);
     }
     else if (type == "NewUnit") {
         ProcessPacket::NewUnit(packet, units, countries, myCountry->GetName());
@@ -292,6 +297,7 @@ void Game::input()
         //gui.Hover(window.xMouse * resolution.x / windowSize.x, (windowSize.y - window.yMouse) * (resolution.y / windowSize.y));
     }
     */
+    Gui::Base::Hover(glm::vec2{window.xMouse * resolution.x / windowSize.x, (windowSize.y - window.yMouse) * (resolution.y / windowSize.y)});
 }
 
 bool Game::provClick(glm::vec2 mouseInWorld)
@@ -357,7 +363,7 @@ bool Game::unitClick(glm::vec2 mouseInWorld)
         if (u->Click(camera.GetMouseRay(), camera.GetEye())) {
             auto d = u->GetValues();
             data.push_back(d);
-            unitForObserver = u.get();
+            //unitForObserver = u.get();
         }
     }
 

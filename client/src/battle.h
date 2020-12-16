@@ -7,7 +7,7 @@
 #include "unit.h"
 #include "observer.h"
 
-class Battle : public Subject
+class Battle
 {
     std::vector<std::shared_ptr<Unit>> attackers;
     std::vector<std::shared_ptr<Unit>> defenders;
@@ -24,7 +24,8 @@ class Battle : public Subject
     std::string defender = "";
     int attackerId, defenderId;
 
-    
+   Subject subject;
+
 public:
     Battle(int id, int warId, glm::vec3 pos, std::string prov, int provId);
     ~Battle();

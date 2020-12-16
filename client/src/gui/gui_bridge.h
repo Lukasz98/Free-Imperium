@@ -5,6 +5,7 @@
 #include <glm/vec2.hpp>
 #include "click_event_enum.h"
 #include "log.h"
+#include "../observer.h"
 
 namespace Gui::Base {
     ClickEventType Click(const glm::vec2 & mousePos);
@@ -13,6 +14,7 @@ namespace Gui::Base {
     bool Drag(const glm::vec2 & mousePos, float dt);
     void Draw();
     void ResetClick();
+    void UpdateVals();
 }
 
 namespace Gui::Menu {
@@ -31,7 +33,7 @@ namespace Gui::Room {
 
 
 namespace Gui::TopBar {
-    void Open(const std::vector<std::string> & values, const glm::vec2 & resolution);
+    Observer * Open(const std::vector<std::string> & values, const glm::vec2 & resolution);
 }
 
 namespace Gui::Prov {

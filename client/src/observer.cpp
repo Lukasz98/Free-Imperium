@@ -7,10 +7,10 @@ Subject::~Subject()
     }
 }
 
-void Subject::notify(std::any a)
+void Subject::Notify(const std::vector<GuiStruct> & vals)
 {
     for (auto o : observers)
-        o->Notification(a);
+        o->Notification(vals);
 }
 
 void Subject::EraseObserver(const Observer * o)
@@ -46,3 +46,11 @@ void Observer::DeleteSubject()
 {
     subject = nullptr;
 }
+
+void Observer::Notification(const std::vector<GuiStruct> & vals)
+{
+    notified = true;
+    this->vals.insert(this->vals.end(), vals.begin(), vals.end());
+}
+
+

@@ -56,7 +56,7 @@ void Province::SetOwner(std::string owner, int ctrId)
     siegeCountry = "";
     country = owner;
     countryId = ctrId;
-    notify(GetValues());
+//    notify(GetValues());
 }
 
 void Province::Sieging(std::string ctr, int ctrId, int sieg, int sold)
@@ -66,7 +66,7 @@ void Province::Sieging(std::string ctr, int ctrId, int sieg, int sold)
     siegeCountry = ctr;
     siegeSoldiers = sold;
     siegeUpdated = true;
-    notify(GetValues());
+  //  notify(GetValues());
 }
 
 void Province::ResetSieging()
@@ -75,7 +75,7 @@ void Province::ResetSieging()
     siegeCountryId = -1;
     siegeCountry = "";
     siegeSoldiers = 0;
-    notify(GetValues());
+    //notify(GetValues());
 }
     
 std::unordered_map<std::string, std::string> Province::GetValues()

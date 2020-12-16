@@ -12,7 +12,7 @@
 #include "observer.h"
 #include "log.h"
 
-class Province : public Subject
+class Province //: public Subject
 {
     int id;
     Color color;
@@ -44,8 +44,8 @@ public:
     void SetDevelopment(int d) { development = d; }
     void SetUnitPos(glm::vec2 p) { unitPosition = p; }
     
-    void SetPopulation(int p) { population = p; notify(GetValues()); }
-    void SetManpower(int m) { manpower = m; notify(GetValues()); }
+    void SetPopulation(int p) { population = p; /*notify(GetValues());*/ }
+    void SetManpower(int m) { manpower = m; /*notify(GetValues());*/ }
     //void SetAutonomy(int a) { autonomy = a; }
     //void SetUnrest(int u) { unrest = u; }
     //void SetProsperity(int p) { prosperity = p; }

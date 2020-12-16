@@ -204,7 +204,7 @@ void Unit::Kill(int amount)
     if (morale < 0)
         morale = 0;
 
-    notify(GetValues());
+    //notify(GetValues());
 }
 
 void Unit::Battle(bool is, bool attacker)

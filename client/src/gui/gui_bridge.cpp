@@ -84,6 +84,12 @@ void ResetClick()
     clickData.evType = ClickEventType::NONE;
 }
 
+void UpdateVals()
+{
+    for (auto w : windows)
+        w->UpdateValues();
+}
+
 } // Gui::Base
 
 
@@ -280,8 +286,10 @@ void Close()
 
 namespace Gui::TopBar {
 
-void Open(const std::vector<std::string> & values, const glm::vec2 & resolution)
+Observer * Open(const std::vector<std::string> & values, const glm::vec2 & resolution)
 {
+    glm::vec2 offset{5.0f, 2.5f};
+    
     glm::vec2 wSize{resolution.x * 0.5f, 100.0f};
     glm::vec3 wPos{resolution.x * 0.5f - wSize.x * 0.5f, resolution.y - wSize.y, 0.0f};
 
@@ -289,26 +297,30 @@ void Open(const std::vector<std::string> & values, const glm::vec2 & resolution)
     Gui::Base::windows.push_back(w);
 
     Group * grp = new Group{wPos, wSize, darkBrown, false};
+    grp->id = 0;
     w->groups.push_back(grp);
 
     glm::vec2 ctrSize{200.0f, 100.0f};
     glm::vec3 ctrPos{wPos.x + wSize.x * 0.5f - ctrSize.x * 0.5f, wPos.y, 0.1f};
     TextLabel * ctrName = new TextLabel{ctrPos, ctrSize, weirdBrown, AM::FontSize::PX32, true, glm::vec3{ctrSize * 0.5f, 0.11f}};
     grp->tLabels.push_back(ctrName);
-    ctrName->setText("Polska");
+    ctrName->setText("Atlantyda");
+    ctrName->id = 1;
 
     { // cash group
         float cashNumLen = 60.0f;
         glm::vec2 cashSize{100.0f, 40.0f};
-        glm::vec3 cashPos{wPos.x + 10.0f, wPos.y + wSize.y * 0.5f, 0.1f};
+        glm::vec3 cashPos{wPos.x + 10.0f, wPos.y + wSize.y * 0.5f, 0.05f};
         Group * cashG = new Group{cashPos, cashSize, brown, true};
+        cashG->id = 1;
         w->groups.push_back(cashG);
         
         TextLabel * cash = new TextLabel{cashPos, cashSize, weirdBrown, AM::FontSize::PX16, true,
-                                         glm::vec3{cashSize.x * 0.5f + 20.0f, cashSize.y * 0.5f, 0.11f}};
+                                         glm::vec3{cashSize.x * 0.5f + 20.0f, cashSize.y * 0.5f, 0.06f}};
         cashG->tLabels.push_back(cash);
         cash->setText("321k");
- 
+        cash->id = 1;
+
         IconLabel * icon = new IconLabel{cashPos, glm::vec2{40, 40}};
         cashG->iLabels.push_back(icon);
         icon->setIcon("src/img/gold.png");
@@ -316,32 +328,78 @@ void Open(const std::vector<std::string> & values, const glm::vec2 & resolution)
         cashSize.x *= 2.0f;
         cashSize.y *= 3.0f;
         cashPos.y -= cashSize.y;
-        cashPos.z = 0.5f;
+        cashPos.z = 0.05f;
         Group * cashGHov = new Group{cashPos, cashSize, brown, false};
+        cashGHov->id = 2;
         cashG->groups.push_back(cashGHov);
+
+
+        glm::vec2 propGrpSize{cashSize.x * 0.65f - offset.x * 2.0f, cashSize.y};
+        glm::vec3 propGrpPos{cashPos.x + offset.x, cashPos.y + cashSize.y - offset.y - propGrpSize.y, 0.12f};
+        Group * propGrp = new Group{propGrpPos, propGrpSize, brown, false};
+        cashGHov->groups.push_back(propGrp);
+            
+        glm::vec2 valGrpSize = glm::vec2{cashSize.x - propGrpSize.x - offset.x, propGrpSize.y};
+        glm::vec3 valGrpPos{cashPos.x + propGrpSize.x, cashPos.y + cashSize.y - offset.y - valGrpSize.y, 0.12f};
+        Group * valGrp = new Group{valGrpPos, valGrpSize, brown, false};
+        valGrp->id = 3;
+        cashGHov->groups.push_back(valGrp);
+            
+        glm::vec2 propNameSize{propGrpSize.x, 25.0f};
+        glm::vec3 propNamePos{propGrpPos.x, propGrpPos.y + propGrpSize.y - propNameSize.y - offset.y, 0.13f};
+        glm::vec2 valNameSize{valGrpSize.x, 25.0f};
+        glm::vec3 valNamePos{valGrpPos.x, valGrpPos.y + valGrpSize.y - valNameSize.y - offset.y, 0.13f};
+        { // income 
+            TextLabel * nameLab = new TextLabel{propNamePos, propNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{propNameSize * 0.5f, 0.13f}};
+            propGrp->tLabels.push_back(nameLab);
+            nameLab->setText("Income");
+            
+            TextLabel * valLab = new TextLabel{valNamePos, valNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{valNameSize * 0.5f, 0.13f}};
+            valGrp->tLabels.push_back(valLab);
+            valLab->setText("0");
+            valLab->id = 1;
+        }
+
+        propNamePos.y -= (propNameSize.y + offset.y);
+        valNamePos.y -= (valNameSize.y + offset.y);
+
+        { // armyMaintenance 
+            TextLabel * nameLab = new TextLabel{propNamePos, propNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{propNameSize * 0.5f, 0.13f}};
+            propGrp->tLabels.push_back(nameLab);
+            nameLab->setText("Army maintenance");
+            
+            TextLabel * valLab = new TextLabel{valNamePos, valNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{valNameSize * 0.5f, 0.13f}};
+            valGrp->tLabels.push_back(valLab);
+            valLab->setText("0");
+            valLab->id = 2;
+        }
+    }
+
+    { // date group
+        glm::vec2 dateGrpSize{200.0f, wSize.y - 2.0f * offset.y};
+        glm::vec3 dateGrpPos{wPos.x + wSize.x - dateGrpSize.x - offset.x, wPos.y + offset.y, 0.1f};
+        Group * dateG = new Group{dateGrpPos, dateGrpSize, brown, true};
+        dateG->id = 4;
+        w->groups.push_back(dateG);
+ 
+        glm::vec2 dateSize{dateGrpSize.x - 2 * offset.x, 25.0f};
+        glm::vec3 datePos{dateGrpPos.x + offset.x, dateGrpPos.y + offset.y, dateGrpPos.z + 0.05f};
+        
+        TextLabel * text = new TextLabel{datePos, dateSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{dateSize * 0.5f, .2}};
+        dateG->tLabels.push_back(text);
+        text->setText("12 Jan 2010");
+        text->id = 1;
     
-        glm::vec2 labelSize{cashSize.x, 20.0f};
-        float labelOffset = 3.0f;
-        glm::vec3 labelPos{cashPos.x, cashPos.y + cashSize.y - labelSize.y - labelOffset, cashPos.z + 0.1f};
-        
-        TextLabel * income = new TextLabel{labelPos, labelSize, weirdBrown, AM::FontSize::PX16, false, glm::vec3{5.0, 5.0, .1}};
-        cashGHov->tLabels.push_back(income);
-        income->setText("Income: +32.0");
-  
-        labelPos.y -= (labelSize.y + labelOffset);
-        
-        TextLabel * armyCash = new TextLabel{labelPos, labelSize, weirdBrown, AM::FontSize::PX16, false, glm::vec3{5.0, 5.0, .1}};
-        cashGHov->tLabels.push_back(armyCash);
-        armyCash->setText("Army maintenance: -10.0");
-   
-        labelPos.y -= (labelSize.y + labelOffset);
-         
-        TextLabel * armyRecov = new TextLabel{labelPos, labelSize, weirdBrown, AM::FontSize::PX16, false, glm::vec3{5.0, 5.0, .1}};
-        cashGHov->tLabels.push_back(armyRecov);
-        armyRecov->setText("Army recovery: -10.0");
+        datePos.y += dateSize.y + offset.y;
+        TextLabel * speed = new TextLabel{datePos, dateSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{dateSize * 0.5f, .2}};
+        dateG->tLabels.push_back(speed);
+        speed->setText("0");
+        speed->id = 2;
  
     }
+    return &w->observer;
 }
+
 
 } // Gui::TopBar
 

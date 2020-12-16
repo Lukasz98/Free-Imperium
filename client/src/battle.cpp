@@ -11,7 +11,7 @@ Battle::~Battle()
 
 void Battle::Update()
 {
-    notify(GetValues());
+    //subject.Notify(GetValues());
     /*
     attackersMorale = 0;
     defendersMorale = 0;
@@ -104,7 +104,7 @@ void Battle::AddAttacker(std::shared_ptr<Unit> p)
     updated = true;
     p->Battle(true, true);
     attackers.push_back(p);
-    notify(GetValues());
+    //subject.Notify(GetValues());
 }
     
 void Battle::AddDefender(std::shared_ptr<Unit> p)
@@ -116,7 +116,7 @@ void Battle::AddDefender(std::shared_ptr<Unit> p)
     updated = true;
     p->Battle(true, false);
     defenders.push_back(p);
-    notify(GetValues());
+    //subject.Notify(GetValues());
 }
 
 void Battle::AddUnit(std::shared_ptr<Unit> p)
@@ -125,7 +125,7 @@ void Battle::AddUnit(std::shared_ptr<Unit> p)
     for (auto & a : attackers)
         if (a->GetCountryId() == p->GetCountryId()) {
             AddAttacker(p);
-            notify(GetValues());
+            //subject.Notify(GetValues());
             return;
             //attackers.push_back(p);
             //break;
@@ -133,7 +133,7 @@ void Battle::AddUnit(std::shared_ptr<Unit> p)
     for (auto & d : defenders)
         if (d->GetCountryId() == p->GetCountryId()) {
             AddDefender(p);
-            notify(GetValues());
+            //subject.Notify(GetValues());
             return;
             //defenders.push_back(p);
             //break;
@@ -147,7 +147,7 @@ void Battle::Erase(int id)
             attackers[i]->Battle(false);
             attackers.erase(attackers.begin() + i);
             updated = true;
-            notify(GetValues());
+            //subject.Notify(GetValues());
             return;
         }
         
@@ -156,7 +156,7 @@ void Battle::Erase(int id)
             defenders[i]->Battle(false);
             defenders.erase(defenders.begin() + i);
             updated = true;
-            notify(GetValues());
+            //subject.Notify(GetValues());
             return;
         }
 }

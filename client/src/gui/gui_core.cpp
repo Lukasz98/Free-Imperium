@@ -1,4 +1,5 @@
 #include "gui_core.h"
+#include <queue>
 #include "load_from_png.h"
 #include "log.h"
 
@@ -543,6 +544,47 @@ void Window::Drag(const glm::vec2 & mPos, float dt)
         l->SetPos(gPos);
     }
 }
+void Window::UpdateValues()
+{ // only in groups and textLabels for now, lists later
+    if (!observer.notified)
+        return;
+    observer.notified = false;
+
+    std::queue<Group*> grpQ;
+    for (auto g : groups) {
+        assert(g != nullptr);
+        grpQ.push(g);
+    }
+
+    std::vector<Group*> grps;
+    while (grpQ.size()) {
+        Group * g = grpQ.front();
+        grpQ.pop();
+        assert(g != nullptr);
+        grps.push_back(g);
+        for (auto grp : g->groups)
+            grpQ.push(grp);
+    }
+    
+    for (auto val : observer.vals) {
+        for (auto g : grps) {
+            if (g->id == val.grpId) {
+                for (auto text : g->tLabels) {
+                    if (text->id == val.id) {
+                        if (text->text.content == val.val)
+                            break;
+                        text->setText(val.val);
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    observer.vals.clear();
+}
+
 
 /*
 void OpenUnitsList()

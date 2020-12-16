@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
-#include <any>
+//#include <any>
+#include "gui/gui_update_struct.h"
 
 class Observer;
 
@@ -8,13 +9,11 @@ class Subject
 {
     std::vector<Observer*> observers;
         
-protected:
-    Subject() {}
-    
-    void notify(std::any a);
-
 public:
-    virtual ~Subject();
+    Subject() {}
+    ~Subject();
+
+    void Notify(const std::vector<GuiStruct> & vals);
     void EraseObserver(const Observer * o);
     void AddObserver(Observer * oo);
 
@@ -23,14 +22,16 @@ public:
 class Observer
 {
     Subject * subject;
-protected:
-    Observer() { subject = nullptr; }
 
 public:
-    virtual ~Observer();
+    std::vector<GuiStruct> vals;
+    bool notified = false;
+
+    Observer() { subject = nullptr; }
+    ~Observer();
 
     void SetSubject(Subject * s);
     void DeleteSubject();
-    virtual void Notification(std::any n) = 0;
+    void Notification(const std::vector<GuiStruct> & vals);
     
 };
