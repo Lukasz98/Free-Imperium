@@ -48,7 +48,7 @@ namespace Gui::ProvSiege {
 }
 
 namespace Gui::Unit {
-    void Open(const glm::vec2 & resolution);
+    Observer * Open(const glm::vec2 & resolution);
     void Close();
 }
 

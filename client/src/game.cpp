@@ -263,6 +263,38 @@ void Game::input()
     }
 
     glm::vec2 mouseInWorld = camera.GetMouseInWorld();
+    
+    if (window.mouseLClicked && !window.mouseRClicked) {
+            ClickEventType cType = Gui::Base::Click(glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
+                                                    (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
+    
+Log("uClick " << (int)cType);
+        if (cType == ClickEventType::NONE) {
+Log("uClick");
+            if (!unitClick(mouseInWorld)) {
+            }
+        }
+        Gui::Base::ResetClick();
+
+    }
+    else if (window.mouseRClicked) {
+    
+    }
+    window.mouseLClicked = false;
+    window.mouseRClicked = false;
+    if (window.mouseL) {
+        Gui::Base::Drag(glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
+                                  (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y}, dt);
+    }
+    if (window.mouseR) {
+    }
+    if (window.scrollOffset) {
+        Gui::Base::Scroll(window.scrollOffset, glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
+                          (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
+        window.scrollOffset = 0;
+    }
+    Gui::Base::Hover(glm::vec2{window.xMouse * resolution.x / windowSize.x, (windowSize.y - window.yMouse) * (resolution.y / windowSize.y)});
+    
 /*
     if (window.mouseL && !window.mouseR) {
         map.Unbright();
@@ -297,7 +329,6 @@ void Game::input()
         //gui.Hover(window.xMouse * resolution.x / windowSize.x, (windowSize.y - window.yMouse) * (resolution.y / windowSize.y));
     }
     */
-    Gui::Base::Hover(glm::vec2{window.xMouse * resolution.x / windowSize.x, (windowSize.y - window.yMouse) * (resolution.y / windowSize.y)});
 }
 
 bool Game::provClick(glm::vec2 mouseInWorld)
@@ -355,25 +386,29 @@ bool Game::provClick(glm::vec2 mouseInWorld)
 
 bool Game::unitClick(glm::vec2 mouseInWorld)
 {
-    std::vector<std::unordered_map<std::string,std::string>> data;
-    Subject * unitForObserver = nullptr;
+    std::vector<std::shared_ptr<Unit>> clickedUnits;
+    //std::vector<std::unordered_map<std::string,std::string>> data;
+    //Subject * unitForObserver = nullptr;
     for (auto & u : units) {
         //if (u->GetCountry() == "Poland")
         //if (u->Click(mouseInWorld.x, mouseInWorld.y)) {
         if (u->Click(camera.GetMouseRay(), camera.GetEye())) {
-            auto d = u->GetValues();
-            data.push_back(d);
+            clickedUnits.push_back(u);
+            //auto d = u->GetValues();
+            //data.push_back(d);
             //unitForObserver = u.get();
         }
     }
-
-    if (data.size() == 1) {
+    if (clickedUnits.size() == 1) {
+Log("uClick2");
         //gui.AddWin("src/gui/unit.txt");
         //gui.ObservationOfLastWin(unitForObserver);
         //gui.Update(data[0], "unit");
+        clickedUnits[0]->subject.AddObserver(Gui::Unit::Open(resolution));
+        clickedUnits[0]->UpdateGuiWin();
         return true;
     }
-    else if (data.size() > 1) {
+    else if (clickedUnits.size() > 1) {
         /*
         gui.AddWin("src/gui/units.txt");
         for (auto & d : data) {

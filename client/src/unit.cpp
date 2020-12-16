@@ -1,4 +1,6 @@
 #include "unit.h"
+#include "gui/num_to_string.h"
+
 
 Unit::Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string country, Color color, int ctrId, int provId)
     : Rectangle(pos, glm::vec2(10*4, 15*4)), countryId(ctrId), provId(provId),
@@ -65,7 +67,14 @@ void Unit::Update(glm::vec3 p, std::vector<glm::vec3> mvs, int soldiersCount)
     visible = true;
     if (soldiers != soldiersCount) {
         soldiers = soldiersCount;
-       // std::unordered_map<std::string,std::string> barValues;
+        
+        std::vector<GuiStruct> vals;
+        vals.push_back({1, 5, itos(soldiers)});
+
+        subject.Notify(vals);
+
+
+    // std::unordered_map<std::string,std::string> barValues;
      //   barValues["unitSize"] = itos(soldiers);
       //  bar->Update(barValues);
     }
@@ -250,4 +259,16 @@ std::unordered_map<std::string,std::string> Unit::GetValues() const
     values["attack"] = std::to_string(attack);
     values["defense"] = std::to_string(defense);
     return values;
+}
+
+void Unit::UpdateGuiWin()
+{
+    std::vector<GuiStruct> vals;
+    vals.push_back({1, 1, name});
+    vals.push_back({1, 2, country});
+    vals.push_back({1, 5, itos(soldiers)});
+    vals.push_back({2, 5, itos(morale)});
+    vals.push_back({3, 5, itos(discipline)});
+
+    subject.Notify(vals);
 }

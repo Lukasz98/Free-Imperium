@@ -52,7 +52,7 @@ class Unit : public Rectangle //, public Subject
     
     glm::vec3 fakePos; // this say on what province unit stays 
     std::string name, country;
-    int morale = 100;
+    int morale = 100, discipline = 100;
     int speed = 100;
     int soldiers = 1000;
 
@@ -62,12 +62,16 @@ class Unit : public Rectangle //, public Subject
     
     std::vector<Move> moves;
 
+
 public:
     Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string country, Color color, int ctrId, int provId);
     
     Unit(const Unit & u) = delete;
     
     ~Unit();
+    
+    Subject subject;
+    
 
     void Update(glm::vec3 p, std::vector<glm::vec3> mvs, int soldiersCount);
 
@@ -90,6 +94,8 @@ public:
     //    if (!visible) return false; 
     //    else return false;//Rectangle::Click(x, y); 
    // }
+
+    void UpdateGuiWin();
 
     inline int GetCountryId() const { return countryId; }
     inline int GeProvId() const { return provId; }

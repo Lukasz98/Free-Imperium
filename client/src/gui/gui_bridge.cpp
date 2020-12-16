@@ -730,8 +730,23 @@ void Close()
 
 namespace Gui::Unit {
 
-void Open(const glm::vec2 & resolution)
+Observer * Open(const glm::vec2 & resolution)
 {
+    for (std::size_t i = 0; i < Base::windows.size(); ++i) {
+        if (Base::windows[i]->type == WindowType::UNIT || 
+            Base::windows[i]->type == WindowType::PROV || 
+            Base::windows[i]->type == WindowType::PROV_SIEGE || 
+            Base::windows[i]->type == WindowType::UNITS_LIST) {
+            
+            assert(Base::windows[i]);
+            delete Base::windows[i];
+            Base::windows.erase(Base::windows.begin() + i);
+            --i;
+
+         }
+    
+    }
+
     glm::vec2 wSize{400.0f, 400.0f};
     glm::vec3 wPos{20.0f, 20.0f, 0.0f};
     
@@ -745,11 +760,13 @@ void Open(const glm::vec2 & resolution)
     { // unit name
         Group * grp = new Group{unitNamePos, unitNameSize, brown, false};
         w->groups.push_back(grp);
+        grp->id = 1;
 
         glm::vec3 textPos{unitNameSize.x * 0.5f, unitNameSize.y * 0.5f, 0.11f};
         TextLabel * unitName = new TextLabel{unitNamePos, unitNameSize, brown, AM::FontSize::PX16, true, textPos};
         grp->tLabels.push_back(unitName);
         unitName->setText("Mazowsze unit");
+        unitName->id = 1;
     }
 
     glm::vec2 countrySize{unitNameSize.x, unitNameSize.y};
@@ -757,6 +774,7 @@ void Open(const glm::vec2 & resolution)
     { // country group
         Group * grp = new Group{countryPos, countrySize, brown, false};
         w->groups.push_back(grp);
+        grp->id = 2;
 
         glm::vec2 textLabSize{countrySize.x, countrySize.y};
         glm::vec3 textLabPos{countryPos.x, countryPos.y, 0.12f};
@@ -765,25 +783,29 @@ void Open(const glm::vec2 & resolution)
         grp->tLabels.push_back(ctrName);
         ctrName->setText("Poland");
         ctrName->evName = ClickEventType::OPEN_COUNTRY;
+        ctrName->id = 1;
     }
 
 
-    { // prov properties group
+    { // unit properties group
         glm::vec2 groupSize{countrySize.x, countryPos.y - wPos.y - offset.y * 2.0f};
         glm::vec3 groupPos{countryPos.x, wPos.y + offset.y, 0.11f};
         Group * grp = new Group{groupPos, groupSize, brown, false};
         w->groups.push_back(grp);
+        grp->id = 3;
            
         glm::vec2 propGrpSize{(groupSize.x - offset.x * 2.0f) * 0.65f, groupSize.y};
         glm::vec3 propGrpPos{groupPos.x + offset.x, groupPos.y + groupSize.y - offset.y - propGrpSize.y, 0.12f};
         Group * propGrp = new Group{propGrpPos, propGrpSize, brown, false};
         grp->groups.push_back(propGrp);
-        
+        propGrp->id = 4;
+
         glm::vec2 valGrpSize = glm::vec2{(groupSize.x - offset.x * 2.0f) - propGrpSize.x, propGrpSize.y};//{groupSize.x * 0.5f, groupSize.y};
         glm::vec3 valGrpPos{groupPos.x + propGrpSize.x + offset.x, groupPos.y + groupSize.y - offset.y - valGrpSize.y, 0.12f};
         Group * valGrp = new Group{valGrpPos, valGrpSize, brown, false};
         grp->groups.push_back(valGrp);
-        
+        valGrp->id = 5;
+
         glm::vec2 propNameSize{propGrpSize.x, 25.0f};
         glm::vec3 propNamePos{propGrpPos.x, propGrpPos.y + propGrpSize.y - propNameSize.y - offset.y, 0.13f};
         glm::vec2 valNameSize{valGrpSize.x, 25.0f};
@@ -796,6 +818,7 @@ void Open(const glm::vec2 & resolution)
             TextLabel * valLab = new TextLabel{valNamePos, valNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{valNameSize * 0.5f, 0.13f}};
             valGrp->tLabels.push_back(valLab);
             valLab->setText("130k");
+            valLab->id = 1;
         }
 
         propNamePos.y -= (propNameSize.y + offset.y);
@@ -809,6 +832,7 @@ void Open(const glm::vec2 & resolution)
             TextLabel * valLab = new TextLabel{valNamePos, valNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{valNameSize * 0.5f, 0.13f}};
             valGrp->tLabels.push_back(valLab);
             valLab->setText("100");
+            valLab->id = 2;
         }
 
         propNamePos.y -= (propNameSize.y + offset.y);
@@ -822,8 +846,11 @@ void Open(const glm::vec2 & resolution)
             TextLabel * valLab = new TextLabel{valNamePos, valNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{valNameSize * 0.5f, 0.13f}};
             valGrp->tLabels.push_back(valLab);
             valLab->setText("55");
+            valLab->id = 3;
         }
     }
+
+    return &w->observer;
 }
 
 void Close()
@@ -876,7 +903,6 @@ void Open(const glm::vec2 & resolution)
         merge->setText("Merge");
     }
 
-    //float listsXOffset = 100.0f;
     glm::vec3 listPos{winNamePos.x, wPos.y + offset.y, 0.1f};
     glm::vec2 listSize{winNameSize.x, mergePos.y - offset.y * 2.0f - wPos.y};
     List * unitsList = new List{listPos, listSize, 40.0f, brown, 

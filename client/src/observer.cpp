@@ -28,7 +28,9 @@ void Subject::AddObserver(Observer * oo)
     for (auto o : observers)
         if (o == oo)
             break;
+
     observers.push_back(oo);
+    oo->SetSubject(this);
 }
 
 Observer::~Observer()

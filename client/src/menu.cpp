@@ -39,11 +39,13 @@ void Menu::loop()
             ClickEventType cType = Gui::Base::Click(glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
                                              (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
             if (cType == ClickEventType::QUIT_GAME) {
+                Gui::Base::ResetClick();
                 quit = true;
                 break;
             }
             else if (cType == ClickEventType::START_ROOM) {
                 startGame = true;
+                Gui::Base::ResetClick();
                 break;
             }
             else if (cType == ClickEventType::PROV_SWITCH_TAB) {

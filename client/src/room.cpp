@@ -91,11 +91,13 @@ void Room::loop(bool & play, std::string & country)
                 packet << "country";
                 packet << ctrName;
                 toSend.emplace_back(packet);
+                Gui::Base::ResetClick();
             }
             else if (cType == ClickEventType::START_GAME) {
                 sf::Packet packet;
                 packet << "Start";
                 toSend.emplace_back(packet);
+                Gui::Base::ResetClick();
             }
             //else if (cdata.evType == Gui::ClickEventType::DEL_FROM_UNITS_LIST) {
             //      Gui::DelFromUnitsList(cdata);
