@@ -603,8 +603,24 @@ void SwitchTab()
 
 namespace Gui::ProvSiege {
 
-void Open(const glm::vec2 & resolution)
-{ 
+Observer * Open(const glm::vec2 & resolution)
+{
+    for (std::size_t i = 0; i < Base::windows.size(); ++i) {
+        if (Base::windows[i]->type == WindowType::UNIT || 
+            Base::windows[i]->type == WindowType::PROV || 
+            Base::windows[i]->type == WindowType::PROV_SIEGE || 
+            Base::windows[i]->type == WindowType::UNITS_LIST ||
+            Base::windows[i]->type == WindowType::MY_COUNTRY ||
+            Base::windows[i]->type == WindowType::COUNTRY)
+        { 
+            
+            assert(Base::windows[i]);
+            delete Base::windows[i];
+            Base::windows.erase(Base::windows.begin() + i);
+            --i;
+        }
+    }
+
     glm::vec2 wSize{400.0f, 400.0f};
     glm::vec3 wPos{20.0f, 20.0f, 0.0f};
     
@@ -618,12 +634,14 @@ void Open(const glm::vec2 & resolution)
     { // prov name
         Group * grp = new Group{provNamePos, provNameSize, brown, false};
         w->groups.push_back(grp);
+        grp->id = 10;
 
         glm::vec3 textPos{provNameSize.x * 0.5f, provNameSize.y * 0.5f, 0.11f};
         TextLabel * provName = new TextLabel{provNamePos, provNameSize, brown, AM::FontSize::PX16, true, textPos};
         grp->tLabels.push_back(provName);
         provName->setText("Mazowsze");
         provName->evName = ClickEventType::OPEN_PROV;
+        provName->id = 1;
     }
     
     glm::vec2 tabGrpSize{wSize.x - offset.x * 2.0f, provNamePos.y - wPos.y - 2 * offset.y};
@@ -661,6 +679,7 @@ void Open(const glm::vec2 & resolution)
             glm::vec3 groupPos{tabGrpPos.x + tabGrpSize.x - groupSize.x, tabGrpPos.y + tabGrpSize.y - offset.y - groupSize.y, 0.11f};
             Group * grp = new Group{groupPos, groupSize, brown, false};
             tab1->groups.push_back(grp);
+            grp->id = 11;
 
             glm::vec2 textLabSize{groupSize.x - 2.0f * offset.x, 20.0f};
             glm::vec3 textLabPos{groupPos.x + offset.x, groupPos.y + groupSize.y - textLabSize.y - offset.y, 0.12f};
@@ -669,6 +688,7 @@ void Open(const glm::vec2 & resolution)
             grp->tLabels.push_back(ctrName);
             ctrName->setText("Poland");
             ctrName->evName = ClickEventType::OPEN_COUNTRY;
+            ctrName->id = 1;
         }
 
 
@@ -688,12 +708,13 @@ void Open(const glm::vec2 & resolution)
             glm::vec3 valGrpPos{groupPos.x + propGrpSize.x + offset.x, groupPos.y + groupSize.y - offset.y - valGrpSize.y, 0.12f};
             Group * valGrp = new Group{valGrpPos, valGrpSize, brown, false};
             grp->groups.push_back(valGrp);
-            
+            valGrp->id = 12;
+
             glm::vec2 propNameSize{propGrpSize.x, 25.0f};
             glm::vec3 propNamePos{propGrpPos.x, propGrpPos.y + propGrpSize.y - propNameSize.y - offset.y, 0.13f};
             glm::vec2 valNameSize{valGrpSize.x, 25.0f};
             glm::vec3 valNamePos{valGrpPos.x, valGrpPos.y + valGrpSize.y - valNameSize.y - offset.y, 0.13f};
-            { // manpower
+            { // sieger
                 TextLabel * nameLab = new TextLabel{propNamePos, propNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{propNameSize * 0.5f, 0.13f}};
                 propGrp->tLabels.push_back(nameLab);
                 nameLab->setText("Sieged by");
@@ -701,12 +722,14 @@ void Open(const glm::vec2 & resolution)
                 TextLabel * valLab = new TextLabel{valNamePos, valNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{valNameSize * 0.5f, 0.13f}};
                 valGrp->tLabels.push_back(valLab);
                 valLab->setText("Poland Poland");
+                valLab->id = 1;
+                valLab->evName = ClickEventType::OPEN_COUNTRY;
             }
 
             propNamePos.y -= (propNameSize.y + offset.y);
             valNamePos.y -= (valNameSize.y + offset.y);
 
-            { // manpower2
+            { // sieger size 
                 TextLabel * nameLab = new TextLabel{propNamePos, propNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{propNameSize * 0.5f, 0.13f}};
                 propGrp->tLabels.push_back(nameLab);
                 nameLab->setText("Siege soldiers");
@@ -714,24 +737,26 @@ void Open(const glm::vec2 & resolution)
                 TextLabel * valLab = new TextLabel{valNamePos, valNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{valNameSize * 0.5f, 0.13f}};
                 valGrp->tLabels.push_back(valLab);
                 valLab->setText("3400");
+                valLab->id = 2;
             }
 
             propNamePos.y -= (propNameSize.y + offset.y);
             valNamePos.y -= (valNameSize.y + offset.y);
 
-            { // manpower3
+            { // siege lvl 
                 TextLabel * nameLab = new TextLabel{propNamePos, propNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{propNameSize * 0.5f, 0.13f}};
                 propGrp->tLabels.push_back(nameLab);
                 nameLab->setText("Siege lvl");
                 
                 TextLabel * valLab = new TextLabel{valNamePos, valNameSize, weirdBrown, AM::FontSize::PX16, true, glm::vec3{valNameSize * 0.5f, 0.13f}};
                 valGrp->tLabels.push_back(valLab);
-                valLab->setText("55");
+                valLab->setText("0");
+                valLab->id = 3;
             }
         }
             
     }
-
+    return &w->observer;
 }
 
 void Close()
@@ -964,7 +989,7 @@ void Close()
 
 namespace Gui::Country {
 
-Observer * Open(const glm::vec2 & resolution)
+Observer * Open(const glm::vec2 & resolution, int ctrId)
 {
     for (std::size_t i = 0; i < Base::windows.size(); ++i) {
         if (Base::windows[i]->type == WindowType::UNIT || 
@@ -986,9 +1011,10 @@ Observer * Open(const glm::vec2 & resolution)
     
     glm::vec2 offset{5.0f, 2.5f};
 
-    Window * w = new Window{wPos, wSize, darkBrown, true, WindowType::PROV};
+    Window * w = new Window{wPos, wSize, darkBrown, true, WindowType::COUNTRY};
     Gui::Base::windows.push_back(w);
-
+    w->id = ctrId;
+    
     glm::vec2 ctrNameSize{wSize.x - 2 * offset.x, 40.0f - 2 * offset.y};
     glm::vec3 ctrNamePos{wPos.x + offset.x , wPos.y + wSize.y - ctrNameSize.y - offset.y, 0.1f};
     { // prov name
@@ -1094,15 +1120,15 @@ Observer * Open(const glm::vec2 & resolution)
             actionsList->SetTitle("Actions", AM::FontSize::PX32);
         
 
-            for (int i = 0; i < 25; ++i) {
+//            for (int i = 0; i < 25; ++i) {
                 Group * grp = new Group{glm::vec3{0.0, 0.0, .12f}, glm::vec2{listSize.x, 20.0}, weirdBrown, false};
-                TextLabel * title2 = new TextLabel{glm::vec3{0.0, 0.0, .13}, glm::vec2{listSize.x, 20.0}, weirdBrown, AM::FontSize::PX16,
-                                                   true, glm::vec3{grp->backgr->GetSize() * 0.5f, .2}};
-                grp->tLabels.push_back(title2);
-                title2->evName = ClickEventType::OPEN_UNIT;
-                title2->setText("Unit " + std::to_string(i));
+                TextLabel * declareWar = new TextLabel{glm::vec3{0.0, 0.0, .13}, glm::vec2{listSize.x, 20.0}, weirdBrown, AM::FontSize::PX16,
+                                                       true, glm::vec3{grp->backgr->GetSize() * 0.5f, .2}};
+                grp->tLabels.push_back(declareWar);
+                declareWar->evName = ClickEventType::DECLARE_WAR;
+                declareWar->setText("Declare war");
                 actionsList->AddGroup(grp);
-            }
+//            }
 
 
        }
@@ -1154,6 +1180,16 @@ void SwitchTab()
     }*/
 }
 
+int GetId()
+{
+    for (auto it = Gui::Base::windows.begin(); it != Gui::Base::windows.end(); ++it) {
+        if ((*it)->type == WindowType::COUNTRY) {
+            return (*it)->id;
+        }
+    }
+    return -1;
+}
+
 } // Gui::Country
 
 
@@ -1183,7 +1219,7 @@ Observer * Open(const glm::vec2 & resolution)
     
     glm::vec2 offset{5.0f, 2.5f};
 
-    Window * w = new Window{wPos, wSize, darkBrown, true, WindowType::PROV};
+    Window * w = new Window{wPos, wSize, darkBrown, true, WindowType::MY_COUNTRY};
     Gui::Base::windows.push_back(w);
 
     glm::vec2 ctrNameSize{wSize.x - 2 * offset.x, 40.0f - 2 * offset.y};
@@ -1307,7 +1343,7 @@ Observer * Open(const glm::vec2 & resolution)
 void Close()
 {
     for (auto it = Gui::Base::windows.begin(); it != Gui::Base::windows.end(); ++it) {
-        if ((*it)->type == WindowType::COUNTRY) {
+        if ((*it)->type == WindowType::MY_COUNTRY) {
             delete *it;
             Gui::Base::windows.erase(it);
             break;
@@ -1328,7 +1364,7 @@ void SwitchTab()
     }*/
 }
 
-} // Gui::Country
+} // Gui::MyCountry
 
 
 

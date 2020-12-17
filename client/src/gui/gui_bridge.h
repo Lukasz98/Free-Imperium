@@ -44,7 +44,7 @@ namespace Gui::Prov {
 }
 
 namespace Gui::ProvSiege {
-    void Open(const glm::vec2 & resolution);
+    Observer * Open(const glm::vec2 & resolution);
     void Close();
 }
 
@@ -59,9 +59,10 @@ namespace Gui::UnitsList {
 }
 
 namespace Gui::Country{
-    Observer * Open(const glm::vec2 & resolution);
+    Observer * Open(const glm::vec2 & resolution, int ctrId);
     void Close();
     void SwitchTab();
+    int GetId();
 }
 
 namespace Gui::MyCountry{

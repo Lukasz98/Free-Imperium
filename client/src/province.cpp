@@ -67,6 +67,7 @@ void Province::Sieging(std::string ctr, int ctrId, int sieg, int sold)
     siegeSoldiers = sold;
     siegeUpdated = true;
   //  notify(GetValues());
+    UpdateSiegeGuiWin();
 }
 
 void Province::ResetSieging()
@@ -116,6 +117,18 @@ void Province::UpdateGuiWin()
     vals.push_back({1, 12, country, countryId});
 
     subject.Notify(vals);
+}
+
+void Province::UpdateSiegeGuiWin()
+{
+    std::vector<GuiStruct> vals;
+    vals.push_back({1, 10, name});
+    vals.push_back({1, 11, country, countryId});
+    vals.push_back({1, 12, siegeCountry, siegeCountryId});
+    vals.push_back({2, 12, itos(siegeSoldiers)});
+    vals.push_back({3, 12, itos(sieged)});
+    
+    siegeSubject.Notify(vals);
 }
 
 

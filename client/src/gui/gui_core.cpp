@@ -511,11 +511,11 @@ Window::~Window()
 ClickEventType Window::GetClick(ClickData & clickData, glm::vec2 mousPos)
 {
     for (auto g : groups) {
-        if (g->Click(clickData, mousPos))
+        if (g->Click(clickData, mousPos) && clickData.evType != ClickEventType::NONE)
             return clickData.evType;
     }
     for (auto list : lists) {
-        if (list->Click(clickData, mousPos))
+        if (list->Click(clickData, mousPos) && clickData.evType != ClickEventType::NONE)
             return clickData.evType;
     }
     return clickData.evType;

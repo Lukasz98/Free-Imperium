@@ -37,8 +37,9 @@ public:
     Province(int id, DataObj * data);
     ~Province();
 
-    Subject subject;
+    Subject subject, siegeSubject;
     void UpdateGuiWin();
+    void UpdateSiegeGuiWin();
 
 
     //void Update();

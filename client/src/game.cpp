@@ -281,11 +281,11 @@ Log("uClick");
             Gui::Prov::SwitchTab();
             Gui::Base::ResetClick();
         }
-         else if (cType == ClickEventType::OPEN_COUNTRY) {
+        else if (cType == ClickEventType::OPEN_COUNTRY) {
             int ctrId = Gui::Base::GetHiddenValue();
             assert(ctrId >= 0 && ctrId < countries.size());
             if (ctrId != myCountry->GetId()) {
-                countries[ctrId]->subject.AddObserver(Gui::Country::Open(resolution));
+                countries[ctrId]->subject.AddObserver(Gui::Country::Open(resolution, ctrId));
                 countries[ctrId]->UpdateGuiWin();
             }
             else {
@@ -294,7 +294,12 @@ Log("uClick");
             }
             Gui::Base::ResetClick();
         }
-
+        else if (cType == ClickEventType::DECLARE_WAR) {
+            sf::Packet packet;
+            packet << "DeclareWar"; 
+            packet << Gui::Country::GetId();
+            toSend.push_back(packet);
+        }
 
         Gui::Base::ResetClick();
 
@@ -399,6 +404,10 @@ bool Game::provClick(glm::vec2 mouseInWorld)
         //return true;
     }
     else {
+        (*provIt)->siegeSubject.AddObserver(Gui::ProvSiege::Open(resolution));
+        (*provIt)->UpdateSiegeGuiWin();
+        return true;
+ 
         //GuiAid::OpenSiegedProv(gui, provIt, wars);
         return true;
     }  
