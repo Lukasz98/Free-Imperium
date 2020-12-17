@@ -21,7 +21,8 @@ enum class WindowType {
     PROV = 5,
     PROV_SIEGE = 6,
     UNIT = 7,
-    COUNTRY = 8
+    COUNTRY = 8,
+    MY_COUNTRY = 9
 };
 
 struct TextLabel {

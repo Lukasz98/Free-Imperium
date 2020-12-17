@@ -64,6 +64,12 @@ namespace Gui::Country{
     void SwitchTab();
 }
 
+namespace Gui::MyCountry{
+    Observer * Open(const glm::vec2 & resolution);
+    void Close();
+    void SwitchTab();
+}
+
 
 
 

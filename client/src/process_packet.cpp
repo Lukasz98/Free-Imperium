@@ -50,9 +50,16 @@ int manp = intData;
         //vals.push_back({8, itos(intData)});
     int dateSp = intData;
 
+    int ctrId = -1;
+    for (auto & ctr : countries) {
+        if (ctr->GetName() == ctrN) {
+            ctrId = ctr->GetId();
+        }
+    }
+
         //gui.Update(values, "topBar");
     //void update(std::string ctrN, std::string date, float gold, float inc, float armyMain, int manp, int manpRec, int dateSp)
-    topBarData.Update(ctrN, date, gold, inc, armyMain, manp, manpRec, dateSp);
+    topBarData.Update(ctrN, date, gold, inc, armyMain, manp, manpRec, dateSp, ctrId);
 
         int provCount;
         packet >> provCount;

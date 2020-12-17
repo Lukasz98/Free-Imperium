@@ -107,5 +107,13 @@ void Country::UpdateGuiWin()
     subject.Notify(vals);
 }
 
+void Country::UpdateMyCountryGuiWin()
+{
+    std::vector<GuiStruct> vals;
+    vals.push_back({1, 10, name});
+
+    subjectOfMyCountry.Notify(vals);
+}
+
 
 

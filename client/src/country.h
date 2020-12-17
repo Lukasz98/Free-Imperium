@@ -30,9 +30,10 @@ public:
     Country(DataObj * obj);
     ~Country();
 
-    Subject subject;
+    Subject subject, subjectOfMyCountry; // for gui windows
 
     void UpdateGuiWin();
+    void UpdateMyCountryGuiWin();
 
     bool Apply(/*PeaceOffer offer*/);
     

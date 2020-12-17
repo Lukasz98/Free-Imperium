@@ -284,8 +284,14 @@ Log("uClick");
          else if (cType == ClickEventType::OPEN_COUNTRY) {
             int ctrId = Gui::Base::GetHiddenValue();
             assert(ctrId >= 0 && ctrId < countries.size());
-            countries[ctrId]->subject.AddObserver(Gui::Country::Open(resolution));
-            countries[ctrId]->UpdateGuiWin();
+            if (ctrId != myCountry->GetId()) {
+                countries[ctrId]->subject.AddObserver(Gui::Country::Open(resolution));
+                countries[ctrId]->UpdateGuiWin();
+            }
+            else {
+                myCountry->subjectOfMyCountry.AddObserver(Gui::MyCountry::Open(resolution));
+                myCountry->UpdateMyCountryGuiWin();
+            }
             Gui::Base::ResetClick();
         }
 

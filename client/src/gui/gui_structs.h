@@ -10,12 +10,12 @@ struct TopBarData
     std::string ctrName, date;//, cash, 
     float gold = 0.0f, income = 0.0f, armyMaintenance = 0.0f;
     int manpower = 0, manpRecovery = 0, dateSpeed = 0;
-    void Update(std::string ctrN, std::string date, float gold, float inc, float armyMain, int manp, int manpRec, int dateSp)
+    void Update(std::string ctrN, std::string date, float gold, float inc, float armyMain, int manp, int manpRec, int dateSp, int ctrId)
     {
         std::vector<GuiStruct> vals;
         if (ctrName != ctrN) {
             ctrName = ctrN;
-            vals.push_back({1, 0, ctrName});
+            vals.push_back({1, 0, ctrName, ctrId});
         }
         if (this->date != date) {
             this->date = date;
