@@ -29,7 +29,7 @@ ClickEventType TextLabel::Click(const glm::vec2 & mPos)
 {
     if (backgr && backgr->Click(mPos.x, mPos.y))
         return evName;
-    return ClickEventType::NONE;
+    return ClickEventType::MISS;
 }
 void TextLabel::setText(const std::string & content)
 {
@@ -114,7 +114,7 @@ ClickEventType IconLabel::Click(const glm::vec2 & mPos)
 {
     if (backgr && backgr->Click(mPos.x, mPos.y))
         return evName;
-    return ClickEventType::NONE;
+    return ClickEventType::MISS;
 }
 void IconLabel::setIcon(const std::string & path)
 {
@@ -156,27 +156,43 @@ bool Group::Click(ClickData & clickData, const glm::vec2 & mPos)
         if (g->Click(clickData, mPos))
             return true;
     }
-    
+
+    bool insideButNoEvent = false;
+
     for (auto t : tLabels) {
         auto ev = t->Click(mPos);
-        if (ev != ClickEventType::NONE) {
+        if (ev == ClickEventType::NONE) {
+            insideButNoEvent = true;
+        }
+        else if (ev != ClickEventType::MISS) {// && clickData.evType != ClickEventType::MISS) {
             clickData.group = this;
             clickData.evType = ev;
             clickData.val = t->id;
+            clickData.hiddenValue = t->hiddenValue;
             return true;
         }
     }
 
     for (auto i : iLabels) {
         auto ev = i->Click(mPos);
-        if (ev != ClickEventType::NONE) {
+        if (ev == ClickEventType::NONE) {
+            insideButNoEvent = true;
+        }
+        else if (ev != ClickEventType::MISS) {// && clickData.evType != ClickEventType::MISS) {
             clickData.group = this;
             clickData.evType = ev;
             clickData.val = i->id;
             return true;
         }
     }
-    return false;
+
+    if (backgr && backgr->Click(mPos.x, mPos.y)) {
+        insideButNoEvent = true;
+        clickData.group = this;
+        clickData.evType = ClickEventType::NONE;
+        clickData.val = -1;
+    }
+    return insideButNoEvent;
 }
 bool Group::Hover(const glm::vec2 & mPos)
 {
@@ -571,6 +587,7 @@ void Window::UpdateValues()
             if (g->id == val.grpId) {
                 for (auto text : g->tLabels) {
                     if (text->id == val.id) {
+                        text->hiddenValue = val.hiddenValue;
                         if (text->text.content == val.val)
                             break;
                         text->setText(val.val);

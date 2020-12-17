@@ -265,7 +265,7 @@ void Unit::UpdateGuiWin()
 {
     std::vector<GuiStruct> vals;
     vals.push_back({1, 1, name});
-    vals.push_back({1, 2, country});
+    vals.push_back({1, 2, country, countryId});
     vals.push_back({1, 5, itos(soldiers)});
     vals.push_back({2, 5, itos(morale)});
     vals.push_back({3, 5, itos(discipline)});

@@ -37,6 +37,10 @@ public:
     Province(int id, DataObj * data);
     ~Province();
 
+    Subject subject;
+    void UpdateGuiWin();
+
+
     //void Update();
     void SetName(std::string n) { name = n; }
     void SetCountry(std::string c) { country = c; }

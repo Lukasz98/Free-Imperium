@@ -6,6 +6,8 @@
 #include "color.h"
 #include "month_cash.h"
 #include "data_object.h"
+#include "observer.h"
+
 
 class Country
 {
@@ -27,7 +29,11 @@ public:
     
     Country(DataObj * obj);
     ~Country();
-    
+
+    Subject subject;
+
+    void UpdateGuiWin();
+
     bool Apply(/*PeaceOffer offer*/);
     
     void SetName(std::string n) { name = n; }

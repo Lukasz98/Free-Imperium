@@ -20,7 +20,8 @@ enum class WindowType {
     UNITS_LIST = 4,
     PROV = 5,
     PROV_SIEGE = 6,
-    UNIT = 7
+    UNIT = 7,
+    COUNTRY = 8
 };
 
 struct TextLabel {
@@ -34,7 +35,7 @@ struct TextLabel {
         glm::vec3 relPos, relCenterTo; // relative to TextLabel
     };
     Text text;
-    int id = -1;
+    int id = -1, hiddenValue = -1;
     
     //glm::vec3 relPos; // relative to Group
     ClickEventType evName = ClickEventType::NONE;
@@ -68,7 +69,7 @@ struct Window;
 struct Group;
 
 struct ClickData {
-    int val = -1;
+    int val = -1, hiddenValue = -1;
     Window * window = nullptr;
     Group * group = nullptr;
     ClickEventType evType = ClickEventType::NONE;

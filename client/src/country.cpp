@@ -99,5 +99,13 @@ bool Country::Apply(/*PeaceOffer offer*/)
 }
     
     
+void Country::UpdateGuiWin()
+{
+    std::vector<GuiStruct> vals;
+    vals.push_back({1, 10, name});
+
+    subject.Notify(vals);
+}
+
 
 

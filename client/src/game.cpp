@@ -256,7 +256,8 @@ void Game::input()
     camera.Update(window.xMouse, windowSize.y - window.yMouse, map.GetHeightTerrain());
     
     if (window.scrollOffset) {
-   //     if (!gui.Scroll(window.scrollOffset, window.xMouse, windowSize.y - window.yMouse))
+        if (!Gui::Base::Scroll(window.scrollOffset, glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
+                          (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y}))
             camera.Scroll(window.scrollOffset);
 
         window.scrollOffset = 0.0f;
@@ -265,15 +266,30 @@ void Game::input()
     glm::vec2 mouseInWorld = camera.GetMouseInWorld();
     
     if (window.mouseLClicked && !window.mouseRClicked) {
-            ClickEventType cType = Gui::Base::Click(glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
-                                                    (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
+        ClickEventType cType = Gui::Base::Click(glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
+                                                (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
     
 Log("uClick " << (int)cType);
-        if (cType == ClickEventType::NONE) {
+        if (cType == ClickEventType::MISS) {
 Log("uClick");
             if (!unitClick(mouseInWorld)) {
+                provClick(mouseInWorld);
             }
         }
+        else if (cType == ClickEventType::PROV_SWITCH_TAB) {
+            Log("switch tab");
+            Gui::Prov::SwitchTab();
+            Gui::Base::ResetClick();
+        }
+         else if (cType == ClickEventType::OPEN_COUNTRY) {
+            int ctrId = Gui::Base::GetHiddenValue();
+            assert(ctrId >= 0 && ctrId < countries.size());
+            countries[ctrId]->subject.AddObserver(Gui::Country::Open(resolution));
+            countries[ctrId]->UpdateGuiWin();
+            Gui::Base::ResetClick();
+        }
+
+
         Gui::Base::ResetClick();
 
     }
@@ -284,15 +300,11 @@ Log("uClick");
     window.mouseRClicked = false;
     if (window.mouseL) {
         Gui::Base::Drag(glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
-                                  (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y}, dt);
+                        (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y}, dt);
     }
     if (window.mouseR) {
     }
-    if (window.scrollOffset) {
-        Gui::Base::Scroll(window.scrollOffset, glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
-                          (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
-        window.scrollOffset = 0;
-    }
+    
     Gui::Base::Hover(glm::vec2{window.xMouse * resolution.x / windowSize.x, (windowSize.y - window.yMouse) * (resolution.y / windowSize.y)});
     
 /*
@@ -363,24 +375,28 @@ bool Game::provClick(glm::vec2 mouseInWorld)
         delete obj;
         return true;
     }
-    */
+*/
     if (battleIt != battles.end()) {
         //GuiAid::OpenBattle(gui, battleIt, provIt);
         return true;
     }
-/*
+
     if ((*provIt)->GetSieged() == 0) {
-        gui.AddWin("src/gui/province.txt");
-        auto values = (*provIt)->GetValues();
-        gui.Update(values, "province");
-        gui.ObservationOfLastWin((*provIt).get());
+        (*provIt)->subject.AddObserver(Gui::Prov::Open(resolution));
+        (*provIt)->UpdateGuiWin();
         return true;
+ 
+        //gui.AddWin("src/gui/province.txt");
+        //auto values = (*provIt)->GetValues();
+        //gui.Update(values, "province");
+        //gui.ObservationOfLastWin((*provIt).get());
+        //return true;
     }
     else {
-        GuiAid::OpenSiegedProv(gui, provIt, wars);
+        //GuiAid::OpenSiegedProv(gui, provIt, wars);
         return true;
     }  
-    */
+    
     return false;
 }
 

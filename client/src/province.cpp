@@ -1,5 +1,5 @@
 #include "province.h"
-
+#include "gui/num_to_string.h"
 
 Province::Province(int id, DataObj * data)
 {
@@ -107,3 +107,15 @@ void Province::Print()
         std::cout << "- " << "" << n << "\n";
     std::cout << "--------------------\n\n";
 }
+
+void Province::UpdateGuiWin()
+{
+    std::vector<GuiStruct> vals;
+    vals.push_back({1, 10, name});
+    vals.push_back({1, 11, itos(manpower)});
+    vals.push_back({1, 12, country, countryId});
+
+    subject.Notify(vals);
+}
+
+

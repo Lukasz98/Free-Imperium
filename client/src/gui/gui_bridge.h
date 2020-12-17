@@ -15,6 +15,7 @@ namespace Gui::Base {
     void Draw();
     void ResetClick();
     void UpdateVals();
+    int GetHiddenValue();
 }
 
 namespace Gui::Menu {
@@ -37,7 +38,7 @@ namespace Gui::TopBar {
 }
 
 namespace Gui::Prov {
-    void Open(const glm::vec2 & resolution);
+    Observer * Open(const glm::vec2 & resolution);
     void Close();
     void SwitchTab();
 }
@@ -56,4 +57,13 @@ namespace Gui::UnitsList {
     void Open(const glm::vec2 & resolution);
     void Close();
 }
+
+namespace Gui::Country{
+    Observer * Open(const glm::vec2 & resolution);
+    void Close();
+    void SwitchTab();
+}
+
+
+
 
