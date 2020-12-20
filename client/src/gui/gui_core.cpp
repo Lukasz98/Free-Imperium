@@ -25,11 +25,11 @@ TextLabel::TextLabel(const glm::vec3 & pos, const glm::vec2 & size, const glm::v
 TextLabel::~TextLabel()
 {
 }
-ClickEventType TextLabel::Click(const glm::vec2 & mPos)
+bool TextLabel::Click(const glm::vec2 & mPos)
 {
     if (backgr && backgr->Click(mPos.x, mPos.y))
-        return evName;
-    return ClickEventType::MISS;
+        return true;
+    return false;//ClickEventType::MISS;
 }
 void TextLabel::setText(const std::string & content)
 {
@@ -110,11 +110,11 @@ IconLabel::IconLabel(const glm::vec3 & pos, const glm::vec2 & size)
 IconLabel::~IconLabel()
 {
 }
-ClickEventType IconLabel::Click(const glm::vec2 & mPos)
+bool IconLabel::Click(const glm::vec2 & mPos)
 {
     if (backgr && backgr->Click(mPos.x, mPos.y))
-        return evName;
-    return ClickEventType::MISS;
+        return true;
+    return false;//ClickEventType::MISS;
 }
 void IconLabel::setIcon(const std::string & path)
 {
@@ -150,48 +150,77 @@ Group::~Group()
 }
 bool Group::Click(ClickData & clickData, const glm::vec2 & mPos)
 {
-    if ((hoverable && !hovered) || !visible)
+    if (!visible)
         return false;
-    for (auto g : groups) {
-        if (g->Click(clickData, mPos))
-            return true;
+    if (!hoverable) {
+        for (auto g : groups) {
+            if (g->Click(clickData, mPos) && clickData.evType != ClickEventType::NONE)
+                return true;
+        }
     }
-
     bool insideButNoEvent = false;
 
     for (auto t : tLabels) {
-        auto ev = t->Click(mPos);
-        if (ev == ClickEventType::NONE) {
+        bool clicked = t->Click(mPos);
+        if (!clicked)
+            continue;
+        if (t->evName == ClickEventType::NONE)
             insideButNoEvent = true;
-        }
-        else if (ev != ClickEventType::MISS) {// && clickData.evType != ClickEventType::MISS) {
+        else {
             clickData.group = this;
-            clickData.evType = ev;
+            clickData.evType = t->evName;
             clickData.val = t->id;
             clickData.hiddenValue = t->hiddenValue;
             return true;
         }
+        /*
+        auto ev = t->Click(mPos);
+        if (ev == ClickEventType::NONE) {
+            insideButNoEvent = true;
+        }
+        else if (ev != ClickEventType::MISS) { // && clickData.evType != ClickEventType::NONE) {
+            clickData.group = this;
+            clickData.evType = i->evName;
+            clickData.val = t->id;
+            clickData.hiddenValue = t->hiddenValue;
+            return true;
+        }*/
     }
 
     for (auto i : iLabels) {
+        bool clicked = i->Click(mPos);
+        if (!clicked)
+            continue;
+        if (i->evName == ClickEventType::NONE) {
+            insideButNoEvent = true;
+        }
+        else {
+            clickData.group = this;
+            clickData.evType = i->evName;
+            clickData.val = i->id;
+            //clickData.hiddenValue = t->hiddenValue;
+            return true;
+        }
+ /*
         auto ev = i->Click(mPos);
         if (ev == ClickEventType::NONE) {
             insideButNoEvent = true;
         }
-        else if (ev != ClickEventType::MISS) {// && clickData.evType != ClickEventType::MISS) {
+        else if (ev != ClickEventType::MISS) {// && clickData.evType != ClickEventType::NONE) {
             clickData.group = this;
             clickData.evType = ev;
             clickData.val = i->id;
             return true;
-        }
+        }*/
     }
 
     if (backgr && backgr->Click(mPos.x, mPos.y)) {
         insideButNoEvent = true;
-        clickData.group = this;
-        clickData.evType = ClickEventType::NONE;
-        clickData.val = -1;
+        //clickData.group = this;
+        //clickData.val = -1;
     }
+    if (insideButNoEvent)
+        clickData.evType = ClickEventType::NONE;
     return insideButNoEvent;
 }
 bool Group::Hover(const glm::vec2 & mPos)
@@ -282,11 +311,20 @@ List::~List()
 }
 bool List::Click(ClickData & clickData, const glm::vec2 & mPos)
 {
+    bool clicked = false;
     for (auto g : groups) {
-        if (g->Click(clickData, mPos))
-            return true;
+        if (g->Click(clickData, mPos)) {
+            clicked = true;
+            if (clickData.evType != ClickEventType::NONE && clickData.evType != ClickEventType::MISS)
+                return true;
+        }
     }
-    return false;
+    if (backgr && backgr->Click(mPos.x, mPos.y)) {
+        clicked = true;
+    }
+    if (clicked)
+        clickData.evType = ClickEventType::NONE;
+    return clicked;
 }
 void List::Draw()
 {
@@ -375,8 +413,8 @@ void List::AddGroup(Group * g)
             g->visible = false;
         scrollVisible = true;
     }
-    g->id = freeGrpId;
-    ++freeGrpId;
+    //g->id = freeGrpId;
+    //++freeGrpId;
     groups.push_back(g);
    
     if (!scrollVisible)
@@ -399,12 +437,17 @@ void List::AddGroup(Group * g)
 }
 bool List::Hover(const glm::vec2 & mPos)
 {
+    for (auto g : groups) {
+        g->Hover(mPos);
+    }
     return backgr->Click(mPos.x, mPos.y);    
 }
-void List::DeleteGroup(int gid)
+void List::DeleteGroup(int gid, int hiddenVal)
 {
     for (std::size_t i = 0; i < groups.size(); i++) {
         if (groups[i]->id != gid)
+            continue;
+        if (groups[i]->hiddenVal != hiddenVal)
             continue;
         Log("GID="<<gid);
         auto gSize = groups[i]->backgr->GetSize();
@@ -510,20 +553,37 @@ Window::~Window()
 }
 ClickEventType Window::GetClick(ClickData & clickData, glm::vec2 mousPos)
 {
+    bool clicked = false;
     for (auto g : groups) {
-        if (g->Click(clickData, mousPos) && clickData.evType != ClickEventType::NONE)
-            return clickData.evType;
+        //if (g->Click(clickData, mousPos) && clickData.evType != ClickEventType::MISS && clickData.evType != ClickEventType::NONE)
+        if (g->Click(clickData, mousPos)) {
+            clicked = true;
+            if (clickData.evType != ClickEventType::NONE && clickData.evType != ClickEventType::MISS)
+                return clickData.evType;
+        }
     }
     for (auto list : lists) {
-        if (list->Click(clickData, mousPos) && clickData.evType != ClickEventType::NONE)
+        if (list->Click(clickData, mousPos)) {
+            if (clickData.evType == ClickEventType::NONE) {
+                clicked = true;
+            }
+            else if (clickData.evType != ClickEventType::MISS) {
+        //if (list->Click(clickData, mousPos) && clickData.evType != ClickEventType::NONE)
             return clickData.evType;
+            }
+        }
     }
+    if (clicked == false)
+        return ClickEventType::MISS; 
     return clickData.evType;
 }
 void Window::Hover(const glm::vec2 & mPos)
 {
     for (auto g : groups) {
         g->Hover(mPos);
+    }
+    for (auto list : lists) {
+        list->Hover(mPos);
     }
 }
 void Window::Draw()

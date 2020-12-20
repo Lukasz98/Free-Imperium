@@ -22,7 +22,10 @@ enum class WindowType {
     PROV_SIEGE = 6,
     UNIT = 7,
     COUNTRY = 8,
-    MY_COUNTRY = 9
+    MY_COUNTRY = 9,
+    OFFER_PEACE_WIN,
+    SIDE_BAR,
+    WAR
 };
 
 struct TextLabel {
@@ -38,10 +41,9 @@ struct TextLabel {
     Text text;
     int id = -1, hiddenValue = -1;
     
-    //glm::vec3 relPos; // relative to Group
     ClickEventType evName = ClickEventType::NONE;
     std::unique_ptr<Rectangle> backgr;
-    ClickEventType Click(const glm::vec2 & mPos);
+    bool Click(const glm::vec2 & mPos);
     void setText(const std::string & text);
     void Draw();
     TextLabel(const glm::vec3 & pos, const glm::vec2 & size, const glm::vec4 & bgColor, enum AM::FontSize fsize, bool centered, const glm::vec3 & textPos);
@@ -60,7 +62,7 @@ struct IconLabel {
     std::unique_ptr<Rectangle> backgr;
 
     void Draw();
-    ClickEventType Click(const glm::vec2 & mPos);
+    bool Click(const glm::vec2 & mPos);
     void setIcon(const std::string & path);
     IconLabel(const glm::vec3 & pos, const glm::vec2 & size);
     ~IconLabel();
@@ -84,7 +86,7 @@ struct Group {
     std::vector<Group*> groups;
     std::vector<TextLabel*> tLabels;
     std::vector<IconLabel*> iLabels;
-    int id = -1;
+    int id = -1, hiddenVal = -1;
     bool hoverable = false, hovered = false, visible = true; // visible used only for groups in List
     std::unique_ptr<Rectangle> backgr;
     bool Click(ClickData & clickData, const glm::vec2 & mPos);
@@ -115,7 +117,7 @@ struct List {
     
     void Draw();
     void AddGroup(Group * g); // group has to be preset, but its position will be changed
-    void DeleteGroup(int gid);
+    void DeleteGroup(int gid, int hiddenVal = -1);
     void SetPos(const glm::vec3 & newPos);
     void SetTitle(const std::string & text, AM::FontSize fsize); 
     List(const glm::vec3 & pos, const glm::vec2 & size, float relYOfContent, const glm::vec4 & bgColor, const glm::vec4 & barColor, float groupsOffset);

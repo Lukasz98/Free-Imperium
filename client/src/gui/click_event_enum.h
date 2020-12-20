@@ -18,7 +18,10 @@ enum class ClickEventType {
     OPEN_COUNTRY = 10,
     OPEN_UNIT = 11,
 
-    DECLARE_WAR
+    DECLARE_WAR,
+    OPEN_OFFER_PEACE,
+    SEND_PEACE_OFFER,
+    OPEN_WAR_WINDOW,
 };
 
 

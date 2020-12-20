@@ -288,6 +288,11 @@ void ProcessPacket::NewWar(sf::Packet & packet, std::vector<War> & wars, int myC
         auto attacker = countries.at(attackerId);
         assert(defenderId >= 0 && defenderId < countries.size());
         auto defender = countries.at(defenderId);
+
+        std::string rival = (myCountryId == attackerId) ? defender->GetName() : attacker->GetName();
+        Gui::SideBar::AddWarIcon(id, rival);
+
+/*
         DataObj * obj = new DataObj{"label"};
         obj->values["position:"] = "0.0 0.0 0.1";
         obj->values["bgColor:"] = "0 0 0 0";
@@ -332,8 +337,8 @@ void ProcessPacket::NewWar(sf::Packet & packet, std::vector<War> & wars, int myC
         
         int idInGui = 0;//gui.AddToList(obj, "notifications", "notificationsList");
         delete obj;
-
-        War war{id, idInGui};
+*/
+        War war{id, 0};//idInGui};
         war.AddAttacker(attacker->GetName(), attackerId);
         war.AddDefender(defender->GetName(), defenderId);
         wars.emplace_back(war);
@@ -584,7 +589,7 @@ void ProcessPacket::BotPeaceOffer(sf::Packet & packet, std::vector<PeaceOffer> &
         packet >> d;
         peaceOffer.gainProv.emplace_back(std::make_tuple(s, ss, d));
     }
-
+/*
     DataObj * obj = new DataObj{"label"};
     obj->values["position:"] = "0.0 0.0 0.1";
     obj->values["bgColor:"] = "0 0 0 0";
@@ -625,13 +630,25 @@ void ProcessPacket::BotPeaceOffer(sf::Packet & packet, std::vector<PeaceOffer> &
     hoverLabel->objects.push_back(popUpLabel);
     obj->objects.push_back(hoverLabel);
     obj->objects.push_back(icon);
-        
+*/
+
+    for (auto it = peaceOffers.begin(); it != peaceOffers.end(); ++it ) {
+        if (it->warId == peaceOffer.warId && it->offeredBy == peaceOffer.offeredBy) {
+            Gui::SideBar::DeletePeaceOfferIcon(it->peaceId);
+            peaceOffers.erase(it);
+            --it;
+        }
+    }
+
+    assert(peaceOffer.offeredBy >= 0 && peaceOffer.offeredBy < countries.size());
+    Gui::SideBar::AddPeaceOfferIcon(peaceOffer.peaceId, countries[peaceOffer.offeredBy]->GetName()); 
+//Log("new peace");
     int idInGui = 0;//gui.AddToList(obj, "notifications", "notificationsList");
 
     peaceOffer.idInGui = idInGui;
     peaceOffers.push_back(peaceOffer);
 
-    delete obj;
+    //delete obj;
 
     
 }

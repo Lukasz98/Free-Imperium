@@ -9,7 +9,12 @@ Game::Game(Window & win, sf::TcpSocket & sock, std::string countryName, glm::vec
     //gui.AddWin("src/gui/top_bar.txt");
     //gui.AddWin("src/gui/notifications.txt");
     topBarData.subject.AddObserver(Gui::TopBar::Open(std::vector<std::string>{}, resolution));
-    windowSize = window.GetSize();
+    Gui::SideBar::Open(resolution);
+    //Gui::SideBar::Add(resolution);
+    //Gui::SideBar::Add(resolution);
+ 
+
+windowSize = window.GetSize();
     
     provinces = ProvinceLoader::Load(map.GetProvsPixels(), 1920, 1088);
     std::sort(provinces.begin(), provinces.end(), [](const std::unique_ptr<Province> & p1, const std::unique_ptr<Province> & p2) {
@@ -285,7 +290,14 @@ Log("uClick");
             int ctrId = Gui::Base::GetHiddenValue();
             assert(ctrId >= 0 && ctrId < countries.size());
             if (ctrId != myCountry->GetId()) {
-                countries[ctrId]->subject.AddObserver(Gui::Country::Open(resolution, ctrId));
+                bool atWarWith = false;
+                for (auto & war : wars) {
+                    if (war.ShouldTheyFight(countries[ctrId]->GetId(), myCountry->GetId())) {
+                        atWarWith = true;
+                        break;
+                    }
+                }
+                countries[ctrId]->subject.AddObserver(Gui::Country::Open(resolution, ctrId, atWarWith));
                 countries[ctrId]->UpdateGuiWin();
             }
             else {
@@ -300,6 +312,12 @@ Log("uClick");
             packet << Gui::Country::GetId();
             toSend.push_back(packet);
         }
+        else if (cType == ClickEventType::OPEN_OFFER_PEACE) {
+        }
+        else if (cType == ClickEventType::OPEN_WAR_WINDOW) {
+            Gui::War::Open(resolution);
+        }
+
 
         Gui::Base::ResetClick();
 

@@ -3,7 +3,11 @@
 Menu::Menu(Window & window, Settings & s, std::vector<std::shared_ptr<Country>> & countries)
     : Scene(window, s.resolution), settings(s), countries(countries)
 {
-    Gui::Menu::Open(resolution);
+    //Gui::Menu::Open(resolution);
+    Gui::War::Open(resolution);
+    //gui::sidebar::open(resolution);
+    //gui::sidebar::add(resolution);
+    //gui::sidebar::add(resolution);
     //Gui::Country::Open(resolution);    
     //Gui::UnitsList::Open(resolution);
     //Gui::Unit::Open(resolution);

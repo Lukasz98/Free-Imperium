@@ -59,7 +59,7 @@ namespace Gui::UnitsList {
 }
 
 namespace Gui::Country{
-    Observer * Open(const glm::vec2 & resolution, int ctrId);
+    Observer * Open(const glm::vec2 & resolution, int ctrId, bool atWarWith);
     void Close();
     void SwitchTab();
     int GetId();
@@ -69,6 +69,22 @@ namespace Gui::MyCountry{
     Observer * Open(const glm::vec2 & resolution);
     void Close();
     void SwitchTab();
+}
+
+namespace Gui::SideBar{
+    Observer * Open(const glm::vec2 & resolution);
+    void Close();
+    void AddWarIcon(int warId, const std::string & rival);
+    void DeleteWarIcon(int warId);
+    void AddPeaceOfferIcon(int warId, const std::string & rival);
+    void DeletePeaceOfferIcon(int peaceOfferId);
+    //void SwitchTab();
+}
+
+namespace Gui::War{
+    Observer * Open(const glm::vec2 & resolution);
+    void Close();
+    //void SwitchTab();
 }
 
 
