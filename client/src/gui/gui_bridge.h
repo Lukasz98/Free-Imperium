@@ -16,6 +16,7 @@ namespace Gui::Base {
     void ResetClick();
     void UpdateVals();
     int GetHiddenValue();
+    void CloseWindowFromClick();
 }
 
 namespace Gui::Menu {
@@ -84,7 +85,8 @@ namespace Gui::SideBar{
 namespace Gui::War{
     Observer * Open(const glm::vec2 & resolution);
     void Close();
-    //void SwitchTab();
+    void AddAttacker(const std::string & attacker);
+    void AddDefender(const std::string & defender);
 }
 
 

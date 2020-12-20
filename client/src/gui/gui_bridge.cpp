@@ -103,6 +103,17 @@ int GetHiddenValue()
     return clickData.hiddenValue;
 }
 
+void CloseWindowFromClick()
+{
+    assert(clickData.window != nullptr);
+    for (auto it = Gui::Base::windows.begin(); it != Gui::Base::windows.end(); ++it) {
+        if (clickData.window == *it) {
+            delete *it;
+            Gui::Base::windows.erase(it);
+            return;
+        }
+    }
+}
 
 } // Gui::Base
 
@@ -1511,7 +1522,7 @@ void AddPeaceOfferIcon(int peaceOfferId, const std::string & rival)
         IconLabel * icon = new IconLabel{glm::vec3{0.0, 0.0, 0.13f}, itemSize};
         grp->iLabels.push_back(icon);
         icon->setIcon("src/img/peace.png");
-        icon->evName = ClickEventType::OPEN_WAR_WINDOW;
+        icon->evName = ClickEventType::OPEN_OFFER_PEACE;
         icon->id = peaceOfferId;
         
         Group * hovGrp = new Group{glm::vec3{-100.0, 0.0, .14f}, itemSize, weirdBrown, false};
@@ -1562,6 +1573,10 @@ Observer * Open(const glm::vec2 & resolution)
 
     Window * w = new Window{wPos, wSize, darkBrown, true, WindowType::WAR};
     Gui::Base::windows.push_back(w);
+    
+
+    //w->id = warId; 
+    
 
     glm::vec2 topSize{wSize.x - 2 * offset.x, 40.0f - 2 * offset.y};
     glm::vec3 topPos{wPos.x + offset.x , wPos.y + wSize.y - topSize.y - offset.y, 0.02f};
@@ -1614,7 +1629,7 @@ Observer * Open(const glm::vec2 & resolution)
         defenderName->evName = ClickEventType::OPEN_COUNTRY;
         defenderName->id = 2;
 
-        glm::vec2 warScoreSize{40.0f, textSize.y};
+        glm::vec2 warScoreSize{60.0f, textSize.y};
         glm::vec3 warScorePos{wPos.x + wSize.x * 0.5f - warScoreSize.x * 0.5f, ctrNamePos.y, 0.32f};
  
         TextLabel * warScore = new TextLabel{warScorePos, warScoreSize, weirdBrown, AM::FontSize::PX16, true, 
@@ -1624,6 +1639,8 @@ Observer * Open(const glm::vec2 & resolution)
         warScore->id = 3;
     }
 
+    glm::vec2 listSize{wSize.x * 0.5f - 2.0f * offset.x, wSize.y * 0.6f};
+    glm::vec3 listPos{wPos.x + offset.x, ctrNamePos.y - offset.y * 3.0f - listSize.y, 0.11f};
     { // participants lists
         glm::vec2 listSize{wSize.x * 0.5f - 2.0f * offset.x, wSize.y * 0.6f};
         glm::vec3 listPos{wPos.x + offset.x, ctrNamePos.y - offset.y * 3.0f - listSize.y, 0.11f};
@@ -1639,11 +1656,94 @@ Observer * Open(const glm::vec2 & resolution)
         w->lists.push_back(defendersList);
         defendersList->id = 1;
         defendersList->SetTitle("Defenders", AM::FontSize::PX16);
+    }
 
-  
+    { // buttons group
+        glm::vec2 gSize{wSize.x - 2.0f * offset.x, 40.0f};
+        glm::vec3 gPos{wPos.x + offset.x, listPos.y - offset.y * 3.0f - gSize.y, 0.11f};
+        Group * grp = new Group{gPos, gSize, glm::vec4{0.0, 0.0, 0.0, 0.0}, false};
+        w->groups.push_back(grp);
+        grp->id = 3;
+
+        glm::vec2 textSize{gSize.x * 0.5f - offset.x, gSize.y};
+        glm::vec3 textPos{gPos.x, gPos.y, 0.20f};
+        TextLabel * cancel = new TextLabel{textPos, textSize, brown, AM::FontSize::PX16, true, glm::vec3{textSize * 0.5f, 0.22f}};
+        grp->tLabels.push_back(cancel);
+        cancel->setText("Cancel");
+        cancel->evName = ClickEventType::CLOSE_WINDOW;
+        cancel->id = 1;
+ 
+        textPos.x += textSize.x + 2.0f * offset.x;
+        TextLabel * offerPeace = new TextLabel{textPos, textSize, brown, AM::FontSize::PX16, true, glm::vec3{textSize * 0.5f, 0.22f}};
+        grp->tLabels.push_back(offerPeace);
+        offerPeace->setText("Offer peace");
+        offerPeace->evName = ClickEventType::OPEN_OFFER_PEACE;
+        offerPeace->id = 2;
+ 
+
     }
 
     return &w->observer;
+}
+
+void Close()
+{
+    for (auto it = Gui::Base::windows.begin(); it != Gui::Base::windows.end(); ++it) {
+        if ((*it)->type == WindowType::WAR) {
+            delete *it;
+            Gui::Base::windows.erase(it);
+            break;
+        }
+    }
+}
+
+
+void AddAttacker(const std::string & attacker)
+{
+    for (auto it = Gui::Base::windows.begin(); it != Gui::Base::windows.end(); ++it) {
+        if ((*it)->type == WindowType::WAR) {
+            Window * w = *it;
+            for (auto list : w->lists) {
+                if (list->id != 0)
+                    continue;
+                assert(list->backgr);
+                Group * grp = new Group{glm::vec3{0.0, 0.0, .12}, glm::vec2{list->backgr->GetSize().x, 20.0}, weirdBrown, false};
+   
+                TextLabel * title2 = new TextLabel{glm::vec3{0.0, 0.0, .13}, glm::vec2{list->backgr->GetSize().x, 20.0}, weirdBrown, AM::FontSize::PX16,
+                                                   true, glm::vec3{grp->backgr->GetSize() * 0.5f, .2}};
+                grp->tLabels.push_back(title2);
+                title2->evName = ClickEventType::OPEN_COUNTRY;
+                title2->setText(attacker);
+ 
+                list->AddGroup(grp);
+                break;
+            }
+        }
+    }
+}
+
+void AddDefender(const std::string & defender)
+{
+    for (auto it = Gui::Base::windows.begin(); it != Gui::Base::windows.end(); ++it) {
+        if ((*it)->type == WindowType::WAR) {
+            Window * w = *it;
+            for (auto list : w->lists) {
+                if (list->id != 1)
+                    continue;
+                assert(list->backgr);
+                Group * grp = new Group{glm::vec3{0.0, 0.0, .12}, glm::vec2{list->backgr->GetSize().x, 20.0}, weirdBrown, false};
+   
+                TextLabel * title2 = new TextLabel{glm::vec3{0.0, 0.0, .13}, glm::vec2{list->backgr->GetSize().x, 20.0}, weirdBrown, AM::FontSize::PX16,
+                                                   true, glm::vec3{grp->backgr->GetSize() * 0.5f, .2}};
+                grp->tLabels.push_back(title2);
+                title2->evName = ClickEventType::OPEN_COUNTRY;
+                title2->setText(defender);
+ 
+                list->AddGroup(grp);
+                break;
+            }
+        }
+    }
 }
 
 } // Gui::War

@@ -1,6 +1,8 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include "observer.h"
+#include "gui/num_to_string.h"
 
 class War
 {
@@ -16,8 +18,11 @@ class War
 
 public:
     War(int id, int idInGui);
-    
+
+    Subject subject;
+
     void AddBattleWinner(std::string winner);
+    void UpdateWinValues();
 
     void Update();
     void Erase(int ctrId);
@@ -35,7 +40,7 @@ public:
     std::string GetAttackerName() const { if (attackers.size()) return attackers[0];  return "mydelko"; }
     std::string GetDefenderName() const { if (defenders.size()) return defenders[0]; return "kaszka"; }
     int GetAttackerWarScore() const { return attackerWarScore + attWarScFromSiege; }
-    void SetWarScore(int score) { attackerWarScore = score; }
+    void SetWarScore(int score) { UpdateWinValues();  attackerWarScore = score; }
     
     std::vector<std::string> GetAttackers() const { return attackers; }
     std::vector<std::string> GetDefenders() const { return defenders; }

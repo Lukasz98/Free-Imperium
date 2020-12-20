@@ -198,7 +198,7 @@ bool Group::Click(ClickData & clickData, const glm::vec2 & mPos)
             clickData.group = this;
             clickData.evType = i->evName;
             clickData.val = i->id;
-            //clickData.hiddenValue = t->hiddenValue;
+            clickData.hiddenValue = i->id;
             return true;
         }
  /*

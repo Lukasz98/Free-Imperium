@@ -315,7 +315,19 @@ Log("uClick");
         else if (cType == ClickEventType::OPEN_OFFER_PEACE) {
         }
         else if (cType == ClickEventType::OPEN_WAR_WINDOW) {
-            Gui::War::Open(resolution);
+            int warId = Gui::Base::GetHiddenValue();
+            auto warIt = std::find_if(wars.begin(), wars.end(), [warId](const War & war) { return warId == war.GetId(); });
+            assert(warIt != wars.end());
+            warIt->subject.AddObserver(Gui::War::Open(resolution));
+            auto attackers = warIt->GetAttackers();
+            for (auto & a : attackers)
+                Gui::War::AddAttacker(a);
+            auto defenders = warIt->GetDefenders();
+            for (auto & d : defenders)
+                Gui::War::AddDefender(d);
+        }
+        else if (cType == ClickEventType::CLOSE_WINDOW) {
+            Gui::Base::CloseWindowFromClick();
         }
 
 
