@@ -1,5 +1,6 @@
 #include "gui_bridge.h"
 #include "gui_core.h"
+#include "num_to_string.h"
 
 using namespace Gui::Core;
 
@@ -1565,7 +1566,7 @@ void DeletePeaceOfferIcon(int warId)
 
 namespace Gui::War {
 
-Observer * Open(const glm::vec2 & resolution)
+Observer * Open(const glm::vec2 & resolution, int warId)
 {
     glm::vec2 wSize{600.0f, 500.0f};
     glm::vec3 wPos{resolution.x * 0.5f - wSize.x * 0.5f, resolution.y * 0.5f - wSize.y * 0.5f, 0.0f};
@@ -1575,7 +1576,7 @@ Observer * Open(const glm::vec2 & resolution)
     Gui::Base::windows.push_back(w);
     
 
-    //w->id = warId; 
+    w->id = warId; 
     
 
     glm::vec2 topSize{wSize.x - 2 * offset.x, 40.0f - 2 * offset.y};
@@ -1746,8 +1747,221 @@ void AddDefender(const std::string & defender)
     }
 }
 
+bool IsOpen()
+{
+    for (auto it = Gui::Base::windows.begin(); it != Gui::Base::windows.end(); ++it) {
+        if ((*it)->type == WindowType::WAR) {
+           return true;
+        }
+    }
+    return false;
+}
+
+int GetId()
+{
+    for (auto it = Gui::Base::windows.begin(); it != Gui::Base::windows.end(); ++it) {
+        if ((*it)->type == WindowType::WAR) {
+            return (*it)->id;
+        }
+    }
+    return -1;
+}
+
+
+
 } // Gui::War
 
+namespace Gui::OfferPeace{
+
+Observer * Open(const glm::vec2 & resolution, const std::string & defender, const std::string & attacker, int warId, int warscore, int attackerId, int defenderId)
+{
+    for (std::size_t i = 0; i < Base::windows.size(); ++i) {
+        if (Base::windows[i]->type == WindowType::UNIT || 
+            Base::windows[i]->type == WindowType::PROV || 
+            Base::windows[i]->type == WindowType::PROV_SIEGE || 
+            Base::windows[i]->type == WindowType::UNITS_LIST ||
+            Base::windows[i]->type == WindowType::MY_COUNTRY ||
+            Base::windows[i]->type == WindowType::COUNTRY ||
+            Base::windows[i]->type == WindowType::WAR ||
+            Base::windows[i]->type == WindowType::OFFER_PEACE) {
+            
+            assert(Base::windows[i]);
+            delete Base::windows[i];
+            Base::windows.erase(Base::windows.begin() + i);
+            --i;
+         }
+    }
+
+    glm::vec2 wSize{600.0f, 500.0f};
+    glm::vec3 wPos{resolution.x * 0.5f - wSize.x * 0.5f, resolution.y * 0.5f - wSize.y * 0.5f, 0.0f};
+    glm::vec2 offset{5.0f, 2.5f};
+
+    Window * w = new Window{wPos, wSize, darkBrown, true, WindowType::OFFER_PEACE};
+    Gui::Base::windows.push_back(w);
+
+    w->id = warId; 
+
+    glm::vec2 topSize{wSize.x - 2 * offset.x, 40.0f - 2 * offset.y};
+    glm::vec3 topPos{wPos.x + offset.x , wPos.y + wSize.y - topSize.y - offset.y, 0.02f};
+    { // top grp
+        Group * grp = new Group{topPos, topSize, brown, false};
+        w->groups.push_back(grp);
+        grp->id = 1;
+
+        glm::vec2 textSize{topSize.x * 0.5f, topSize.y};
+        glm::vec3 textPos{topPos.x, topPos.y, 0.20f};
+        TextLabel * attacker= new TextLabel{textPos, textSize, brown, AM::FontSize::PX16, true, glm::vec3{textSize * 0.5f, 0.22f}};
+        grp->tLabels.push_back(attacker);
+        attacker->setText("attacker");
+        
+        //textSize{ctrNameSize.x * 0.5f, ctrNameSize.y}
+        textPos.x += textSize.x;
+        TextLabel * defender = new TextLabel{textPos, textSize, brown, AM::FontSize::PX16, true, 
+                                                 glm::vec3{textSize * 0.5f, 0.22f}};
+        grp->tLabels.push_back(defender);
+        defender->setText("defender");
+        
+        glm::vec2 iconSize{40.0f, 40.0f};
+        glm::vec3 iconPos{wPos.x + wSize.x * 0.5f - iconSize.x * 0.5f, wPos.y + wSize.y - iconSize.y - offset.y, 0.32f};
+        IconLabel * icon = new IconLabel{iconPos, iconSize};
+        grp->iLabels.push_back(icon);
+        icon->setIcon("src/img/war.png");
+    }
+
+    glm::vec2 ctrNameSize{wSize.x - 2 * offset.x, 40.0f - 2 * offset.y};
+    glm::vec3 ctrNamePos{wPos.x + offset.x , topPos.y - ctrNameSize.y - offset.y, 0.02f};
+    { // ctr name
+        Group * grp = new Group{ctrNamePos, ctrNameSize, brown, false};
+        w->groups.push_back(grp);
+        grp->id = 2;
+
+        glm::vec2 textSize{ctrNameSize.x * 0.5f, ctrNameSize.y};
+        glm::vec3 textPos{ctrNamePos.x, ctrNamePos.y, 0.20f};
+        TextLabel * attackerName = new TextLabel{textPos, textSize, brown, AM::FontSize::PX16, true, glm::vec3{textSize * 0.5f, 0.22f}};
+        grp->tLabels.push_back(attackerName);
+        attackerName->setText(attacker);
+        attackerName->evName = ClickEventType::OPEN_COUNTRY;
+        attackerName->id = attackerId;
+        
+        //textSize{ctrNameSize.x * 0.5f, ctrNameSize.y}
+        textPos.x += textSize.x;
+        TextLabel * defenderName = new TextLabel{textPos, textSize, brown, AM::FontSize::PX16, true, 
+                                                 glm::vec3{textSize * 0.5f, 0.22f}};
+        grp->tLabels.push_back(defenderName);
+        defenderName->setText(defender);
+        defenderName->evName = ClickEventType::OPEN_COUNTRY;
+        defenderName->id = defenderId;
+
+        glm::vec2 warScoreSize{60.0f, textSize.y};
+        glm::vec3 warScorePos{wPos.x + wSize.x * 0.5f - warScoreSize.x * 0.5f, ctrNamePos.y, 0.32f};
+ 
+        TextLabel * warScore = new TextLabel{warScorePos, warScoreSize, weirdBrown, AM::FontSize::PX16, true, 
+                                                 glm::vec3{warScoreSize * 0.5f, warScorePos.z}};
+        grp->tLabels.push_back(warScore);
+        warScore->setText(itos(warscore));
+        warScore->id = 3;
+    }
+
+    glm::vec2 listSize{wSize.x * 0.6f - 2.0f * offset.x, wSize.y * 0.6f};
+    glm::vec3 listPos{wPos.x + offset.x, ctrNamePos.y - offset.y * 3.0f - listSize.y, 0.11f};
+    { // participants lists
+        glm::vec2 listSize{wSize.x * 0.5f - 2.0f * offset.x, wSize.y * 0.6f};
+        glm::vec3 listPos{wPos.x + offset.x, ctrNamePos.y - offset.y * 3.0f - listSize.y, 0.11f};
+        List * treatyList = new List{listPos, listSize, 40.0f, brown, 
+                                  lightBrown, 5.0f};
+        w->lists.push_back(treatyList);
+        treatyList->id = 0;
+        treatyList->SetTitle("Treaty", AM::FontSize::PX16);
+    }
+
+    { // buttons group
+        glm::vec2 gSize{wSize.x - 2.0f * offset.x, 40.0f};
+        glm::vec3 gPos{wPos.x + offset.x, listPos.y - offset.y * 3.0f - gSize.y, 0.11f};
+        Group * grp = new Group{gPos, gSize, glm::vec4{0.0, 0.0, 0.0, 0.0}, false};
+        w->groups.push_back(grp);
+        grp->id = 3;
+
+        glm::vec2 textSize{gSize.x * 0.5f - offset.x, gSize.y};
+        glm::vec3 textPos{gPos.x, gPos.y, 0.20f};
+        TextLabel * cancel = new TextLabel{textPos, textSize, brown, AM::FontSize::PX16, true, glm::vec3{textSize * 0.5f, 0.22f}};
+        grp->tLabels.push_back(cancel);
+        cancel->setText("Cancel");
+        cancel->evName = ClickEventType::CLOSE_WINDOW;
+        cancel->id = 1;
+ 
+        textPos.x += textSize.x + 2.0f * offset.x;
+        TextLabel * offerPeace = new TextLabel{textPos, textSize, brown, AM::FontSize::PX16, true, glm::vec3{textSize * 0.5f, 0.22f}};
+        grp->tLabels.push_back(offerPeace);
+        offerPeace->setText("Send peace offer");
+        offerPeace->evName = ClickEventType::SEND_PEACE_OFFER;
+        offerPeace->id = 2;
+    }
+
+    return &w->observer;
+}
+    
+void Close()
+{
+    for (auto it = Gui::Base::windows.begin(); it != Gui::Base::windows.end(); ++it) {
+        if ((*it)->type == WindowType::OFFER_PEACE) {
+            delete *it;
+            Gui::Base::windows.erase(it);
+            break;
+        }
+    }
+}
+
+void AddProvince(const std::string & province, const std::string & receiver, int provId, int receiverId)
+{
+    for (auto it = Gui::Base::windows.begin(); it != Gui::Base::windows.end(); ++it) {
+        if ((*it)->type == WindowType::OFFER_PEACE) {
+            Window * w = *it;
+            for (auto list : w->lists) {
+                if (list->id != 0)
+                    continue;
+                assert(list->backgr);
+                Group * grp = new Group{glm::vec3{0.0, 0.0, .12}, glm::vec2{list->backgr->GetSize().x, 20.0}, weirdBrown, false};
+                grp->id = provId;
+
+                TextLabel * title2 = new TextLabel{glm::vec3{0.0, 0.0, .13}, glm::vec2{list->backgr->GetSize().x, 20.0}, weirdBrown, AM::FontSize::PX16,
+                                                   true, glm::vec3{grp->backgr->GetSize() * 0.5f, .2}};
+                grp->tLabels.push_back(title2);
+                //title2->evName = ClickEventType::OPEN_COUNTRY;
+                title2->setText(province + " to " + receiver);
+                title2->id = provId;
+                title2->hiddenValue = receiverId;
+                list->AddGroup(grp);
+                break;
+            }
+        }
+    }
+}
+
+void DeleteProvince(int provId)
+{
+    for (auto it = Gui::Base::windows.begin(); it != Gui::Base::windows.end(); ++it) {
+        if ((*it)->type == WindowType::OFFER_PEACE) {
+            Window * w = *it;
+            for (auto list : w->lists) {
+                if (list->id != 0)
+                    continue;
+                    list->DeleteGroup(provId);
+            }
+
+        }
+    }
+}
+
+bool IsOpened()
+{
+    for (auto it = Gui::Base::windows.begin(); it != Gui::Base::windows.end(); ++it) {
+        if ((*it)->type == WindowType::OFFER_PEACE) {
+            return true;
+        }
+    }
+    return false;
+}
 
 
+} // Gui::OfferPeace
 

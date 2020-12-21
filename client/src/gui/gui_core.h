@@ -23,7 +23,7 @@ enum class WindowType {
     UNIT = 7,
     COUNTRY = 8,
     MY_COUNTRY = 9,
-    OFFER_PEACE_WIN,
+    OFFER_PEACE,
     SIDE_BAR,
     WAR
 };

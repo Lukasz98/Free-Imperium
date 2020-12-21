@@ -83,10 +83,20 @@ namespace Gui::SideBar{
 }
 
 namespace Gui::War{
-    Observer * Open(const glm::vec2 & resolution);
+    Observer * Open(const glm::vec2 & resolution, int warId);
     void Close();
     void AddAttacker(const std::string & attacker);
     void AddDefender(const std::string & defender);
+    bool IsOpen();
+    int GetId();
+}
+
+namespace Gui::OfferPeace{
+    Observer * Open(const glm::vec2 & resolution, const std::string & defender, const std::string & attacker, int warId, int warscore, int attackerId, int defenderId);
+    void Close();
+    void AddProvince(const std::string & province, const std::string & receiver, int provId, int receiverId);
+    void DeleteProvince(int provId);
+    bool IsOpened();
 }
 
 

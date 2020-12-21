@@ -4,6 +4,7 @@ Menu::Menu(Window & window, Settings & s, std::vector<std::shared_ptr<Country>> 
     : Scene(window, s.resolution), settings(s), countries(countries)
 {
     Gui::Menu::Open(resolution);
+    //Gui::OfferPeace::Open(resolution, "Poland", "Russia", 0, -15, 0, 1);
     //Gui::War::Open(resolution);
     //gui::sidebar::open(resolution);
     //gui::sidebar::add(resolution);

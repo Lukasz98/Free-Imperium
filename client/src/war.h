@@ -41,7 +41,10 @@ public:
     std::string GetDefenderName() const { if (defenders.size()) return defenders[0]; return "kaszka"; }
     int GetAttackerWarScore() const { return attackerWarScore + attWarScFromSiege; }
     void SetWarScore(int score) { UpdateWinValues();  attackerWarScore = score; }
-    
+
+    int GetAttacker() { if (attackersIds.size()) return attackersIds[0]; else return -1; }
+    int GetDefender() { if (defendersIds.size()) return defendersIds[0]; else return -1; }
+
     std::vector<std::string> GetAttackers() const { return attackers; }
     std::vector<std::string> GetDefenders() const { return defenders; }
     

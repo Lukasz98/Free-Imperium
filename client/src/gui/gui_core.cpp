@@ -573,6 +573,11 @@ ClickEventType Window::GetClick(ClickData & clickData, glm::vec2 mousPos)
             }
         }
     }
+    if (backgr && backgr->Click(mousPos.x, mousPos.y)) {
+        clicked = true;
+        if (clickData.evType == ClickEventType::MISS)
+            return ClickEventType::NONE;
+    }
     if (clicked == false)
         return ClickEventType::MISS; 
     return clickData.evType;
