@@ -227,7 +227,7 @@ void ProcessPacket::HourlyUpdate(sf::Packet & packet, std::vector<std::shared_pt
     }
 }
 
-void ProcessPacket::PeaceAccepted(sf::Packet & packet, std::vector<std::unique_ptr<Province>> & provinces, 
+int ProcessPacket::PeaceAccepted(sf::Packet & packet, std::vector<std::unique_ptr<Province>> & provinces, 
                         std::vector<std::shared_ptr<Country>> & countries, std::vector<War> & wars, Map & map)
 {
     int provinceCount;
@@ -259,7 +259,7 @@ void ProcessPacket::PeaceAccepted(sf::Packet & packet, std::vector<std::unique_p
             return war.GetId() == warId;
         });
     if (warIt == wars.end())
-        return;
+        return -1;
 
     std::string peaceType;
     packet >> peaceType;
@@ -272,6 +272,7 @@ void ProcessPacket::PeaceAccepted(sf::Packet & packet, std::vector<std::unique_p
         packet >> ctr;
         (*warIt).Erase(ctr);
     }
+    return warId;
 }
 
 void ProcessPacket::NewWar(sf::Packet & packet, std::vector<War> & wars, int myCountryId, std::vector<std::shared_ptr<Country>> & countries)

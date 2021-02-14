@@ -1963,14 +1963,14 @@ void DeleteProvince(int provId)
     }
 }
 
-bool IsOpened()
+int IsOpened()
 {
     for (auto it = Gui::Base::windows.begin(); it != Gui::Base::windows.end(); ++it) {
         if ((*it)->type == WindowType::OFFER_PEACE) {
-            return true;
+            return (*it)->id;
         }
     }
-    return false;
+    return -1;
 }
 
 

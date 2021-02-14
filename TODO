@@ -1,0 +1,32 @@
+I.   Sometimes font renders a little blury, usually it happens if it's x position is close to .5f
+
+II.  Identifying peace offer proposition icons on side bar.
+     Now we can delete for ex war icons, becasuse they are identified
+     by two factors: [war icon], [war id].
+     Peace offers requires one more: id of sender.
+     This problems lays in List::DeleteGroup(int, int)
+
+III. Z factor of windows:
+     * each window should have its own range of z, so that no other window interence (displaying),
+     * detecting mouse clicks on window thats on top.
+
+IV.  Redrawing country borders after accepted peace offer is sometimes buggy.
+
+V.   Correct displaying "mouse marked" provinces (ex. while selecting to peace offer or just clicking to spawn prov window).
+     It breaks when map needs to be redrawn for ex. after peace offer.
+
+     ADD 1. Now marked provinces through peace offer window, should be unmarked if peace was related to window's war, and window itself should be closed.
+            If non related war was ended, marked provs for peace offer should be sustained.
+            Now work should be done on restoring marked province that was clicked in order to open prov window (restoring after peace offer)
+
+     ADD 2. Now all seems to work. 
+     
+     DONE.
+
+IV.  Marking province that is occupied has no graphical effect. Also switching to occupied state make, province mark disapear.
+     
+     ; propably it's a problem in last if in frag shader.
+
+
+        
+

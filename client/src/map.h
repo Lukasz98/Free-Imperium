@@ -33,7 +33,7 @@ class Map : public Rectangle
     Texture water;
 
     // color for brightening provinces
-    Color brightCol{0, 0, 255, 55};
+    Color brightCol{0, 0, 255, 55}; // blue cant be 254
     
     bool brightenedProv = false;
     float waterTime = 0.0f;

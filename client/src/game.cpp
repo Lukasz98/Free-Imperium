@@ -2,12 +2,15 @@
 #include "gui/gui_structs.h"
 
 struct OfferPeaceData {
-    std::vector<int> provs;
+    struct pair { int provId = -1, recipantId = -1; };
+    std::vector<pair> provs;
     int warId = -1;
-
+    int recipantId = -1;
 } offerPeaceData; // it represents peace offer that i'm currently making, it resets with opening new peace offer making window (even if same war)
 
 TopBarData topBarData;
+
+int openedProvId = -1;
 
 Game::Game(Window & win, sf::TcpSocket & sock, std::string countryName, glm::vec2 res, std::vector<std::shared_ptr<Country>> & countries)
     : Scene{win, res}, socket(sock), resolution(res), countries(countries)
@@ -214,8 +217,22 @@ void Game::processPacket(sf::Packet packet)
         ProcessPacket::NewUnitInBattle(packet, units, battles);        
     }
     else if (type == "PeaceAccepted") {
-        ProcessPacket::PeaceAccepted(packet, provinces, countries, wars, map);
+        int warId = ProcessPacket::PeaceAccepted(packet, provinces, countries, wars, map);
+        map.Unbright();
         setCountryMap();
+        if (openedProvId >= 0) {
+            assert(openedProvId < provinces.size());
+            map.BrightenProv(provinces[openedProvId]->GetColor());
+        }
+        Gui::SideBar::DeleteWarIcon(warId);
+        if (warId == Gui::OfferPeace::IsOpened()) {
+            Gui::OfferPeace::Close();
+        }
+        else if (warId >= 0) { // means that some peace offer window is opened, but not related to this peace
+            for (auto pair : offerPeaceData.provs) {
+                map.BrightenProv(provinces[pair.provId]->GetColor());
+            }
+        }
     }
     else if (type == "MergeUnits") {
         ProcessPacket::MergeUnits(packet, units);
@@ -283,18 +300,18 @@ void Game::input()
 Log("uClick " << (int)cType);
         if (cType == ClickEventType::MISS) {
 Log("uClick");
-            if (Gui::OfferPeace::IsOpened()) {
+            if (Gui::OfferPeace::IsOpened() >= 0) {
                 Color provinceColor = map.ClickOnProvince(mouseInWorld.x, mouseInWorld.y);
                 auto provIt = std::find_if(provinces.begin(), provinces.end(), [provinceColor](std::unique_ptr<Province> & p) { return p->GetColor() == provinceColor; });
                 if (provIt != provinces.end()) {
                     int provId = (*provIt)->GetId();
-                    auto it = std::find(offerPeaceData.provs.begin(), offerPeaceData.provs.end(), provId);
+                    auto it = std::find_if(offerPeaceData.provs.begin(), offerPeaceData.provs.end(), [provId](const OfferPeaceData::pair p) { return p.provId == provId; });
                     if (it != offerPeaceData.provs.end()) {
                         Gui::OfferPeace::DeleteProvince(provId);
                         map.Unbright();
                         offerPeaceData.provs.erase(it);
-                        for (auto pid : offerPeaceData.provs) {
-                            map.BrightenProv(provinces[pid]->GetColor());
+                        for (auto p : offerPeaceData.provs) {
+                            map.BrightenProv(provinces[p.provId]->GetColor());
                         }
                     }
                     else {
@@ -305,7 +322,7 @@ Log("uClick");
                         std::string receiver = countries[receiverId]->GetName();
                         Gui::OfferPeace::AddProvince((*provIt)->GetName(), receiver, provId, receiverId);
                         map.BrightenProv((*provIt)->GetColor());
-                        offerPeaceData.provs.push_back(provId);
+                        offerPeaceData.provs.push_back({provId, receiverId});
                     }
                 }
             }
@@ -373,6 +390,7 @@ Log("uClick");
                         break;
                     }
                 }
+                offerPeaceData.recipantId = rivalId;
                 if (ok) {
                     assert(rivalId >= 0 && rivalId < countries.size());
                     if (rivalIsDefender)
@@ -427,10 +445,20 @@ Log("uClick");
         else if (cType == ClickEventType::SEND_PEACE_OFFER) {
             Log("send peace offer");
             Log("war id="<<offerPeaceData.warId);
-            for (auto pId : offerPeaceData.provs) {
-                if (pId >= 0 && pId < provinces.size())
-                    Log(provinces[pId]->GetName());
+            for (auto pair : offerPeaceData.provs) {
+                if (pair.provId >= 0 && pair.provId < provinces.size())
+                    Log(provinces[pair.provId]->GetName());
             }
+            sf::Packet packet;
+            packet << "PeaceOffer";
+            packet << offerPeaceData.warId;
+            packet << offerPeaceData.recipantId;
+            packet << (int)offerPeaceData.provs.size();
+            for (auto pair : offerPeaceData.provs) {
+                packet << pair.provId;
+                packet << pair.recipantId;
+            }
+            toSend.push_back(packet);
         }
         else if (cType == ClickEventType::CLOSE_WINDOW) {
             Gui::Base::CloseWindowFromClick();
@@ -441,18 +469,17 @@ Log("uClick");
             if (provId >= 0 && provId < provinces.size()) {
                 Log(provinces[provId]->GetName());
                 for (auto it = offerPeaceData.provs.begin(); it != offerPeaceData.provs.end(); ++it) {
-                    if (provId == *it) {
+                    if (provId == it->provId) {
                         Gui::OfferPeace::DeleteProvince(provId);
                         map.Unbright();
                         offerPeaceData.provs.erase(it);
-                        for (auto pid : offerPeaceData.provs) {
-                            map.BrightenProv(provinces[pid]->GetColor());
+                        for (auto pair : offerPeaceData.provs) {
+                            map.BrightenProv(provinces[pair.provId]->GetColor());
                         }
                         break;
                     }
                 }
             }
-            //Gui::
         }
 
         Gui::Base::ResetClick();
@@ -514,34 +541,18 @@ bool Game::provClick(glm::vec2 mouseInWorld)
     //Color provinceColor = map.ClickOnProvince(mouseInWorld.x /4, mouseInWorld.y /4);
     Color provinceColor = map.ClickOnProvince(mouseInWorld.x, mouseInWorld.y);
     auto provIt = std::find_if(provinces.begin(), provinces.end(), [provinceColor](std::unique_ptr<Province> & p) { return p->GetColor() == provinceColor; });
-    if (provIt == provinces.end())
+    if (provIt == provinces.end()) {
+        openedProvId = -1;
         return false;
+    }
     
+    openedProvId = (*provIt)->GetId();
+
     //glm::vec3 unitPos{(*provIt)->GetUnitPos(), 0.1};
     auto battleIt = std::find_if(battles.begin(), battles.end(), [pId = (*provIt)->GetId()](const std::unique_ptr<Battle> &b){
         return (b->GetProvId() == pId);
     });
-/*
-    if (gui.IsOpen("offerPeace")) {
-        if ((*provIt)->GetSiegeCountryId() == -1)
-            return true;
 
-        DataObj * obj = new DataObj{"label"};
-        obj->objects.push_back(new DataObj{"text"});
-        obj->objects.back()->values["valueName:"] = "agreement";
-        obj->objects.back()->values["content:"] = (*provIt)->GetName();
-        obj->objects.back()->values["content:"] += " to ";
-        assert((*provIt)->GetSiegeCountryId() >= 0 && (*provIt)->GetSiegeCountryId() < countries.size());
-        obj->objects.back()->values["content:"] += countries.at((*provIt)->GetSiegeCountryId())->GetName();
-        obj->objects.push_back(new DataObj{"icon"});
-        obj->objects.back()->values["clickEvent:"] = "eraseObj";
-        obj->objects.back()->values["size:"] = "30 30";
-        obj->objects.back()->values["texturePath:"] = "src/img/minus.png";
-        gui.AddToList(obj, "offerPeace", "peaceAgreements");
-        delete obj;
-        return true;
-    }
-*/
     if (battleIt != battles.end()) {
         //GuiAid::OpenBattle(gui, battleIt, provIt);
         return true;

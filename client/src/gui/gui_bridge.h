@@ -96,7 +96,7 @@ namespace Gui::OfferPeace{
     void Close();
     void AddProvince(const std::string & province, const std::string & receiver, int provId, int receiverId);
     void DeleteProvince(int provId);
-    bool IsOpened();
+    int IsOpened(); // -1 if is not, otherwise return warId
 }
 
 

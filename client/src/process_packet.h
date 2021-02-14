@@ -27,7 +27,7 @@ namespace ProcessPacket {
     void HourlyUpdate(sf::Packet & packet, std::vector<std::shared_ptr<Unit>> & units, std::vector<std::unique_ptr<Battle>> & battles,
                       float mapChunkScale);
     
-    void PeaceAccepted(sf::Packet & packet, std::vector<std::unique_ptr<Province>> & provinces, 
+    int PeaceAccepted(sf::Packet & packet, std::vector<std::unique_ptr<Province>> & provinces, 
                        std::vector<std::shared_ptr<Country>> & countries, std::vector<War> & wars, Map & map);
     
     void NewWar(sf::Packet & packet, std::vector<War> & wars, int myCountryId, std::vector<std::shared_ptr<Country>> & countries);
