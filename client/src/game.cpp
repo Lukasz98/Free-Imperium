@@ -5,7 +5,7 @@ struct OfferPeaceData {
     std::vector<int> provs;
     int warId = -1;
 
-} offerPeaceData;
+} offerPeaceData; // it represents peace offer that i'm currently making, it resets with opening new peace offer making window (even if same war)
 
 TopBarData topBarData;
 
@@ -424,10 +424,36 @@ Log("uClick");
             for (auto & d : defenders)
                 Gui::War::AddDefender(d);
         }
+        else if (cType == ClickEventType::SEND_PEACE_OFFER) {
+            Log("send peace offer");
+            Log("war id="<<offerPeaceData.warId);
+            for (auto pId : offerPeaceData.provs) {
+                if (pId >= 0 && pId < provinces.size())
+                    Log(provinces[pId]->GetName());
+            }
+        }
         else if (cType == ClickEventType::CLOSE_WINDOW) {
             Gui::Base::CloseWindowFromClick();
         }
-
+        else if (cType == ClickEventType::DELETE_PROV_FROM_PEACE) {
+            int provId = Gui::Base::GetHiddenValue();
+            Log("delete prov from peace " << provId);
+            if (provId >= 0 && provId < provinces.size()) {
+                Log(provinces[provId]->GetName());
+                for (auto it = offerPeaceData.provs.begin(); it != offerPeaceData.provs.end(); ++it) {
+                    if (provId == *it) {
+                        Gui::OfferPeace::DeleteProvince(provId);
+                        map.Unbright();
+                        offerPeaceData.provs.erase(it);
+                        for (auto pid : offerPeaceData.provs) {
+                            map.BrightenProv(provinces[pid]->GetColor());
+                        }
+                        break;
+                    }
+                }
+            }
+            //Gui::
+        }
 
         Gui::Base::ResetClick();
 

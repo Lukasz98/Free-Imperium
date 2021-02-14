@@ -1920,7 +1920,10 @@ void AddProvince(const std::string & province, const std::string & receiver, int
                 if (list->id != 0)
                     continue;
                 assert(list->backgr);
-                Group * grp = new Group{glm::vec3{0.0, 0.0, .12}, glm::vec2{list->backgr->GetSize().x, 20.0}, weirdBrown, false};
+                float grpW = list->backgr->GetSize().x;
+                float iconW = 20.0f;
+                float textLW = grpW - iconW;
+                Group * grp = new Group{glm::vec3{0.0, 0.0, .12}, glm::vec2{grpW, 20.0}, weirdBrown, false};
                 grp->id = provId;
 
                 TextLabel * title2 = new TextLabel{glm::vec3{0.0, 0.0, .13}, glm::vec2{list->backgr->GetSize().x, 20.0}, weirdBrown, AM::FontSize::PX16,
@@ -1930,6 +1933,14 @@ void AddProvince(const std::string & province, const std::string & receiver, int
                 title2->setText(province + " to " + receiver);
                 title2->id = provId;
                 title2->hiddenValue = receiverId;
+                
+                glm::vec3 iconPos{0.0 + textLW, 0.0, 0.13};
+                IconLabel * icon = new IconLabel{iconPos, glm::vec2{iconW, iconW}};
+                grp->iLabels.push_back(icon);
+                icon->setIcon("src/img/minus.png");
+                icon->evName = ClickEventType::DELETE_PROV_FROM_PEACE;
+                icon->id = provId;
+
                 list->AddGroup(grp);
                 break;
             }
