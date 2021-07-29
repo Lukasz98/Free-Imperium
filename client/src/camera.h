@@ -21,6 +21,8 @@ public:
     float fov, fovMax, fovMin;
     float near, far;
 
+    float maxZ = 1000.0f, minZ = 130.0f;
+
     glm::vec3 mouseInWorld;
     glm::vec2 windowSize;
     glm::vec3 mouseRay;
@@ -47,5 +49,6 @@ public:
     glm::vec3 GetMouseInWorld() { return mouseInWorld; }
     float GetFov() { return fov; }
     glm::vec3 GetEye() { return eye; }
-    float GetFovDelta() { return fov - fovMin; }
+    float GetFovDelta() { return fovMax - fov; }
+    float GetScrollPerc() { return (maxZ - eye.z) * 0.05f; }
 };

@@ -644,9 +644,9 @@ void ProcessPacket::BotPeaceOffer(sf::Packet & packet, std::vector<PeaceOffer> &
     assert(peaceOffer.offeredBy >= 0 && peaceOffer.offeredBy < countries.size());
     Gui::SideBar::AddPeaceOfferIcon(peaceOffer.peaceId, countries[peaceOffer.offeredBy]->GetName()); 
 //Log("new peace");
-    int idInGui = 0;//gui.AddToList(obj, "notifications", "notificationsList");
+    //int idInGui = 0;//gui.AddToList(obj, "notifications", "notificationsList");
 
-    peaceOffer.idInGui = idInGui;
+    //peaceOffer.idInGui = idInGui;
     peaceOffers.push_back(peaceOffer);
 
     //delete obj;

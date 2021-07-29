@@ -5,13 +5,13 @@
 struct PeaceOffer
 {
     int peaceId;
-    int idInGui;
-    
+    //int idInGui;
+                           //prov,country,niewiem    
     std::vector<std::tuple<int, int, int>> lostProv;
     //std::vector<std::tuple<std::string,std::string,int>> lostProv;
     std::vector<std::tuple<int,int,int>> gainProv;
     //std::vector<std::tuple<std::string,std::string,int>> gainProv;
-    int warScore;
+    //int warScore;
     int warId;
     std::vector<std::string> attackers, defenders;
     //std::string recipant, offeredBy;

@@ -15,7 +15,7 @@ add_compile_definitions(HUMAN_PLAYER)
 add_compile_options(-std=c++17 -O0 -g)
 #add_compile_options(-std=c++17 -Wall -Wextra -O0 -g)
 
-file(GLOB SOURCES "src/*.cpp" "src/graphics/*.cpp" "src/gui/*.cpp" "../shared/shared_client/*.cpp" )
+file(GLOB SOURCES "src/*.cpp" "src/graphics/*.cpp" "src/gui/*.cpp" "src/gui_2/*.cpp" "../shared/shared_client/*.cpp" )
 add_executable("Word_and_Sword_client" ${SOURCES})
 
 target_link_libraries("Word_and_Sword_client" ${PROJECT_LINK_LIBS})

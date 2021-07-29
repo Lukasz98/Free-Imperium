@@ -95,6 +95,7 @@ void Game::Play()
             window.Refresh();
             input();
         
+            //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 glDepthRange (0, 1);
             map.Draw(camera, dt);
 
@@ -481,7 +482,36 @@ Log("uClick");
                 }
             }
         }
+        else if (cType == ClickEventType::OPEN_PEACE_OFFERT) {
+            int peaceId = Gui::Base::GetHiddenValue();
+            for (auto it = peaceOffers.begin(); it != peaceOffers.end(); ++it ) {
+                if (it->peaceId == peaceId) {
+                    it->recipant = myCountry->GetId(); //it->recipant nie jest nigdzie indziej ustawiane xd; ale jest oczywiste
+                    assert(it->recipant >= 0 && it->recipant < countries.size());
+                    assert(it->offeredBy >= 0 && it->offeredBy < countries.size());
+                    Gui::PeaceOffert::Open(resolution, it->peaceId, countries[it->recipant]->GetName(), 
+                                            countries[it->offeredBy]->GetName(), it->offeredBy, it->recipant);
+                    for (auto & prov : it->lostProv) {
+                        int provId = std::get<0>(prov);
+                        int ctrId = std::get<1>(prov);
+                        assert(provId  >= 0 && provId < provinces.size());
+                        assert(ctrId >= 0 && ctrId < countries.size());
+                        Gui::PeaceOffert::AddProv(provinces[provId]->GetName(), countries[ctrId]->GetName());
+                    }
+                    for (auto & prov : it->gainProv) {
+                        int provId = std::get<0>(prov);
+                        int ctrId = std::get<1>(prov);
+                        assert(provId  >= 0 && provId < provinces.size());
+                        assert(ctrId >= 0 && ctrId < countries.size());
+                        Gui::PeaceOffert::AddProv(provinces[provId]->GetName(), countries[ctrId]->GetName());
+                    }
+                    break;
+                }
+            }
+        }
 
+
+        //}
         Gui::Base::ResetClick();
 
     }

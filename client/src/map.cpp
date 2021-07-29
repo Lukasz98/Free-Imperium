@@ -44,6 +44,7 @@ void Map::setChunks()
 
 void Map::Draw(Camera & camera, float dt)
 {
+Log("draw");
     waterTime += dt;
     glUseProgram(shader.GetProgram());
     glPatchParameteri(GL_PATCH_VERTICES, 3);

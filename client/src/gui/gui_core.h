@@ -25,7 +25,8 @@ enum class WindowType {
     MY_COUNTRY = 9,
     OFFER_PEACE,
     SIDE_BAR,
-    WAR
+    WAR,
+    PEACE_OFFERT
 };
 
 struct TextLabel {

@@ -2,6 +2,8 @@
 #include "gui_core.h"
 #include "num_to_string.h"
 
+#include <time.h>
+
 using namespace Gui::Core;
 
 static ClickData clickData;
@@ -79,9 +81,12 @@ bool Drag(const glm::vec2 & mousePos, float dt)
 
 void Draw()
 {
+    clock_t t = clock();
     for (auto w : Base::windows) {
         w->Draw();
     }
+    t = clock() -t;
+    //Log("gui draw cycles: " << t << " : " << ((float)t) / CLOCKS_PER_SEC);
 }
 
 void ResetClick()
@@ -1523,7 +1528,7 @@ void AddPeaceOfferIcon(int peaceOfferId, const std::string & rival)
         IconLabel * icon = new IconLabel{glm::vec3{0.0, 0.0, 0.13f}, itemSize};
         grp->iLabels.push_back(icon);
         icon->setIcon("src/img/peace.png");
-        icon->evName = ClickEventType::OPEN_OFFER_PEACE;
+        icon->evName = ClickEventType::OPEN_PEACE_OFFERT;
         icon->id = peaceOfferId;
         
         Group * hovGrp = new Group{glm::vec3{-100.0, 0.0, .14f}, itemSize, weirdBrown, false};
@@ -1539,7 +1544,7 @@ void AddPeaceOfferIcon(int peaceOfferId, const std::string & rival)
     } 
 }
 
-void DeletePeaceOfferIcon(int warId)
+void DeletePeaceOfferIcon(int peaceOfferId)
 {
     Window * w;
     List * list = nullptr;
@@ -1552,7 +1557,7 @@ void DeletePeaceOfferIcon(int warId)
         }
     }
     assert(list);
-    list->DeleteGroup(2, warId);
+    list->DeleteGroup(2, peaceOfferId);
 }
 
 
@@ -1842,6 +1847,7 @@ Observer * Open(const glm::vec2 & resolution, const std::string & defender, cons
         attackerName->setText(attacker);
         attackerName->evName = ClickEventType::OPEN_COUNTRY;
         attackerName->id = attackerId;
+        attackerName->hiddenValue = attackerId;
         
         //textSize{ctrNameSize.x * 0.5f, ctrNameSize.y}
         textPos.x += textSize.x;
@@ -1851,6 +1857,7 @@ Observer * Open(const glm::vec2 & resolution, const std::string & defender, cons
         defenderName->setText(defender);
         defenderName->evName = ClickEventType::OPEN_COUNTRY;
         defenderName->id = defenderId;
+        defenderName->hiddenValue = defenderId;
 
         glm::vec2 warScoreSize{60.0f, textSize.y};
         glm::vec3 warScorePos{wPos.x + wSize.x * 0.5f - warScoreSize.x * 0.5f, ctrNamePos.y, 0.32f};
@@ -1975,4 +1982,187 @@ int IsOpened()
 
 
 } // Gui::OfferPeace
+
+
+namespace Gui::PeaceOffert{
+
+Observer * Open(const glm::vec2 & resolution, int peaceId, const std::string & recipant, const std::string & sender, int senderId, int recipantId) 
+{
+    for (std::size_t i = 0; i < Base::windows.size(); ++i) {
+        if (Base::windows[i]->type == WindowType::UNIT || 
+            Base::windows[i]->type == WindowType::PROV || 
+            Base::windows[i]->type == WindowType::PROV_SIEGE || 
+            Base::windows[i]->type == WindowType::UNITS_LIST ||
+            Base::windows[i]->type == WindowType::MY_COUNTRY ||
+            Base::windows[i]->type == WindowType::COUNTRY ||
+            Base::windows[i]->type == WindowType::WAR ||
+            Base::windows[i]->type == WindowType::OFFER_PEACE ||
+            Base::windows[i]->type == WindowType::PEACE_OFFERT) {
+            
+            assert(Base::windows[i]);
+            delete Base::windows[i];
+            Base::windows.erase(Base::windows.begin() + i);
+            --i;
+         }
+    }
+
+    glm::vec2 wSize{600.0f, 500.0f};
+    glm::vec3 wPos{resolution.x * 0.5f - wSize.x * 0.5f, resolution.y * 0.5f - wSize.y * 0.5f, 0.0f};
+    glm::vec2 offset{5.0f, 2.5f};
+
+    Window * w = new Window{wPos, wSize, darkBrown, true, WindowType::PEACE_OFFERT};
+    Gui::Base::windows.push_back(w);
+
+    w->id = peaceId; 
+
+    glm::vec2 topSize{wSize.x - 2 * offset.x, 40.0f - 2 * offset.y};
+    glm::vec3 topPos{wPos.x + offset.x , wPos.y + wSize.y - topSize.y - offset.y, 0.02f};
+    { // top grp
+        Group * grp = new Group{topPos, topSize, brown, false};
+        w->groups.push_back(grp);
+        grp->id = 1;
+
+        glm::vec2 textSize{topSize.x * 0.5f, topSize.y};
+        glm::vec3 textPos{topPos.x, topPos.y, 0.20f};
+        TextLabel * recipant = new TextLabel{textPos, textSize, brown, AM::FontSize::PX16, true, glm::vec3{textSize * 0.5f, 0.22f}};
+        grp->tLabels.push_back(recipant);
+        recipant->setText("recipant");
+        
+        //textSize{ctrNameSize.x * 0.5f, ctrNameSize.y}
+        textPos.x += textSize.x;
+        TextLabel * sender = new TextLabel{textPos, textSize, brown, AM::FontSize::PX16, true, 
+                                                 glm::vec3{textSize * 0.5f, 0.22f}};
+        grp->tLabels.push_back(sender);
+        sender->setText("sender");
+        
+        glm::vec2 iconSize{40.0f, 40.0f};
+        glm::vec3 iconPos{wPos.x + wSize.x * 0.5f - iconSize.x * 0.5f, wPos.y + wSize.y - iconSize.y - offset.y, 0.32f};
+        IconLabel * icon = new IconLabel{iconPos, iconSize};
+        grp->iLabels.push_back(icon);
+        icon->setIcon("src/img/peace.png");
+    }
+
+    glm::vec2 ctrNameSize{wSize.x - 2 * offset.x, 40.0f - 2 * offset.y};
+    glm::vec3 ctrNamePos{wPos.x + offset.x , topPos.y - ctrNameSize.y - offset.y, 0.02f};
+    { // ctr name
+        Group * grp = new Group{ctrNamePos, ctrNameSize, brown, false};
+        w->groups.push_back(grp);
+        grp->id = 2;
+
+        glm::vec2 textSize{ctrNameSize.x * 0.5f, ctrNameSize.y};
+        glm::vec3 textPos{ctrNamePos.x, ctrNamePos.y, 0.20f};
+        TextLabel * recipantName = new TextLabel{textPos, textSize, brown, AM::FontSize::PX16, true, glm::vec3{textSize * 0.5f, 0.22f}};
+        grp->tLabels.push_back(recipantName);
+        recipantName->setText(recipant);
+        recipantName->evName = ClickEventType::OPEN_COUNTRY;
+        recipantName->id = recipantId;
+        recipantName->hiddenValue = recipantId;
+        
+        //textSize{ctrNameSize.x * 0.5f, ctrNameSize.y}
+        textPos.x += textSize.x;
+        TextLabel * senderName = new TextLabel{textPos, textSize, brown, AM::FontSize::PX16, true, 
+                                                 glm::vec3{textSize * 0.5f, 0.22f}};
+        grp->tLabels.push_back(senderName);
+        senderName->setText(sender);
+        senderName->evName = ClickEventType::OPEN_COUNTRY;
+        senderName->id = senderId;
+        senderName->hiddenValue = senderId;
+    }
+
+    glm::vec2 listSize{wSize.x -  2.0f * offset.x, wSize.y * 0.6f};
+    glm::vec3 listPos{wPos.x + offset.x, ctrNamePos.y - offset.y * 3.0f - listSize.y, 0.11f};
+    { // treaty lists
+        //glm::vec2 listSize{wSize.x * 0.5f - 2.0f * offset.x, wSize.y * 0.6f};
+        //glm::vec3 listPos{wPos.x + offset.x, ctrNamePos.y - offset.y * 3.0f - listSize.y, 0.11f};
+        List * provsList = new List{listPos, listSize, 40.0f, brown, 
+                                  lightBrown, 5.0f};
+        w->lists.push_back(provsList);
+        provsList->id = 1;
+        provsList->SetTitle("Treaty", AM::FontSize::PX16);
+    }
+
+    { // buttons group
+        glm::vec2 gSize{wSize.x - 2.0f * offset.x, 40.0f};
+        glm::vec3 gPos{wPos.x + offset.x, listPos.y - offset.y * 3.0f - gSize.y, 0.11f};
+        Group * grp = new Group{gPos, gSize, glm::vec4{0.0, 0.0, 0.0, 0.0}, false};
+        w->groups.push_back(grp);
+        grp->id = 3;
+
+        glm::vec2 textSize{gSize.x * 0.5f - offset.x, gSize.y};
+        glm::vec3 textPos{gPos.x, gPos.y, 0.20f};
+        TextLabel * cancel = new TextLabel{textPos, textSize, brown, AM::FontSize::PX16, true, glm::vec3{textSize * 0.5f, 0.22f}};
+        grp->tLabels.push_back(cancel);
+        cancel->setText("Reject");
+        cancel->evName = ClickEventType::REJECT_PEACE_OFFER;
+        cancel->id = 1;
+ 
+        textPos.x += textSize.x + 2.0f * offset.x;
+        TextLabel * offerPeace = new TextLabel{textPos, textSize, brown, AM::FontSize::PX16, true, glm::vec3{textSize * 0.5f, 0.22f}};
+        grp->tLabels.push_back(offerPeace);
+        offerPeace->setText("Accept");
+        offerPeace->evName = ClickEventType::ACCEPT_PEACE_OFFER;
+        offerPeace->id = 2;
+    }
+
+    return &w->observer;
+}
+
+void Close() 
+{
+    for (auto it = Gui::Base::windows.begin(); it != Gui::Base::windows.end(); ++it) {
+        if ((*it)->type == WindowType::PEACE_OFFERT) {
+            delete *it;
+            Gui::Base::windows.erase(it);
+            break;
+        }
+    }
+}
+
+void AddProv(const std::string & province, const std::string & receiver)
+{
+    for (auto it = Gui::Base::windows.begin(); it != Gui::Base::windows.end(); ++it) {
+        if ((*it)->type == WindowType::PEACE_OFFERT) {
+            Window * w = *it;
+            for (auto list : w->lists) {
+                if (list->id != 1)
+                    continue;
+                assert(list->backgr);
+                float grpW = list->backgr->GetSize().x;
+                float iconW = 20.0f;
+                float textLW = grpW - iconW;
+                Group * grp = new Group{glm::vec3{0.0, 0.0, .12}, glm::vec2{grpW, 20.0}, weirdBrown, false};
+                //grp->id = provId;
+
+                TextLabel * title2 = new TextLabel{glm::vec3{0.0, 0.0, .13}, glm::vec2{list->backgr->GetSize().x, 20.0}, weirdBrown, AM::FontSize::PX16,
+                                                   true, glm::vec3{grp->backgr->GetSize() * 0.5f, .2}};
+                grp->tLabels.push_back(title2);
+                //title2->evName = ClickEventType::OPEN_COUNTRY;
+                title2->setText(province + " to " + receiver);
+                //title2->id = provId;
+                //title2->hiddenValue = receiverId;
+                
+                list->AddGroup(grp);
+                break;
+            }
+        }
+    }
+
+}
+
+
+int IsOpened()
+{
+    for (auto it = Gui::Base::windows.begin(); it != Gui::Base::windows.end(); ++it) {
+        if ((*it)->type == WindowType::PEACE_OFFERT) {
+            return (*it)->id;
+        }
+    }
+    return -1;
+}
+
+
+}
+
+
+
 

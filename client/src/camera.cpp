@@ -4,6 +4,7 @@ Camera::Camera(glm::vec2 winSize)
 {
     width = 1920, height = 1080.0f;
     speed = 250.0f;
+    speed = 850.0f;
     baseSpeed = 1000.0f;
     left = 0.0f, bottom = 0.0f;
     fov = 45.0f, fovMax = 46.0f, fovMin = 44.5f;
@@ -15,6 +16,13 @@ Camera::Camera(glm::vec2 winSize)
     windowSize = winSize;
     projection = glm::perspectiveFovRH(fov, width, height, near, far);
     eye = glm::vec3(2000.0, 700.0, 169.0f);
+    float SCale = 4.0f;
+    //float SCale = 2.0f;
+    //eye = glm::vec3(1000.0 * SCale,  500.0 * SCale, 169.0f);
+   //eye = glm::vec3(3100.0 * SCale,  (2000.0-500.0) * SCale, 169.0f);
+    //eye = glm::vec3(100.0, 100.0, 169.0f);
+    eye = glm::vec3(100.0, 50.0, 169.0f);
+    //eye = glm::vec3(0.0, 0.0, 169.0f);
     up = glm::vec3(0.0f, 1.0f, 0.0f);
     look = glm::vec3(.0f, .0f, -0.1f);
     setPlanes();
@@ -81,10 +89,15 @@ void Camera::Update(double xMouse, double yMouse, const unsigned char * terrain)
 
 void Camera::Scroll(int z)
 {
-//eye.z += 10.0f * z;
-//setPlanes();
-//return;
-    bool ok = false;
+eye.z += 20.0f * z;
+if (eye.z < minZ)
+    eye.z = minZ;
+else if (eye.z > maxZ)
+    eye.z = maxZ;
+//Log(eye.z);
+setPlanes();
+return;
+   bool ok = false;
     if (fov >= fovMin + 0.1 && z == -1) {
         fov -= .05f;
         ok = 1;

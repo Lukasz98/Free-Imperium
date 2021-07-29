@@ -77,7 +77,7 @@ namespace Gui::SideBar{
     void Close();
     void AddWarIcon(int warId, const std::string & rival);
     void DeleteWarIcon(int warId);
-    void AddPeaceOfferIcon(int warId, const std::string & rival);
+    void AddPeaceOfferIcon(int peaceOfferId, const std::string & rival);
     void DeletePeaceOfferIcon(int peaceOfferId);
     //void SwitchTab();
 }
@@ -99,6 +99,12 @@ namespace Gui::OfferPeace{
     int IsOpened(); // -1 if is not, otherwise return warId
 }
 
+namespace Gui::PeaceOffert{
+    Observer * Open(const glm::vec2 & resolution, int peaceId, const std::string & recipant, const std::string & sender, int recipantId, int senderId);
+    void Close();
+    void AddProv(const std::string & province, const std::string & receiver);
+    int IsOpened(); // -1 if is not, otherwise return warId
+}
 
 
 
