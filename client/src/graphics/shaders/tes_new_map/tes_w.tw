@@ -92,12 +92,12 @@ void main(void)
     */
     if (c1 != c2) {
         float vv = waterTime + pos.x / 6010;
-        vv = pos.y;
+        //vv = pos.y;
         pos.x += sin(vv);
     }
     else if (c1 != c5 || c1 != c6) {
         float vv = waterTime + pos.x / 6010;
-        vv = pos.x;
+       //vv = pos.x;
         pos.y += cos(vv);
     }
 

@@ -543,6 +543,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     Shader shader("src/graphics/shaders/tes_new_map/vert.v", "src/graphics/shaders/tes_new_map/frag.f",
                   "src/graphics/shaders/tes_new_map/tes_ster.ts", "src/graphics/shaders/tes_new_map/tes_w.tw");
     Shader borderShader{"src/graphics/shaders/borders/vert.v", "src/graphics/shaders/borders/frag.f", "", ""};
+    Shader waterShader("src/graphics/shaders/water/vert.v", "src/graphics/shaders/water/frag.f",
+                  "src/graphics/shaders/water/tes_ster.ts", "src/graphics/shaders/water/tes_w.tw");
     Camera camera{window.GetSize()};
     glUseProgram(shader.GetProgram());
     glPatchParameteri(GL_PATCH_VERTICES, 3);
@@ -557,6 +559,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     Texture provTexture{"/home/lukasz/Pobrane/Provinces_org.png", mapWidth, mapHeight};
     Texture grassT{"../shared/grass1.png", 64, 64, GL_REPEAT};
     Texture stoneT{"../shared/smoothstone.png", 64, 64, GL_REPEAT};
+    Texture waterT{"../shared/water1.png", 64, 64, GL_REPEAT};
     err = glGetError();
     if (err)
         Log("Opengl error: " << err);
@@ -567,6 +570,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     Log("Prov kurtyzana " << texID[1]);
     texID[2] = stoneT.GetId();
     texID[3] = heightMap.GetId();
+    texID[4] = waterT.GetId();
     glUniform1iv(glGetUniformLocation(shader.GetProgram(), "tex"), 32, texID);
     err = glGetError();
     if (err)
@@ -581,6 +585,11 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         if (err)
             Log("Opengl error: " << err << " " << i);
     }
+        
+    glUseProgram(waterShader.GetProgram());
+    glUniform1f(glGetUniformLocation(waterShader.GetProgram(), "level"), 32);
+    glUniform1iv(glGetUniformLocation(waterShader.GetProgram(), "tex"), 32, texID);
+
     // GLuint textures[] = {(GLuint)texID[0], (GLuint)texID[1], (GLuint)texID[2], (GLuint)texID[3]};
     // glBindTextures(textures[0], 4, textures);
 
@@ -718,6 +727,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     if (err)
         Log("Opengl error: " << err);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    
 
     float dt = 0.0f, waterTime = 0.0f;
     float time = glfwGetTime();
@@ -786,6 +796,30 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
         glDrawElements(GL_PATCHES, indicesSize, GL_UNSIGNED_SHORT, NULL);
 #endif
+        
+        glUseProgram(waterShader.GetProgram());
+        glUniformMatrix4fv(glGetUniformLocation(waterShader.GetProgram(), "pr_matrix"), 1, GL_FALSE,
+                           glm::value_ptr(matrix));
+
+        glUniformMatrix4fv(glGetUniformLocation(waterShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                           glm::value_ptr(matrix));
+        glUniform1f(glGetUniformLocation(waterShader.GetProgram(), "waterTime"), waterTime);
+
+        batch.Begin();
+        Vertexx vertsWater[8];
+        vertsWater[0] = Vertexx{.pos = Vec3{0.0, 0.0, 0.0}, .color = Vec4{0.0, 0.0, 1.0, 1.0}, .textureId = 0, .tc = Vec2{0.0, 0.0}}; 
+        vertsWater[1] = Vertexx{.pos = Vec3{mapWidth * scale * 0.5, 0.0, 0.0}, .color = Vec4{0.0, 0.0, 1.0, 1.0}, .textureId = 0, .tc = Vec2{0.5, 0.0}}; 
+        vertsWater[2] = Vertexx{.pos = Vec3{mapWidth * scale * 0.5, mapHeight * scale, 0.0}, .color = Vec4{0.0, 0.0, 1.0, 1.0}, .textureId = 0, .tc = Vec2{.5, 1.0}}; 
+        vertsWater[3] = Vertexx{.pos = Vec3{0.0, mapHeight * scale, 0.0}, .color = Vec4{0.0, 0.0, 1.0, 1.0}, .textureId = 0, .tc = Vec2{0.0, 1.0}}; 
+        
+        vertsWater[4] = Vertexx{.pos = Vec3{mapWidth * scale * 0.5, 0.0, 0.0}, .color = Vec4{0.0, 0.0, 1.0, 1.0}, .textureId = 0, .tc = Vec2{0.5, 0.0}}; 
+        vertsWater[5] = Vertexx{.pos = Vec3{mapWidth * scale, 0.0, 0.0}, .color = Vec4{0.0, 0.0, 1.0, 1.0}, .textureId = 0, .tc = Vec2{1.0, 0.0}}; 
+        vertsWater[6] = Vertexx{.pos = Vec3{mapWidth * scale, mapHeight * scale, 0.0}, .color = Vec4{0.0, 0.0, 1.0, 1.0}, .textureId = 0, .tc = Vec2{1.0, 1.0}}; 
+        vertsWater[7] = Vertexx{.pos = Vec3{mapWidth * scale * 0.5, mapHeight * scale, 0.0}, .color = Vec4{0.0, 0.0, 1.0, 1.0}, .textureId = 0, .tc = Vec2{0.5, 1.0}}; 
+
+        batch.Push(vertsWater);
+        batch.Push(&vertsWater[4]);
+        batch.Flush();
         // int indicesCount = 6;
         // glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_SHORT, NULL);
         // glDrawElements(GL_TRIANGLES, vertexes.size() * 6, GL_UNSIGNED_SHORT, indices);
