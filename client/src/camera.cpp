@@ -18,10 +18,14 @@ Camera::Camera(glm::vec2 winSize)
     eye = glm::vec3(2000.0, 700.0, 169.0f);
     float SCale = 4.0f;
     //float SCale = 2.0f;
+    int mapWidth = 5632, mapHeight = 2048;
     //eye = glm::vec3(1000.0 * SCale,  500.0 * SCale, 169.0f);
    //eye = glm::vec3(3100.0 * SCale,  (2000.0-500.0) * SCale, 169.0f);
     //eye = glm::vec3(100.0, 100.0, 169.0f);
-    eye = glm::vec3(100.0, 50.0, 169.0f);
+    
+    //eye = glm::vec3(100.0, 50.0, 169.0f);
+    eye = glm::vec3(mapWidth * 1.0, mapHeight * 1.4f, 169.0f);
+    
     //eye = glm::vec3(0.0, 0.0, 169.0f);
     up = glm::vec3(0.0f, 1.0f, 0.0f);
     look = glm::vec3(.0f, .0f, -0.1f);

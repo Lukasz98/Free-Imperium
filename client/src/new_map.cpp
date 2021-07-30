@@ -719,7 +719,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         Log("Opengl error: " << err);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    float dt = 0.0f;
+    float dt = 0.0f, waterTime = 0.0f;
     float time = glfwGetTime();
     while (!window.ShouldClose()) {
         window.Refresh();
@@ -745,6 +745,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             if (tesLevel < 0.0f)
                 tesLevel *= -1.0f;
             Log(tesLevel);
+            tesLevel = 32.0f;
             glUniform1f(glGetUniformLocation(shader.GetProgram(), "level"), tesLevel);
         }
         // window.keys['L'] = 0;
@@ -762,18 +763,20 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         if (window.keys['K'])
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+        if (window.keys['B'])
+            glUniform1f(glGetUniformLocation(shader.GetProgram(), "waterTime"), waterTime);
+
 #if batch_rend
         batch.Begin();
         for (int i = 0; i < vertexes.size(); i += 4) {
             // if (camera.IsPointInFrustum((glm::vec3)vertexes[i].pos))
-            if (camera.IsPointInFrustum(glm::vec3{vertexes[i].pos.x, vertexes[i].pos.y, vertexes[i].pos.z})
-            ||
-            camera.IsPointInFrustum(glm::vec3{vertexes[i + 1].pos.x, vertexes[i + 1].pos.y, vertexes[i + 1].pos.z})
-            ||
-            camera.IsPointInFrustum(glm::vec3{vertexes[i + 2].pos.x, vertexes[i + 2].pos.y, vertexes[i + 2].pos.z})
-            ||
-            camera.IsPointInFrustum(glm::vec3{vertexes[i + 3].pos.x, vertexes[i + 3].pos.y, vertexes[i + 3].pos.z})
-            )
+            if (camera.IsPointInFrustum(glm::vec3{vertexes[i].pos.x, vertexes[i].pos.y, vertexes[i].pos.z}) ||
+                camera.IsPointInFrustum(
+                    glm::vec3{vertexes[i + 1].pos.x, vertexes[i + 1].pos.y, vertexes[i + 1].pos.z}) ||
+                camera.IsPointInFrustum(
+                    glm::vec3{vertexes[i + 2].pos.x, vertexes[i + 2].pos.y, vertexes[i + 2].pos.z}) ||
+                camera.IsPointInFrustum(
+                    glm::vec3{vertexes[i + 3].pos.x, vertexes[i + 3].pos.y, vertexes[i + 3].pos.z}))
                 batch.Push(&vertexes[i]);
         }
         batch.Flush();
@@ -806,11 +809,25 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         // Log(glfwGetTime() - tt2);
         //        batch.Flush();
         tFlush = 0.0f;
+        
+
+        if (window.keys['I']) {
+            unsigned char pixel[4];
+            int pixx = window.xMouse, pixy = windowSize.y - window.yMouse;
+            Log(pixx << " - " << pixy);
+            glReadPixels(pixx, pixy, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+            std::cout << "R: " << (int)pixel[0] << "< ";
+            std::cout << "G: " << (int)pixel[1] << "< ";
+            std::cout << "B: " << (int)pixel[2] << "< \n";
+        }
+
+
         window.Update();
         // Log("flush " << glfwGetTime() - tt2);
         // Log(glfwGetTime() - tt2);
+        waterTime += dt;
         dt = glfwGetTime() - time;
-        // Log(dt);
+        //Log(dt);
         time = glfwGetTime();
     }
 }
