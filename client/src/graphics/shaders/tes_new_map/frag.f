@@ -10,6 +10,7 @@
 
 // layout (binding=0) uniform2D texId;
 uniform sampler2D tex[32];
+uniform float borderTime;
 
 out vec4 color;
 
@@ -45,7 +46,7 @@ void main()
             color.y += 0.1f;
             color.z += 0.1f;
         }
-         if (fs_in.normal.y > 0.1f)
+        if (fs_in.normal.y > 0.1f)
             color.y += 0.1f;
 */
         color = mix(texture(tex[0], fs_in.tc * 1000), vec4(fs_in.normal, 1.0, 1.0), 0.5);
@@ -55,9 +56,18 @@ void main()
     }
     else {
         float vv = 0.3;
-        color = vec4(vv, vv, vv, 1.0);
-        if (c1 == vec4(27.0 / 255.0, 36.0 / 255.0, 255.0 / 255.0, 1.0))
-            color = vec4(1.0, 1.0, 1.0, 1.0);
+        vec4 provCol = vec4(27.0 / 255.0, 36.0 / 255.0, 255.0 / 255.0, 1.0);
+        if (c1 == provCol || c2 == provCol || c3 == provCol || c4 == provCol || c5 == provCol || c6 == provCol) {
+            float sinBor = sin(borderTime);
+            float d = sin(borderTime + fs_in.x / 64.0);
+            float r = abs(d), g = abs(d), b = 0.0f;
+            if (r < 0.5) r = 0.5;
+            if (g < 0.5) g = 0.5;
+            color = vec4(r, g, b, 1.0);
+            color = mix(vec4(r, g, b, 1.0), vec4(0.9f, 0.8f, 0.0f, 1.0), d);
+        }
+        else
+            color = vec4(vv, vv, vv, 1.0);
     }
 
     // color = fs_in.ccolor;

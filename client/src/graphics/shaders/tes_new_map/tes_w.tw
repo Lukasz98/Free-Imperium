@@ -51,7 +51,7 @@ void main(void)
                 gl_TessCoord.z * gl_in[2].gl_Position);
 
     // float z =  ( texture(height, tc).r);
-    float z = (texture(tex[3], tc).r) * 4.0;
+    float z = (texture(tex[3], tc).r) * 4.0 * 2.0;
     vec4 zz;
     if (z != 0.0) {
         zz = vec4(0.0, 0.0, z * 30.0, 0.0);
@@ -91,12 +91,12 @@ void main(void)
     }
     */
     if (c1 != c2) {
-        float vv = waterTime + pos.x / 6010;
+        float vv = waterTime + pos.y;
         //vv = pos.y;
         pos.x += sin(vv);
     }
     else if (c1 != c5 || c1 != c6) {
-        float vv = waterTime + pos.x / 6010;
+        float vv = waterTime + pos.x;
        //vv = pos.x;
         pos.y += cos(vv);
     }

@@ -607,7 +607,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     std::vector<Vertexx> vertexes;
     float tid = 0.0f;
     Vec4 color{1.0f, 0.0f, 0.0f, 1.0f};
-    float scale = 2.0f;
+    float scale = 4.0f;
     float w = 64.0f;  // * scale;
     float ww = w * scale;
     float x = 0.0f, y = 0.0f, z = 0.0f;
@@ -775,6 +775,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
 
         if (window.keys['B'])
             glUniform1f(glGetUniformLocation(shader.GetProgram(), "waterTime"), waterTime);
+        
+        glUniform1f(glGetUniformLocation(shader.GetProgram(), "borderTime"), waterTime);
 
 #if batch_rend
         batch.Begin();
@@ -861,7 +863,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         // Log(glfwGetTime() - tt2);
         waterTime += dt;
         dt = glfwGetTime() - time;
-        //Log(dt);
+        Log(dt);
         time = glfwGetTime();
     }
 }
