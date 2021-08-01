@@ -122,6 +122,107 @@ void MapBatch::Flush()
     tFlush += (glfwGetTime() - tt2);
 }
 
+struct TreeModel {
+    GLuint vao, vbo;
+
+    TreeModel()
+    {
+        glm::vec4 brown{43.0 / 255.0, 20.0 / 255.0, 20.0 / 255.0, 1.0};
+        glm::vec4 green{10.0 / 255.0, 127.0 / 255.0, 18.0 / 255.0, 1.0};
+        //auto vertInit = {
+        float vertInit[] = {
+                            0.0f, 0.0f, 0.0f, //front
+                            brown.x, brown.y, brown.z, brown.w,
+                            1.0f, 0.0f, 0.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+                            1.0f, 0.0f, 1.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+
+                            0.0f, 0.0f, 0.0f, 
+                            brown.x, brown.y, brown.z, brown.w,
+                            0.0f, 0.0f, 1.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+                            1.0f, 0.0f, 1.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+                            
+
+                            0.0f, 1.0f, 0.0f, //back
+                            brown.x, brown.y, brown.z, brown.w,
+                            1.0f, 1.0f, 0.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+                            1.0f, 1.0f, 1.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+
+                            0.0f, 1.0f, 0.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+                            0.0f, 1.0f, 1.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+                            1.0f, 1.0f, 1.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+                            
+
+                            0.0f, 0.0f, 0.0f, //left
+                            brown.x, brown.y, brown.z, brown.w,
+                            0.0f, 1.0f, 0.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+                            0.0f, 1.0f, 1.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+                            
+                            0.0f, 0.0f, 0.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+                            0.0f, 0.0f, 1.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+                            0.0f, 1.0f, 1.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+                            
+
+                            1.0f, 0.0f, 0.0f, //right
+                            brown.x, brown.y, brown.z, brown.w,
+                            1.0f, 1.0f, 0.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+                            1.0f, 1.0f, 1.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+                            
+                            1.0f, 0.0f, 0.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+                            1.0f, 0.0f, 1.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+                            1.0f, 1.0f, 1.0f,
+                            brown.x, brown.y, brown.z, brown.w,
+
+
+                            -0.5f, 0.5f, 1.0f, //vertical 1
+                            green.x, green.y, green.z, green.w,
+                            1.5f, 0.5f, 1.0f,
+                            green.x, green.y, green.z, green.w,
+                            0.5f, 0.5f, 2.0f,
+                            green.x, green.y, green.z, green.w,
+                            
+                            0.5f, -0.5f, 1.0f, //vertical 2
+                            green.x, green.y, green.z, green.w,
+                            0.5f, 1.5f, 1.0f,
+                            green.x, green.y, green.z, green.w,
+                            0.5f, 0.5f, 2.0f,
+                            green.x, green.y, green.z, green.w
+        };
+        
+        glCreateVertexArrays(1, &vao);
+        glBindVertexArray(vao);
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+        glBufferData(GL_ARRAY_BUFFER, 12 * 3 * 7 * sizeof(float), vertInit, GL_STATIC_DRAW);
+        //glBufferData(GL_ARRAY_BUFFER, 21 * 10 * sizeof(float), vertInit, GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 7, 0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (void*)(3 * sizeof(float)));
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+};
+
 void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
 {
     GLuint err = glGetError();
@@ -319,7 +420,60 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     err = glGetError();
     if (err)
         Log("Opengl error: " << err);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+
+    Shader treeShader{"src/graphics/shaders/tree/vert.v", "src/graphics/shaders/tree/frag.f", "", ""};
+
+    
+    //glm::vec3 treePos = glm::vec3(mapWidth * 1.0 * 2.0, mapHeight * 1.4f * 2.0f, 0.0f);
+    TreeModel treeModel;
+    glBindVertexArray(treeModel.vao);
+    
+    //glm::vec3 treePos = glm::vec3(-10.0f, 0.0f, 0.0f);
+    float treePos[] = { 
+            -10.0f, 0.0f, 10.0f,
+            -5.0f, 0.0f, 10.0f,
+            -2.0f, 0.0f, 10.0f
+    };
+    int amount = 300;
+    glm::mat4 * tMat = new glm::mat4[amount];
+    
+    float tx = 0.0f, ty = 0.0f;
+    for (int i = 0; i < amount; ++i) {    
+        auto treeMl = glm::mat4(1.0);
+        treeMl = glm::translate(treeMl, glm::vec3{0.0 - tx, 0.0 + ty, 80.0});
+        treeMl = glm::scale(treeMl, glm::vec3{10.0, 10.0, 10.0});
+        tMat[i] = treeMl;
+
+        tx += 15.0f;
+        if (i % 20 == 0) {
+            tx = 0;
+            ty += 15.0f;
+        }
+    }
+
+    unsigned int treePosBuffer;
+    glGenBuffers(1, &treePosBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, treePosBuffer);
+    //glBufferData(GL_ARRAY_BUFFER, amount * 3 * sizeof(float), treePos, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, amount * 1 * sizeof(glm::mat4), tMat, GL_STATIC_DRAW);
+   
+
+
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+    glEnableVertexAttribArray(5);
+    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+    glVertexAttribDivisor(2, 1);
+    glVertexAttribDivisor(3, 1);
+    glVertexAttribDivisor(4, 1);
+    glVertexAttribDivisor(5, 1);
+    glBindVertexArray(0);
 
     float dt = 0.0f, waterTime = 0.0f;
     float time = glfwGetTime();
@@ -374,21 +528,21 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                     batch.Push(&vertexes[i]);
             }
             batch.Flush();
-            
+
             unsigned char pixel[4];
             int pixx = window.xMouse, pixy = windowSize.y - window.yMouse;
             Log(pixx << " - " << pixy);
             glReadPixels(pixx, pixy, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
 
             window.Refresh();
-            //glUseProgram(shader.GetProgram());
-            provColor = {(int)pixel[0] / 255.0, (int)pixel[1] / 255.0, (int)pixel[2] / 255.0}; 
-            //std::cout << "R: " << (double)pixel[0] << "< ";
-            //std::cout << "G: " << (int)pixel[0] << "< ";
-            //std::cout << "B: " << (int)pixel[2] << "< \n";
-            //std::cout << "R: " << provColor.x << "< ";
-            //std::cout << "G: " << provColor.y << "< ";
-            //std::cout << "B: " << provColor.z << "< \n";
+            // glUseProgram(shader.GetProgram());
+            provColor = {(int)pixel[0] / 255.0, (int)pixel[1] / 255.0, (int)pixel[2] / 255.0};
+            // std::cout << "R: " << (double)pixel[0] << "< ";
+            // std::cout << "G: " << (int)pixel[0] << "< ";
+            // std::cout << "B: " << (int)pixel[2] << "< \n";
+            // std::cout << "R: " << provColor.x << "< ";
+            // std::cout << "G: " << provColor.y << "< ";
+            // std::cout << "B: " << provColor.z << "< \n";
         }
 
         glUseProgram(shader.GetProgram());
@@ -475,6 +629,25 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         batch.Push(vertsWater);
         batch.Push(&vertsWater[4]);
         batch.Flush();
+
+
+        // tree
+        glUseProgram(treeShader.GetProgram());
+
+        glUniformMatrix4fv(glGetUniformLocation(treeShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                           glm::value_ptr(matrix));
+//        glUniformMatrix4fv(glGetUniformLocation(treeShader.GetProgram(), "ml"), 1, GL_FALSE,
+//                           glm::value_ptr(treeMl));
+        glBindVertexArray(treeModel.vao);
+    //glBindBuffer(GL_ARRAY_BUFFER, treeModel.vbo);
+    //glBindBuffer(GL_ARRAY_BUFFER, treePosBuffer);
+        //glDrawElementsInstanced(GL_TRIANGLES, 0, GL_UNSIGNED_INT, 0, amount);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 3 * 2 * 12, amount);
+
+        // ~treee
+
+
+
         // int indicesCount = 6;
         // glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_SHORT, NULL);
         // glDrawElements(GL_TRIANGLES, vertexes.size() * 6, GL_UNSIGNED_SHORT, indices);
@@ -504,7 +677,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         // Log(glfwGetTime() - tt2);
         waterTime += dt;
         dt = glfwGetTime() - time;
-        //Log(dt);
+        Log(dt);
         time = glfwGetTime();
     }
 }
