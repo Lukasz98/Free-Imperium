@@ -11,6 +11,7 @@
 // layout (binding=0) uniform2D texId;
 uniform sampler2D tex[32];
 uniform float borderTime;
+uniform vec3 provColor;
 
 out vec4 color;
 
@@ -37,10 +38,10 @@ void main()
     vec4 c6 = texture(tex[1], vec2(fs_in.tc.x, fs_in.tc.y - off));
 
     if (c1 == c2 && c1 == c3 && c1 == c4 && c1 == c5 && c1 == c6) {
-        color = c1;
+        // color = c1;
         /*
         color = texture(tex[0], fs_in.tc * 1000);
-        
+
         if (fs_in.normal.x > 0.1f) {
             color.x += 0.1f;
             color.y += 0.1f;
@@ -49,20 +50,35 @@ void main()
         if (fs_in.normal.y > 0.1f)
             color.y += 0.1f;
 */
-        color = mix(texture(tex[0], fs_in.tc * 1000), vec4(fs_in.normal, 1.0, 1.0), 0.5);
-        color = mix(vec4(fs_in.normal, 1.0, 1.0), texture(tex[0], fs_in.tc * 1000), 0.8);
-        //color = texture(tex[0], fs_in.tc * 1000) + vec4(fs_in.normal.x, fs_in.normal.y, 0.0, 0.0);
+        // color = mix(texture(tex[0], fs_in.tc * 1000), vec4(fs_in.normal, 1.0, 1.0), 0.8);
+        // color = mix(vec4(fs_in.normal, 1.0, 1.0), texture(tex[0], fs_in.tc * 1000), 0.8);
+        color = texture(tex[0], fs_in.tc * 1000);
+        if (fs_in.normal.x > 0.0f) {
+            color.x -= fs_in.normal.x * 0.1f;
+            color.y -= fs_in.normal.x * 0.1f;
+            color.z -= fs_in.normal.x * 0.1f;
+        }
+
+        if (fs_in.h > 80.0f) {
+            //vec4 pick = vec4(0.2f, 0.2f, 0.2f, 1.0f);
+            vec4 pick = vec4(0.33f, 0.33f, 0.33f, 1.0f);
+            color = mix(color, pick, fs_in.h / 120.0f);
+        }
+
+        // color = texture(tex[0], fs_in.tc * 1000) + vec4(fs_in.normal.x, fs_in.normal.y, 0.0, 0.0);
         // color = vec4(fs_in.normal.x, fs_in.normal.y, 0.0, 1.0);
     }
     else {
         float vv = 0.3;
-        vec4 provCol = vec4(27.0 / 255.0, 36.0 / 255.0, 255.0 / 255.0, 1.0);
-        if (c1 == provCol || c2 == provCol || c3 == provCol || c4 == provCol || c5 == provCol || c6 == provCol) {
+        //vec4 provColoror = vec4(27.0 / 255.0, 36.0 / 255.0, 255.0 / 255.0, 1.0);
+        if (c1.xyz == provColor || c2.xyz == provColor || c3.xyz == provColor || c4.xyz == provColor || c5.xyz == provColor || c6.xyz == provColor) {
             float sinBor = sin(borderTime);
             float d = sin(borderTime + fs_in.x / 64.0);
             float r = abs(d), g = abs(d), b = 0.0f;
-            if (r < 0.5) r = 0.5;
-            if (g < 0.5) g = 0.5;
+            if (r < 0.5)
+                r = 0.5;
+            if (g < 0.5)
+                g = 0.5;
             color = vec4(r, g, b, 1.0);
             color = mix(vec4(r, g, b, 1.0), vec4(0.9f, 0.8f, 0.0f, 1.0), d);
         }

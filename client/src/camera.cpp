@@ -13,7 +13,7 @@ Camera::Camera(glm::vec2 winSize)
     near = 5.1f, far = 1000.1f;
     //near = 40.5f, far = 1000.1f;
 far = 1800.0f;
-near = 2.1f;
+near = 65.1f;
     windowSize = winSize;
     projection = glm::perspectiveFovRH(fov, width, height, near, far);
     //eye = glm::vec3(2000.0, 700.0, 169.0f);
