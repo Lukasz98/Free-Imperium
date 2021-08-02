@@ -211,7 +211,8 @@ struct TreeModel {
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-        glBufferData(GL_ARRAY_BUFFER, 12 * 3 * 7 * sizeof(float), vertInit, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, 5 * 2 * 3 * 7 * sizeof(float), vertInit, GL_STATIC_DRAW);
+        //glBufferData(GL_ARRAY_BUFFER, 12 * 3 * 7 * sizeof(float), vertInit, GL_STATIC_DRAW);
         //glBufferData(GL_ARRAY_BUFFER, 21 * 10 * sizeof(float), vertInit, GL_STATIC_DRAW);
 
         glEnableVertexAttribArray(0);
@@ -453,7 +454,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         }
     }
 
-    unsigned int treePosBuffer;
+    GLuint treePosBuffer;
     glGenBuffers(1, &treePosBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, treePosBuffer);
     //glBufferData(GL_ARRAY_BUFFER, amount * 3 * sizeof(float), treePos, GL_STATIC_DRAW);
@@ -642,7 +643,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     //glBindBuffer(GL_ARRAY_BUFFER, treeModel.vbo);
     //glBindBuffer(GL_ARRAY_BUFFER, treePosBuffer);
         //glDrawElementsInstanced(GL_TRIANGLES, 0, GL_UNSIGNED_INT, 0, amount);
-        glDrawArraysInstanced(GL_TRIANGLES, 0, 3 * 2 * 12, amount);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 3 * 2 * 5, amount);
+        //glDrawArraysInstanced(GL_TRIANGLES, 0, 3 * 2 * 12, amount);
 
         // ~treee
 
