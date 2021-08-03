@@ -26,7 +26,7 @@ near = 65.1f;
     
     //eye = glm::vec3(100.0, 50.0, 169.0f);
     eye = glm::vec3(mapWidth * 1.0 * 2.0, mapHeight * 1.4f * 2.0f, 169.0f + 150.0f);
-    eye = glm::vec3(-20.0f, 0.0f, 169.0f + 150.0f);
+    //eye = glm::vec3(-20.0f, 0.0f, 169.0f + 150.0f);
 maxZ = 1800.0f;    
     //eye = glm::vec3(0.0, 0.0, 169.0f);
     up = glm::vec3(0.0f, 1.0f, 0.0f);

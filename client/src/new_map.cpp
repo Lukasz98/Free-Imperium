@@ -129,6 +129,7 @@ struct TreeModel {
     {
         glm::vec4 brown{43.0 / 255.0, 20.0 / 255.0, 20.0 / 255.0, 1.0};
         glm::vec4 green{10.0 / 255.0, 127.0 / 255.0, 18.0 / 255.0, 1.0};
+        glm::vec4 greener{18.0 / 255.0, 74.0 / 255.0, 9.0 / 255.0, 1.0};
         //auto vertInit = {
         float vertInit[] = {
                             0.0f, 0.0f, 0.0f, //front
@@ -199,11 +200,11 @@ struct TreeModel {
                             green.x, green.y, green.z, green.w,
                             
                             0.5f, -0.5f, 1.0f, //vertical 2
-                            green.x, green.y, green.z, green.w,
+                            greener.x, greener.y, greener.z, greener.w,
                             0.5f, 1.5f, 1.0f,
-                            green.x, green.y, green.z, green.w,
+                            greener.x, greener.y, greener.z, greener.w,
                             0.5f, 0.5f, 2.0f,
-                            green.x, green.y, green.z, green.w
+                            greener.x, greener.y, greener.z, greener.w,
         };
         
         glCreateVertexArrays(1, &vao);
@@ -248,6 +249,9 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     int mapWidth = 5632, mapHeight = 2048;
     Texture heightMap{"/home/lukasz/Pobrane/Heightmap.png", mapWidth, mapHeight};
     Texture provTexture{"/home/lukasz/Pobrane/Provinces_org.png", mapWidth, mapHeight};
+    //int terrainMapWidth = 1279, terrainMapHeight = 463;
+    int terrainMapWidth = 5632, terrainMapHeight = 2048;
+    Texture terrainTexture{"src/img/terrain_map.png", terrainMapWidth, terrainMapHeight};
     Texture grassT{"../shared/grass1.png", 64, 64, GL_REPEAT};
     Texture stoneT{"../shared/smoothstone.png", 64, 64, GL_REPEAT};
     Texture waterT{"../shared/water1.png", 64, 64, GL_REPEAT};
@@ -437,9 +441,9 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             -5.0f, 0.0f, 10.0f,
             -2.0f, 0.0f, 10.0f
     };
+    /*
     int amount = 300;
     glm::mat4 * tMat = new glm::mat4[amount];
-    
     float tx = 0.0f, ty = 0.0f;
     for (int i = 0; i < amount; ++i) {    
         auto treeMl = glm::mat4(1.0);
@@ -453,12 +457,39 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             ty += 15.0f;
         }
     }
-
+    */
+    std::vector<glm::mat4> tMat;
+    auto terrainPix = terrainTexture.GetPixels();
+    auto heightPix = heightMap.GetPixels();
+    for (int y = 0; y < terrainMapHeight; y += 2) {
+        for (int x = 0; x < terrainMapWidth; ++x) {
+            int index = y * terrainMapWidth * 4 + x * 4;
+            //if (terrainPix[index] == 16 && terrainPix[index + 1] == 60 && terrainPix[index + 2] == 9) {
+            //if ((terrainPix[index] >= 14 && terrainPix[index + 1] >= 58 && terrainPix[index + 2] >= 6) &&
+            //    (terrainPix[index] <= 18 && terrainPix[index + 1] <= 62 && terrainPix[index + 2] <= 11)) {
+            if (terrainPix[index] == 41 && terrainPix[index + 1] == 155 && terrainPix[index + 2] == 22 && sin(x * y) > 0.7 ) {
+                auto treeMl = glm::mat4(1.0);
+                treeMl = glm::translate(treeMl, glm::vec3{(double)x * scale, (double)y * scale, 1.0 * heightPix[index]});
+                //treeMl = glm::translate(treeMl, glm::vec3{ 0.0 + x * ((double)mapWidth / terrainMapWidth) * scale, 0.0 + y * ((double)mapHeight / terrainMapHeight) * scale, 130.0});
+                treeMl = glm::scale(treeMl, glm::vec3{5.0, 5.0, 10.0});
+                tMat.push_back(treeMl);
+                //Log((int)heightPix[index]);
+            }
+            else if (terrainPix[index] == 18 && terrainPix[index + 1] == 74 && terrainPix[index + 2] == 9 && sin(x * y) > 0.5) {
+                auto treeMl = glm::mat4(1.0);
+                treeMl = glm::translate(treeMl, glm::vec3{(double)x * scale, (double)y * scale, 1.0 * heightPix[index]});
+                treeMl = glm::scale(treeMl, glm::vec3{5.0, 5.0, 10.0});
+                tMat.push_back(treeMl);
+            }
+        }
+    }
+    int amount = tMat.size();
+    Log("trees amount = " << amount);
     GLuint treePosBuffer;
     glGenBuffers(1, &treePosBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, treePosBuffer);
     //glBufferData(GL_ARRAY_BUFFER, amount * 3 * sizeof(float), treePos, GL_STATIC_DRAW);
-    glBufferData(GL_ARRAY_BUFFER, amount * 1 * sizeof(glm::mat4), tMat, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, amount * 1 * sizeof(glm::mat4), tMat.data(), GL_STATIC_DRAW);
    
 
 
@@ -501,7 +532,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             // tesLevel = sin(time) * 64.0f;
             if (tesLevel < 0.0f)
                 tesLevel *= -1.0f;
-            Log(tesLevel);
+            //Log(tesLevel);
             tesLevel = 32.0f;
             glUseProgram(shader.GetProgram());
             glUniform1f(glGetUniformLocation(shader.GetProgram(), "level"), tesLevel);
@@ -634,6 +665,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
 
         // tree
         glUseProgram(treeShader.GetProgram());
+    
+        glUniform1iv(glGetUniformLocation(waterShader.GetProgram(), "tex"), 32, texID);
 
         glUniformMatrix4fv(glGetUniformLocation(treeShader.GetProgram(), "matrix"), 1, GL_FALSE,
                            glm::value_ptr(matrix));
