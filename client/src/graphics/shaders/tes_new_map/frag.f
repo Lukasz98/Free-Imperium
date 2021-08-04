@@ -59,19 +59,57 @@ void main()
             color.z -= fs_in.normal.x * 0.1f;
         }
 
-        if (fs_in.h > 80.0f) {
-            //vec4 pick = vec4(0.2f, 0.2f, 0.2f, 1.0f);
+        vec4 mountain = vec4(105.0 / 255.0, 24.0 / 255.0, 4.0 / 255.0, 1.0);
+        vec4 highland = vec4(176.0 / 255.0, 129.0 / 255.0, 21.0 / 255.0, 1.0);
+        vec4 steppe = vec4(147.0 / 255.0, 200.0 / 255.0, 83.0 / 255.0, 1.0);
+        vec4 desert = vec4(242.0 / 255.0, 242.0 / 255.0, 111.0 / 255.0, 1.0);
+        vec4 sandRock = vec4(232.0 / 255.0, 172.0 / 255.0, 102.0 / 255.0, 1.0);
+        vec4 cc1 = texture(tex[5], fs_in.tc);
+        if (cc1 == sandRock) {
+            off = 0.0008;
+            vec4 cc2 = texture(tex[5], vec2(fs_in.tc.x + off, fs_in.tc.y));
+            vec4 cc3 = texture(tex[5], vec2(fs_in.tc.x + off, fs_in.tc.y + off));
+            vec4 cc4 = texture(tex[5], vec2(fs_in.tc.x + off, fs_in.tc.y - off));
+            vec4 cc5 = texture(tex[5], vec2(fs_in.tc.x, fs_in.tc.y + off));
+            vec4 cc6 = texture(tex[5], vec2(fs_in.tc.x, fs_in.tc.y - off));
+            // color = mix(texture(tex[5], fs_in.tc), color, 0.5);
+            float www = 0.2;
+            if (cc1 != cc2 || cc1 != cc3 || cc1 != cc4 || cc1 != cc5 || cc1 != cc6) {
+                www = 0.6;
+            }
+            www = fs_in.h / 120.0f;
+            color = mix(texture(tex[6], fs_in.tc * 1000), color, www);
+            // color = texture(tex[6], fs_in.tc * 1000);
+        }
+        else if (cc1 == mountain) {
+            // if (fs_in.h > 80.0f) {
+            // vec4 pick = vec4(0.2f, 0.2f, 0.2f, 1.0f);
             vec4 pick = vec4(0.33f, 0.33f, 0.33f, 1.0f);
             color = mix(color, pick, fs_in.h / 120.0f);
+            //}
         }
-
+        else if (cc1 == highland) {
+            vec4 pick = vec4(0.33f, 0.33f, 0.33f, 1.0f);
+            color = mix(color, pick, fs_in.h / 220.0f);
+        }
+        else if (cc1 == steppe) {
+            vec4 pick = vec4(191.0 / 255.0, 239.0 / 255.0, 146.0 / 255.0, 1.0f);
+            color = mix(color, pick, fs_in.h / 220.0f);
+        }
+        else if (cc1 == desert) {
+            vec4 pick = vec4(209.0 / 255.0, 219.0 / 255.0, 160.0 / 255.0, 1.0f);
+            color = mix(color, pick, 1.0);//fs_in.h / 20.0f);
+            color = mix(color, texture(tex[6], fs_in.tc * 1000), 0.7);//fs_in.h / 20.0f);
+        }
         // color = texture(tex[0], fs_in.tc * 1000) + vec4(fs_in.normal.x, fs_in.normal.y, 0.0, 0.0);
         // color = vec4(fs_in.normal.x, fs_in.normal.y, 0.0, 1.0);
     }
     else {
         float vv = 0.3;
-        //vec4 provColoror = vec4(27.0 / 255.0, 36.0 / 255.0, 255.0 / 255.0, 1.0);
-        if (c1.xyz == provColor || c2.xyz == provColor || c3.xyz == provColor || c4.xyz == provColor || c5.xyz == provColor || c6.xyz == provColor) {
+        // vec4 provColoror = vec4(27.0 / 255.0, 36.0 / 255.0, 255.0 / 255.0, 1.0);
+        if (c1.xyz == provColor || c2.xyz == provColor || c3.xyz == provColor || c4.xyz == provColor ||
+            c5.xyz == provColor || c6.xyz == provColor)
+        {
             float sinBor = sin(borderTime);
             float d = sin(borderTime + fs_in.x / 64.0);
             float r = abs(d), g = abs(d), b = 0.0f;

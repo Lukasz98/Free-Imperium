@@ -247,38 +247,50 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         Log("Opengl error: " << err);
 
     int mapWidth = 5632, mapHeight = 2048;
+    int terrainMapWidth = 5632, terrainMapHeight = 2048;
+    Texture terrainTexture{"src/img/terrain_map.png", terrainMapWidth, terrainMapHeight};
     Texture heightMap{"/home/lukasz/Pobrane/Heightmap.png", mapWidth, mapHeight};
     Texture provTexture{"/home/lukasz/Pobrane/Provinces_org.png", mapWidth, mapHeight};
     //int terrainMapWidth = 1279, terrainMapHeight = 463;
-    int terrainMapWidth = 5632, terrainMapHeight = 2048;
-    Texture terrainTexture{"src/img/terrain_map.png", terrainMapWidth, terrainMapHeight};
     Texture grassT{"../shared/grass1.png", 64, 64, GL_REPEAT};
     Texture stoneT{"../shared/smoothstone.png", 64, 64, GL_REPEAT};
     Texture waterT{"../shared/water1.png", 64, 64, GL_REPEAT};
+    Texture sandT{"src/img/Sand_1.png", 32, 32, GL_REPEAT};
     err = glGetError();
     if (err)
         Log("Opengl error: " << err);
     int texID[32];
     for (int i = 0; i < 32; i++) texID[i] = i;
     texID[0] = grassT.GetId();
+    Log("grass: " << texID[0]);
     texID[1] = provTexture.GetId();
-    Log("Prov kurtyzana " << texID[1]);
+    Log("prov: " << texID[1]);
     texID[2] = stoneT.GetId();
+    Log("stone: " << texID[2]);
     texID[3] = heightMap.GetId();
+    Log("height: " << texID[3]);
     texID[4] = waterT.GetId();
+    Log("water: " << texID[4]);
+    texID[5] = terrainTexture.GetId();
+    Log("terrain: " << texID[5]);
+    texID[6] = sandT.GetId();
+    Log("sand: " << texID[6]);
+    //Log("Prov kurtyzana " << texID[3]);
     glUniform1iv(glGetUniformLocation(shader.GetProgram(), "tex"), 32, texID);
     err = glGetError();
     if (err)
         Log("Opengl error: " << err);
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 7; ++i) {
         // glActiveTexture((GLuint)texID[i]);
 
-        glActiveTexture(GL_TEXTURE0 + i);
+        //glActiveTexture(GL_TEXTURE0 + i);
+        glActiveTexture(GL_TEXTURE0 + texID[i]);
         glBindTexture(GL_TEXTURE_2D, (GLuint)texID[i]);
         err = glGetError();
         if (err)
             Log("Opengl error: " << err << " " << i);
+            Log("Opengl error: " << err << " " << (GLuint)texID[i]);
     }
 
     glUseProgram(waterShader.GetProgram());
@@ -506,7 +518,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     glVertexAttribDivisor(4, 1);
     glVertexAttribDivisor(5, 1);
     glBindVertexArray(0);
-
+float tesLevel  = 32.0f;
     float dt = 0.0f, waterTime = 0.0f;
     float time = glfwGetTime();
     while (!window.ShouldClose()) {
@@ -523,12 +535,21 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             camera.Rotate(1, dt);
         if (window.keys['T'])
             camera.Rotate(-1, dt);
+        if (window.keys['M']) {
+            shader = Shader("src/graphics/shaders/tes_new_map/vert.v", "src/graphics/shaders/tes_new_map/frag.f",
+                  "src/graphics/shaders/tes_new_map/tes_ster.ts", "src/graphics/shaders/tes_new_map/tes_w.tw");
+            borderShader = Shader{"src/graphics/shaders/borders/vert.v", "src/graphics/shaders/borders/frag.f", "", ""};
+            waterShader = Shader("src/graphics/shaders/water/vert.v", "src/graphics/shaders/water/frag.f",
+                       "src/graphics/shaders/water/tes_ster.ts", "src/graphics/shaders/water/tes_w.tw");
+            colorMapShader = Shader("src/graphics/shaders/map_pick/vert.v", "src/graphics/shaders/map_pick/frag.f",
+                          "src/graphics/shaders/map_pick/tes_ster.ts", "src/graphics/shaders/map_pick/tes_w.tw");
+        }
 
         if (window.scrollOffset) {
             camera.Scroll(window.scrollOffset);
             window.scrollOffset = 0;
             // float tesLevel = camera.GetFovDelta() * 20.0f + 15.0f;
-            float tesLevel = camera.GetScrollPerc() + 15.0f;
+            tesLevel = camera.GetScrollPerc() + 15.0f;
             // tesLevel = sin(time) * 64.0f;
             if (tesLevel < 0.0f)
                 tesLevel *= -1.0f;
@@ -578,6 +599,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         }
 
         glUseProgram(shader.GetProgram());
+        glUniform1f(glGetUniformLocation(shader.GetProgram(), "level"), tesLevel);
         glUniform3fv(glGetUniformLocation(shader.GetProgram(), "provColor"), 1, glm::value_ptr(provColor));
         glUniformMatrix4fv(glGetUniformLocation(shader.GetProgram(), "pr_matrix"), 1, GL_FALSE,
                            glm::value_ptr(matrix));
@@ -594,6 +616,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             glUniform1f(glGetUniformLocation(shader.GetProgram(), "waterTime"), waterTime);
 
         glUniform1f(glGetUniformLocation(shader.GetProgram(), "borderTime"), waterTime);
+        glUniform1iv(glGetUniformLocation(shader.GetProgram(), "tex"), 32, texID);
 
 #if batch_rend
         batch.Begin();
@@ -617,6 +640,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
 #endif
 
         glUseProgram(waterShader.GetProgram());
+    glUniform1f(glGetUniformLocation(waterShader.GetProgram(), "level"), 32);
+    glUniform1iv(glGetUniformLocation(waterShader.GetProgram(), "tex"), 32, texID);
         glUniformMatrix4fv(glGetUniformLocation(waterShader.GetProgram(), "pr_matrix"), 1, GL_FALSE,
                            glm::value_ptr(matrix));
 
@@ -666,7 +691,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         // tree
         glUseProgram(treeShader.GetProgram());
     
-        glUniform1iv(glGetUniformLocation(waterShader.GetProgram(), "tex"), 32, texID);
+        //glUniform1iv(glGetUniformLocation(waterShader.GetProgram(), "tex"), 32, texID);
 
         glUniformMatrix4fv(glGetUniformLocation(treeShader.GetProgram(), "matrix"), 1, GL_FALSE,
                            glm::value_ptr(matrix));
