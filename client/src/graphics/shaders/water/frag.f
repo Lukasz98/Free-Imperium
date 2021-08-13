@@ -25,7 +25,7 @@ uniform float waterTime;
 void main()
 {
     color = fs_in.ccolor; 
-    color = texture(tex[4], fs_in.tc * 100);
+    color = texture(tex[4], fs_in.tc * 100.0);
     //color = mix(color, vec4(0.2, 0.2, 1.0, 1.0), 0.5 - sin(waterTime) * 0.2);
     //color.w = 0.5;
     //color = vec4(0.0, 0.0, 1.0, 1.0);

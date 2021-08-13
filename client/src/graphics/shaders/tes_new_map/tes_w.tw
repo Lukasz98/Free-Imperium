@@ -107,13 +107,12 @@ void main(void)
 
     gl_Position = matrix * pos;
 
-    float tcOff = 0.0005;
-    tcOff = 0.001;
-    float right = (texture(tex[1], vec2(tcOff, 0.0) + tc).r);
-    float bottom = (texture(tex[1], vec2(0.0, -tcOff) + tc).r);
-    float top = (texture(tex[1], vec2(0.0, tcOff) + tc).r);
-    float left = (texture(tex[1], vec2(-tcOff, 0.0) + tc).r);
-    vec2 normal = vec2(left - right, bottom - top);
-    tes_out.normal = normal * 1.0;  // * sin(waterTime / 2);
+    float tcOff = 0.001, tcOffY = 0.002;
+    float right = (texture(tex[3], vec2(tc.x + tcOff, tc.y +0.0)).r);
+    float bottom = (texture(tex[3], vec2(tc.x + 0.0, tc.y - tcOffY)).r);
+    float top = (texture(tex[3], vec2(tc.x + 0.0, tc.y + tcOffY)).r);
+    float left = (texture(tex[3], vec2(tc.x - tcOff, tc.y + 0.0)).r);
+    vec2 normal = vec2(left - right, bottom - top) * 5.0;
+    tes_out.normal = normal;// * 1.0 * sin(waterTime / 2);
     tes_out.h = pos.z;
 }
