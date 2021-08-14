@@ -1,8 +1,14 @@
 #include "new_map.h"
 
 #include <set>
+#include <fstream>
+#include <map>
+#include "asset_manager.h"
+
 
 #include "graphics/texture.h"
+
+void saveProvinceFromImg(const unsigned char * provs, const unsigned char * height, int w, int h);
 
 void MapBatch::Init()
 {
@@ -225,6 +231,75 @@ struct TreeModel {
     }
 };
 
+
+struct ProvData {
+    std::string name;
+    int r, g, b;
+    int id;
+    bool water;
+    float x, y;
+};
+unsigned int getHash(unsigned char r, unsigned char g, unsigned char b) {
+    unsigned int res = (unsigned int)r;
+    res |= ((unsigned int)g << 8);
+    res |= ((unsigned int)b << 16);
+    return res;
+}
+
+std::vector<ProvData> provinces;
+std::map<unsigned int, int> colorToId;
+
+void loadProvData()
+{
+    std::fstream f;
+    f.open("ProvDataTest.txt", std::fstream::in);
+    std::string w;
+    while (f >> w) {
+        if (w == "{") {
+            ProvData pd;
+            while (f >> w) {
+                if (w == "}") {
+                    provinces.push_back(pd);
+                    colorToId[getHash(pd.r, pd.g, pd.b)] = pd.id;
+                    break;
+                }
+                else if (w == "id:") {
+                    f >> w;
+                    pd.id = std::atoi(w.c_str());
+                }
+                else if (w == "name:") {
+                    f >> pd.name;
+                }
+                else if (w == "pos:") {
+                    f >> pd.x;
+                    f >> pd.y;
+                }
+                else if (w == "water:") {
+                    f >> pd.water;
+                }
+                else if (w == "color:") {
+                    f >> w;
+                    pd.r = std::atoi(w.c_str());
+                    f >> w;
+                    pd.g = std::atoi(w.c_str());
+                    f >> w;
+                    pd.b = std::atoi(w.c_str());
+                }
+                else {
+                    Log("cos tu nie gra");
+                }
+            }
+        }
+        else {
+            Log("cos tu nie gra");
+            break;
+        }
+    }
+    f.close();
+    std::sort(provinces.begin(), provinces.end(), [](ProvData a, ProvData b){ return a.id < b.id; });
+    Log(provinces[2793].r << ", "<<provinces[2793].r << ", "<<provinces[2793].r << ", ");
+}
+
 void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
 {
     GLuint err = glGetError();
@@ -249,6 +324,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     int mapWidth = 5632, mapHeight = 2048;
     int terrainMapWidth = 5632, terrainMapHeight = 2048;
     Texture terrainTexture{"src/img/terrain_map.png", terrainMapWidth, terrainMapHeight};
+    Texture waterMap{"src/img/Blank_map.png", terrainMapWidth, terrainMapHeight};
     Texture heightMap{"/home/lukasz/Pobrane/Heightmap.png", mapWidth, mapHeight};
     Texture provTexture{"/home/lukasz/Pobrane/Provinces_org.png", mapWidth, mapHeight};
     //int terrainMapWidth = 1279, terrainMapHeight = 463;
@@ -256,6 +332,11 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     Texture stoneT{"../shared/smoothstone.png", 64, 64, GL_REPEAT};
     Texture waterT{"../shared/water1.png", 64, 64, GL_REPEAT};
     Texture sandT{"src/img/Sand_1.png", 32, 32, GL_REPEAT};
+
+
+    //saveProvinceFromImg(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
+    loadProvData(); 
+
     err = glGetError();
     if (err)
         Log("Opengl error: " << err);
@@ -274,6 +355,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     texID[5] = terrainTexture.GetId();
     Log("terrain: " << texID[5]);
     texID[6] = sandT.GetId();
+    texID[7] = AM::am.modelTexture->GetId();
     Log("sand: " << texID[6]);
     //Log("Prov kurtyzana " << texID[3]);
     glUniform1iv(glGetUniformLocation(shader.GetProgram(), "tex"), 32, texID);
@@ -281,7 +363,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     if (err)
         Log("Opengl error: " << err);
 
-    for (int i = 0; i < 7; ++i) {
+    for (int i = 0; i < 8; ++i) {
         // glActiveTexture((GLuint)texID[i]);
 
         //glActiveTexture(GL_TEXTURE0 + i);
@@ -384,6 +466,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     glBufferData(GL_ARRAY_BUFFER, vertexDataSize, vertexes.data(), GL_STATIC_DRAW);
     Log("vbo=" << vbo);
     glEnableVertexArrayAttrib(vao, 0);
+    Log("tu");
     glEnableVertexArrayAttrib(vao, 1);
     glEnableVertexArrayAttrib(vao, 2);
     glEnableVertexArrayAttrib(vao, 3);
@@ -476,12 +559,13 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     for (int y = 0; y < terrainMapHeight; y += 2) {
         for (int x = 0; x < terrainMapWidth; ++x) {
             int index = y * terrainMapWidth * 4 + x * 4;
+            int hIndex = y * terrainMapWidth * 3 + x * 3;
             //if (terrainPix[index] == 16 && terrainPix[index + 1] == 60 && terrainPix[index + 2] == 9) {
             //if ((terrainPix[index] >= 14 && terrainPix[index + 1] >= 58 && terrainPix[index + 2] >= 6) &&
             //    (terrainPix[index] <= 18 && terrainPix[index + 1] <= 62 && terrainPix[index + 2] <= 11)) {
             if (terrainPix[index] == 41 && terrainPix[index + 1] == 155 && terrainPix[index + 2] == 22 && sin(x * y) > 0.7 ) {
                 auto treeMl = glm::mat4(1.0);
-                treeMl = glm::translate(treeMl, glm::vec3{(double)x * scale, (double)y * scale, 1.0 * heightPix[index]});
+                treeMl = glm::translate(treeMl, glm::vec3{(double)x * scale, (double)y * scale, 1.0 * heightPix[hIndex]});
                 //treeMl = glm::translate(treeMl, glm::vec3{ 0.0 + x * ((double)mapWidth / terrainMapWidth) * scale, 0.0 + y * ((double)mapHeight / terrainMapHeight) * scale, 130.0});
                 treeMl = glm::scale(treeMl, glm::vec3{5.0, 5.0, 10.0});
                 tMat.push_back(treeMl);
@@ -489,7 +573,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             }
             else if (terrainPix[index] == 18 && terrainPix[index + 1] == 74 && terrainPix[index + 2] == 9 && sin(x * y) > 0.5) {
                 auto treeMl = glm::mat4(1.0);
-                treeMl = glm::translate(treeMl, glm::vec3{(double)x * scale, (double)y * scale, 1.0 * heightPix[index]});
+                treeMl = glm::translate(treeMl, glm::vec3{(double)x * scale, (double)y * scale, 1.0 * heightPix[hIndex]});
                 treeMl = glm::scale(treeMl, glm::vec3{5.0, 5.0, 10.0});
                 tMat.push_back(treeMl);
             }
@@ -519,6 +603,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     glVertexAttribDivisor(5, 1);
     glBindVertexArray(0);
 float tesLevel  = 32.0f;
+glm::vec3 unitPos;
     float dt = 0.0f, waterTime = 0.0f;
     float time = glfwGetTime();
     while (!window.ShouldClose()) {
@@ -584,15 +669,24 @@ float tesLevel  = 32.0f;
 
             unsigned char pixel[4];
             int pixx = window.xMouse, pixy = windowSize.y - window.yMouse;
-            Log(pixx << " - " << pixy);
+            //Log(pixx << " - " << pixy);
             glReadPixels(pixx, pixy, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
 
             window.Refresh();
             // glUseProgram(shader.GetProgram());
             provColor = {(int)pixel[0] / 255.0, (int)pixel[1] / 255.0, (int)pixel[2] / 255.0};
-            // std::cout << "R: " << (double)pixel[0] << "< ";
-            // std::cout << "G: " << (int)pixel[0] << "< ";
-            // std::cout << "B: " << (int)pixel[2] << "< \n";
+            unsigned int phash = getHash(pixel[0], pixel[1], pixel[2]);
+            if (colorToId.find(phash) != colorToId.end()) {
+                int pid = colorToId[phash];
+                Log(provinces[pid].id << ", water: " << provinces[pid].water << ", " << provinces[pid].name << ", col: " << provinces[pid].r << ", " << provinces[pid].g << ", " << provinces[pid].b); 
+                unitPos.x = provinces[pid].x * scale;
+                unitPos.y = provinces[pid].y * scale;
+                unitPos.z = heightMap.GetPixels()[(int)(provinces[pid].x * 3 + provinces[pid].y * mapWidth * 3)];
+                //unitPos.z = 120.0f;
+            }
+            std::cout << "R: " << (double)pixel[0] << "< ";
+            std::cout << "G: " << (int)pixel[0] << "< ";
+             std::cout << "B: " << (int)pixel[2] << "< \n";
             // std::cout << "R: " << provColor.x << "< ";
             // std::cout << "G: " << provColor.y << "< ";
             // std::cout << "B: " << provColor.z << "< \n";
@@ -687,6 +781,29 @@ float tesLevel  = 32.0f;
         batch.Push(&vertsWater[4]);
         batch.Flush();
 
+{
+
+//glm::mat4 model = glm::mat4(1.0);
+//    unitPos = glm::vec3(mapWidth * 1.0 * 2.0, mapHeight * 1.4f * 2.0f, 100.0f);
+glm::mat4 unitModel = glm::mat4(1.0);
+unitModel = glm::translate(unitModel, unitPos);
+
+float rotateX = 60.0f*3.1459265f/180.0f, yScale = 10.0f;
+glm::mat4 rotate = glm::mat4{1.0f};
+rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0}); 
+unitModel = unitModel * rotate;
+unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
+
+
+glUseProgram(AM::am.shader->GetProgram());
+glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
+glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE, glm::value_ptr(unitModel));
+glUniform1iv(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"), 32, texID);
+
+//AM::am.model->DrawRect(model);
+AM::am.model->Draw();
+
+}
 
         // tree
         glUseProgram(treeShader.GetProgram());
@@ -705,6 +822,8 @@ float tesLevel  = 32.0f;
         //glDrawArraysInstanced(GL_TRIANGLES, 0, 3 * 2 * 12, amount);
 
         // ~treee
+
+
 
 
 
@@ -737,8 +856,66 @@ float tesLevel  = 32.0f;
         // Log(glfwGetTime() - tt2);
         waterTime += dt;
         dt = glfwGetTime() - time;
-        Log(dt);
+        //Log(dt);
         time = glfwGetTime();
     }
+}
+
+
+void saveProvinceFromImg(const unsigned char * provs, const unsigned char * water, int w, int h)
+{
+    std::fstream f;
+    f.open("ProvDataTest.txt", std::fstream::out);
+    if (f.is_open())
+    Log("open");
+    std::map<unsigned int, ProvData> pmap;
+    for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+            int windex = x * 3 + (w * y) * 3;
+            int index = x * 3 + (w * y) * 3;
+            if (water[windex + 0] == 0 && water[windex + 1] == 0 && water[windex + 2] == 0)
+                continue;
+            unsigned int hash = getHash(provs[index + 0], provs[index + 1], provs[index + 2]); 
+            if (pmap.find(hash) == pmap.end()) {
+                ProvData pd;
+                pd.id = pmap.size();
+                pd.name = "Province" + std::to_string(pmap.size());
+                pd.r = provs[index + 0];
+                pd.g = provs[index + 1];
+                pd.b = provs[index + 2];
+                pd.x = x;
+                pd.y = y;
+                ///if (x == 2787 && y == 2048 - 647) {
+                if (water[windex + 0] == 68)
+                    pd.water = true;
+                else
+                    pd.water = false;
+                if (pd.r == 152 && pd.g == 118 && pd.b == 64) {
+                Log("!!!!!!id:" << pd.id << " -> " << (int)water[windex + 0] << " -> provColR: " << (int)provs[index + 0] << ", " << x << ", " << y << ", water: " << pd.water);
+                }
+                pmap[hash] = pd;
+
+            }
+            else { // sprawdz czy na pewno jest woda
+                //if (water[index + 0] == 255)
+                //    pmap[hash].water = false;
+                //else if (water[index + 0] == 68)
+                //    pmap[hash].water = true;
+            }
+        }
+    }
+    for (auto & pd: pmap) {
+                f << "{\n";
+                f << "id: " << pd.second.id << "\n";
+                f << "name: " << pd.second.name << '\n';
+                f << "pos: " << pd.second.x << " " << pd.second.y << '\n';
+                f << "water: " << pd.second.water << '\n';
+                f << "color: ";
+                f << std::to_string(pd.second.r) << " ";
+                f << std::to_string(pd.second.g) << " ";
+                f << std::to_string(pd.second.b) << "\n}\n";
+    }
+Log("pmap size = " << pmap.size());
+    f.close();
 }
 
