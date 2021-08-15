@@ -151,21 +151,6 @@ bool test = true;
             // color = mix(texture(tex[0], fs_in.tc * 1000), vec4(fs_in.normal, 1.0, 1.0), 0.8);
             // color = mix(vec4(fs_in.normal, 1.0, 1.0), texture(tex[0], fs_in.tc * 1000), 0.8);
             color = texture(tex[0], fs_in.tc * 1000);
-            if (fs_in.normal.x > 0.0f || true) {
-                color.x -= fs_in.normal.x * 0.1f;
-                color.y -= fs_in.normal.x * 0.1f;
-                color.z -= fs_in.normal.x * 0.1f;
-            }
-            if (fs_in.normal.x > fs_in.normal.y) {
-                color.x = fs_in.normal.x;
-                color.y = fs_in.normal.x;
-                color.z = fs_in.normal.x;
-            }
-            else{
-                color.x = fs_in.normal.y;
-                color.y = fs_in.normal.y;
-                color.z = fs_in.normal.y;
-            }
             color = mix(color, texture(tex[0], fs_in.tc * 1000), 0.7);
 
             vec4 mountain = vec4(105.0 / 255.0, 24.0 / 255.0, 4.0 / 255.0, 1.0);
@@ -207,8 +192,28 @@ bool test = true;
                 color = mix(color, pick, 1.0);                              // fs_in.h / 20.0f);
                 //color = mix(color, texture(tex[6], fs_in.tc * 1000), 0.7);  // fs_in.h / 20.0f);
             }
+            
+            if (texture(tex[8], fs_in.tc) != vec4(1.0, 1.0, 1.0, 1.0))
+                color = mix(color, texture(tex[8], fs_in.tc), 0.6);  // fs_in.h / 20.0f);
             // color = texture(tex[0], fs_in.tc * 1000) + vec4(fs_in.normal.x, fs_in.normal.y, 0.0, 0.0);
             // color = vec4(fs_in.normal.x, fs_in.normal.y, 0.0, 1.0);
+       /* 
+            if (fs_in.normal.x > 0.0f || true) {
+                color.x -= fs_in.normal.x * 0.1f;
+                color.y -= fs_in.normal.x * 0.1f;
+                color.z -= fs_in.normal.x * 0.1f;
+            }
+            if (fs_in.normal.x > fs_in.normal.y) {
+                color.x = fs_in.normal.x;
+                color.y = fs_in.normal.x;
+                color.z = fs_in.normal.x;
+            }
+            else{
+                color.x = fs_in.normal.y;
+                color.y = fs_in.normal.y;
+                color.z = fs_in.normal.y;
+            }
+*/
         }
         else {
             float vv = 0.3;

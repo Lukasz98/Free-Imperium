@@ -1,17 +1,19 @@
 #include "new_map.h"
 
-#include <set>
+#include <png.h>
+
+#include <cstring>
 #include <fstream>
 #include <map>
+#include <set>
 #include <string>
-#include <cstring>
+
 #include "asset_manager.h"
 #include "color.h"
-
 #include "graphics/texture.h"
 #include "load_values_from_txt.h"
 
-void saveProvinceFromImg(const unsigned char * provs, const unsigned char * height, int w, int h);
+void saveProvinceFromImg(const unsigned char* provs, const unsigned char* height, int w, int h);
 
 void MapBatch::Init()
 {
@@ -139,91 +141,57 @@ struct TreeModel {
         glm::vec4 brown{43.0 / 255.0, 20.0 / 255.0, 20.0 / 255.0, 1.0};
         glm::vec4 green{10.0 / 255.0, 127.0 / 255.0, 18.0 / 255.0, 1.0};
         glm::vec4 greener{18.0 / 255.0, 74.0 / 255.0, 9.0 / 255.0, 1.0};
-        //auto vertInit = {
+        // auto vertInit = {
         float vertInit[] = {
-                            0.0f, 0.0f, 0.0f, //front
-                            brown.x, brown.y, brown.z, brown.w,
-                            1.0f, 0.0f, 0.0f,
-                            brown.x, brown.y, brown.z, brown.w,
-                            1.0f, 0.0f, 1.0f,
-                            brown.x, brown.y, brown.z, brown.w,
+            0.0f,      0.0f,      0.0f,  // front
+            brown.x,   brown.y,   brown.z,   brown.w,   1.0f,    0.0f,      0.0f,      brown.x,   brown.y,
+            brown.z,   brown.w,   1.0f,      0.0f,      1.0f,    brown.x,   brown.y,   brown.z,   brown.w,
 
-                            0.0f, 0.0f, 0.0f, 
-                            brown.x, brown.y, brown.z, brown.w,
-                            0.0f, 0.0f, 1.0f,
-                            brown.x, brown.y, brown.z, brown.w,
-                            1.0f, 0.0f, 1.0f,
-                            brown.x, brown.y, brown.z, brown.w,
-                            
+            0.0f,      0.0f,      0.0f,      brown.x,   brown.y, brown.z,   brown.w,   0.0f,      0.0f,
+            1.0f,      brown.x,   brown.y,   brown.z,   brown.w, 1.0f,      0.0f,      1.0f,      brown.x,
+            brown.y,   brown.z,   brown.w,
 
-                            0.0f, 1.0f, 0.0f, //back
-                            brown.x, brown.y, brown.z, brown.w,
-                            1.0f, 1.0f, 0.0f,
-                            brown.x, brown.y, brown.z, brown.w,
-                            1.0f, 1.0f, 1.0f,
-                            brown.x, brown.y, brown.z, brown.w,
+            0.0f,      1.0f,      0.0f,  // back
+            brown.x,   brown.y,   brown.z,   brown.w,   1.0f,    1.0f,      0.0f,      brown.x,   brown.y,
+            brown.z,   brown.w,   1.0f,      1.0f,      1.0f,    brown.x,   brown.y,   brown.z,   brown.w,
 
-                            0.0f, 1.0f, 0.0f,
-                            brown.x, brown.y, brown.z, brown.w,
-                            0.0f, 1.0f, 1.0f,
-                            brown.x, brown.y, brown.z, brown.w,
-                            1.0f, 1.0f, 1.0f,
-                            brown.x, brown.y, brown.z, brown.w,
-                            
+            0.0f,      1.0f,      0.0f,      brown.x,   brown.y, brown.z,   brown.w,   0.0f,      1.0f,
+            1.0f,      brown.x,   brown.y,   brown.z,   brown.w, 1.0f,      1.0f,      1.0f,      brown.x,
+            brown.y,   brown.z,   brown.w,
 
-                            0.0f, 0.0f, 0.0f, //left
-                            brown.x, brown.y, brown.z, brown.w,
-                            0.0f, 1.0f, 0.0f,
-                            brown.x, brown.y, brown.z, brown.w,
-                            0.0f, 1.0f, 1.0f,
-                            brown.x, brown.y, brown.z, brown.w,
-                            
-                            0.0f, 0.0f, 0.0f,
-                            brown.x, brown.y, brown.z, brown.w,
-                            0.0f, 0.0f, 1.0f,
-                            brown.x, brown.y, brown.z, brown.w,
-                            0.0f, 1.0f, 1.0f,
-                            brown.x, brown.y, brown.z, brown.w,
-                            
+            0.0f,      0.0f,      0.0f,  // left
+            brown.x,   brown.y,   brown.z,   brown.w,   0.0f,    1.0f,      0.0f,      brown.x,   brown.y,
+            brown.z,   brown.w,   0.0f,      1.0f,      1.0f,    brown.x,   brown.y,   brown.z,   brown.w,
 
-                            1.0f, 0.0f, 0.0f, //right
-                            brown.x, brown.y, brown.z, brown.w,
-                            1.0f, 1.0f, 0.0f,
-                            brown.x, brown.y, brown.z, brown.w,
-                            1.0f, 1.0f, 1.0f,
-                            brown.x, brown.y, brown.z, brown.w,
-                            
-                            1.0f, 0.0f, 0.0f,
-                            brown.x, brown.y, brown.z, brown.w,
-                            1.0f, 0.0f, 1.0f,
-                            brown.x, brown.y, brown.z, brown.w,
-                            1.0f, 1.0f, 1.0f,
-                            brown.x, brown.y, brown.z, brown.w,
+            0.0f,      0.0f,      0.0f,      brown.x,   brown.y, brown.z,   brown.w,   0.0f,      0.0f,
+            1.0f,      brown.x,   brown.y,   brown.z,   brown.w, 0.0f,      1.0f,      1.0f,      brown.x,
+            brown.y,   brown.z,   brown.w,
 
+            1.0f,      0.0f,      0.0f,  // right
+            brown.x,   brown.y,   brown.z,   brown.w,   1.0f,    1.0f,      0.0f,      brown.x,   brown.y,
+            brown.z,   brown.w,   1.0f,      1.0f,      1.0f,    brown.x,   brown.y,   brown.z,   brown.w,
 
-                            -0.5f, 0.5f, 1.0f, //vertical 1
-                            green.x, green.y, green.z, green.w,
-                            1.5f, 0.5f, 1.0f,
-                            green.x, green.y, green.z, green.w,
-                            0.5f, 0.5f, 2.0f,
-                            green.x, green.y, green.z, green.w,
-                            
-                            0.5f, -0.5f, 1.0f, //vertical 2
-                            greener.x, greener.y, greener.z, greener.w,
-                            0.5f, 1.5f, 1.0f,
-                            greener.x, greener.y, greener.z, greener.w,
-                            0.5f, 0.5f, 2.0f,
-                            greener.x, greener.y, greener.z, greener.w,
+            1.0f,      0.0f,      0.0f,      brown.x,   brown.y, brown.z,   brown.w,   1.0f,      0.0f,
+            1.0f,      brown.x,   brown.y,   brown.z,   brown.w, 1.0f,      1.0f,      1.0f,      brown.x,
+            brown.y,   brown.z,   brown.w,
+
+            -0.5f,     0.5f,      1.0f,  // vertical 1
+            green.x,   green.y,   green.z,   green.w,   1.5f,    0.5f,      1.0f,      green.x,   green.y,
+            green.z,   green.w,   0.5f,      0.5f,      2.0f,    green.x,   green.y,   green.z,   green.w,
+
+            0.5f,      -0.5f,     1.0f,  // vertical 2
+            greener.x, greener.y, greener.z, greener.w, 0.5f,    1.5f,      1.0f,      greener.x, greener.y,
+            greener.z, greener.w, 0.5f,      0.5f,      2.0f,    greener.x, greener.y, greener.z, greener.w,
         };
-        
+
         glCreateVertexArrays(1, &vao);
         glBindVertexArray(vao);
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
         glBufferData(GL_ARRAY_BUFFER, 5 * 2 * 3 * 7 * sizeof(float), vertInit, GL_STATIC_DRAW);
-        //glBufferData(GL_ARRAY_BUFFER, 12 * 3 * 7 * sizeof(float), vertInit, GL_STATIC_DRAW);
-        //glBufferData(GL_ARRAY_BUFFER, 21 * 10 * sizeof(float), vertInit, GL_STATIC_DRAW);
+        // glBufferData(GL_ARRAY_BUFFER, 12 * 3 * 7 * sizeof(float), vertInit, GL_STATIC_DRAW);
+        // glBufferData(GL_ARRAY_BUFFER, 21 * 10 * sizeof(float), vertInit, GL_STATIC_DRAW);
 
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 7, 0);
@@ -234,16 +202,16 @@ struct TreeModel {
     }
 };
 
-
 struct ProvData {
     std::string name;
     int r, g, b;
-    int id;
+    int id, ctrId = -1;
     float x, y;
     std::set<int> neighb, neighbSea;
     bool water;
 };
-unsigned int getHash(unsigned char r, unsigned char g, unsigned char b) {
+unsigned int getHash(unsigned char r, unsigned char g, unsigned char b)
+{
     unsigned int res = (unsigned int)r;
     res |= ((unsigned int)g << 8);
     res |= ((unsigned int)b << 16);
@@ -253,10 +221,9 @@ unsigned int getHash(unsigned char r, unsigned char g, unsigned char b) {
 std::vector<ProvData> provinces;
 std::map<unsigned int, int> colorToId;
 
-
 void loadProvData()
 {
-unsigned int lineCount = 0;
+    unsigned int lineCount = 0;
     lineCount = 0;
     std::string fname{"ProvDataTest.txt"};
     std::fstream f;
@@ -264,7 +231,7 @@ unsigned int lineCount = 0;
     std::string line;
     while (getline(f, line)) {
         ++lineCount;
-        char * ptr = strtok(line.data(), " ");
+        char* ptr = strtok(line.data(), " ");
         if (strcmp(ptr, "{") != 0) {
             Log("ERROR -> fname: " << fname << ", line: " << lineCount);
             break;
@@ -309,14 +276,14 @@ unsigned int lineCount = 0;
                     pd.neighbSea.insert(loadInt2(ptr));
                 }
             }
-            else if (strcmp(ptr, "color:") == 0) {
+            else if (strcmp(ptr, "countryId:") == 0) {
+                pd.ctrId = loadInt(ptr);
             }
             else {
                 Log("cos tu nie gra: file: " << fname << ", line: " << lineCount);
                 break;
             }
         }
-
     }
     /*std::string w;
     while (f >> w) {
@@ -362,9 +329,16 @@ unsigned int lineCount = 0;
     }
     */
     f.close();
-    std::sort(provinces.begin(), provinces.end(), [](ProvData a, ProvData b){ return a.id < b.id; });
-    Log(provinces[2793].r << ", "<<provinces[2793].r << ", "<<provinces[2793].r << ", ");
+    std::sort(provinces.begin(), provinces.end(), [](ProvData a, ProvData b) { return a.id < b.id; });
+    Log(provinces[2793].r << ", " << provinces[2793].r << ", " << provinces[2793].r << ", ");
 }
+
+struct CountryData {
+    int id;
+    int r, g, b;
+};
+std::vector<CountryData> ctrsData;
+void loadCountriesData() {}
 
 void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
 {
@@ -393,15 +367,16 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     Texture waterMap{"src/img/Blank_map.png", terrainMapWidth, terrainMapHeight};
     Texture heightMap{"/home/lukasz/Pobrane/Heightmap.png", mapWidth, mapHeight};
     Texture provTexture{"/home/lukasz/Pobrane/Provinces_org.png", mapWidth, mapHeight};
-    //int terrainMapWidth = 1279, terrainMapHeight = 463;
+    // int terrainMapWidth = 1279, terrainMapHeight = 463;
     Texture grassT{"../shared/grass1.png", 64, 64, GL_REPEAT};
     Texture stoneT{"../shared/smoothstone.png", 64, 64, GL_REPEAT};
     Texture waterT{"../shared/water1.png", 64, 64, GL_REPEAT};
     Texture sandT{"src/img/Sand_1.png", 32, 32, GL_REPEAT};
-
+    Texture ctrsText{"src/img/countries_map.png", mapWidth, mapHeight};
 
     //saveProvinceFromImg(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
-    loadProvData(); 
+    loadProvData();
+    loadCountriesData();
 
     err = glGetError();
     if (err)
@@ -422,23 +397,24 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     Log("terrain: " << texID[5]);
     texID[6] = sandT.GetId();
     texID[7] = AM::am.modelTexture->GetId();
+    texID[8] = ctrsText.GetId();
     Log("sand: " << texID[6]);
-    //Log("Prov kurtyzana " << texID[3]);
+    // Log("Prov kurtyzana " << texID[3]);
     glUniform1iv(glGetUniformLocation(shader.GetProgram(), "tex"), 32, texID);
     err = glGetError();
     if (err)
         Log("Opengl error: " << err);
 
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < 9; ++i) {
         // glActiveTexture((GLuint)texID[i]);
 
-        //glActiveTexture(GL_TEXTURE0 + i);
+        // glActiveTexture(GL_TEXTURE0 + i);
         glActiveTexture(GL_TEXTURE0 + texID[i]);
         glBindTexture(GL_TEXTURE_2D, (GLuint)texID[i]);
         err = glGetError();
         if (err)
             Log("Opengl error: " << err << " " << i);
-            Log("Opengl error: " << err << " " << (GLuint)texID[i]);
+        Log("Opengl error: " << err << " " << (GLuint)texID[i]);
     }
 
     glUseProgram(waterShader.GetProgram());
@@ -586,27 +562,21 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     err = glGetError();
     if (err)
         Log("Opengl error: " << err);
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     Shader treeShader{"src/graphics/shaders/tree/vert.v", "src/graphics/shaders/tree/frag.f", "", ""};
 
-    
-    //glm::vec3 treePos = glm::vec3(mapWidth * 1.0 * 2.0, mapHeight * 1.4f * 2.0f, 0.0f);
+    // glm::vec3 treePos = glm::vec3(mapWidth * 1.0 * 2.0, mapHeight * 1.4f * 2.0f, 0.0f);
     TreeModel treeModel;
     glBindVertexArray(treeModel.vao);
-    
-    //glm::vec3 treePos = glm::vec3(-10.0f, 0.0f, 0.0f);
-    float treePos[] = { 
-            -10.0f, 0.0f, 10.0f,
-            -5.0f, 0.0f, 10.0f,
-            -2.0f, 0.0f, 10.0f
-    };
+
+    // glm::vec3 treePos = glm::vec3(-10.0f, 0.0f, 0.0f);
+    float treePos[] = {-10.0f, 0.0f, 10.0f, -5.0f, 0.0f, 10.0f, -2.0f, 0.0f, 10.0f};
     /*
     int amount = 300;
     glm::mat4 * tMat = new glm::mat4[amount];
     float tx = 0.0f, ty = 0.0f;
-    for (int i = 0; i < amount; ++i) {    
+    for (int i = 0; i < amount; ++i) {
         auto treeMl = glm::mat4(1.0);
         treeMl = glm::translate(treeMl, glm::vec3{0.0 - tx, 0.0 + ty, 80.0});
         treeMl = glm::scale(treeMl, glm::vec3{10.0, 10.0, 10.0});
@@ -626,20 +596,25 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         for (int x = 0; x < terrainMapWidth; ++x) {
             int index = y * terrainMapWidth * 4 + x * 4;
             int hIndex = y * terrainMapWidth * 3 + x * 3;
-            //if (terrainPix[index] == 16 && terrainPix[index + 1] == 60 && terrainPix[index + 2] == 9) {
-            //if ((terrainPix[index] >= 14 && terrainPix[index + 1] >= 58 && terrainPix[index + 2] >= 6) &&
+            // if (terrainPix[index] == 16 && terrainPix[index + 1] == 60 && terrainPix[index + 2] == 9) {
+            // if ((terrainPix[index] >= 14 && terrainPix[index + 1] >= 58 && terrainPix[index + 2] >= 6) &&
             //    (terrainPix[index] <= 18 && terrainPix[index + 1] <= 62 && terrainPix[index + 2] <= 11)) {
-            if (terrainPix[index] == 41 && terrainPix[index + 1] == 155 && terrainPix[index + 2] == 22 && sin(x * y) > 0.7 ) {
+            if (terrainPix[index] == 41 && terrainPix[index + 1] == 155 && terrainPix[index + 2] == 22 &&
+                sin(x * y) > 0.7) {
                 auto treeMl = glm::mat4(1.0);
-                treeMl = glm::translate(treeMl, glm::vec3{(double)x * scale, (double)y * scale, 1.0 * heightPix[hIndex]});
-                //treeMl = glm::translate(treeMl, glm::vec3{ 0.0 + x * ((double)mapWidth / terrainMapWidth) * scale, 0.0 + y * ((double)mapHeight / terrainMapHeight) * scale, 130.0});
+                treeMl = glm::translate(treeMl,
+                                        glm::vec3{(double)x * scale, (double)y * scale, 1.0 * heightPix[hIndex]});
+                // treeMl = glm::translate(treeMl, glm::vec3{ 0.0 + x * ((double)mapWidth / terrainMapWidth) *
+                // scale, 0.0 + y * ((double)mapHeight / terrainMapHeight) * scale, 130.0});
                 treeMl = glm::scale(treeMl, glm::vec3{5.0, 5.0, 10.0});
                 tMat.push_back(treeMl);
-                //Log((int)heightPix[index]);
+                // Log((int)heightPix[index]);
             }
-            else if (terrainPix[index] == 18 && terrainPix[index + 1] == 74 && terrainPix[index + 2] == 9 && sin(x * y) > 0.5) {
+            else if (terrainPix[index] == 18 && terrainPix[index + 1] == 74 && terrainPix[index + 2] == 9 &&
+                     sin(x * y) > 0.5) {
                 auto treeMl = glm::mat4(1.0);
-                treeMl = glm::translate(treeMl, glm::vec3{(double)x * scale, (double)y * scale, 1.0 * heightPix[hIndex]});
+                treeMl = glm::translate(treeMl,
+                                        glm::vec3{(double)x * scale, (double)y * scale, 1.0 * heightPix[hIndex]});
                 treeMl = glm::scale(treeMl, glm::vec3{5.0, 5.0, 10.0});
                 tMat.push_back(treeMl);
             }
@@ -650,10 +625,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     GLuint treePosBuffer;
     glGenBuffers(1, &treePosBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, treePosBuffer);
-    //glBufferData(GL_ARRAY_BUFFER, amount * 3 * sizeof(float), treePos, GL_STATIC_DRAW);
+    // glBufferData(GL_ARRAY_BUFFER, amount * 3 * sizeof(float), treePos, GL_STATIC_DRAW);
     glBufferData(GL_ARRAY_BUFFER, amount * 1 * sizeof(glm::mat4), tMat.data(), GL_STATIC_DRAW);
-   
-
 
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
@@ -668,8 +641,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     glVertexAttribDivisor(4, 1);
     glVertexAttribDivisor(5, 1);
     glBindVertexArray(0);
-float tesLevel  = 32.0f;
-glm::vec3 unitPos;
+    float tesLevel = 32.0f;
+    glm::vec3 unitPos;
     float dt = 0.0f, waterTime = 0.0f;
     float time = glfwGetTime();
     while (!window.ShouldClose()) {
@@ -688,12 +661,15 @@ glm::vec3 unitPos;
             camera.Rotate(-1, dt);
         if (window.keys['M']) {
             shader = Shader("src/graphics/shaders/tes_new_map/vert.v", "src/graphics/shaders/tes_new_map/frag.f",
-                  "src/graphics/shaders/tes_new_map/tes_ster.ts", "src/graphics/shaders/tes_new_map/tes_w.tw");
-            borderShader = Shader{"src/graphics/shaders/borders/vert.v", "src/graphics/shaders/borders/frag.f", "", ""};
+                            "src/graphics/shaders/tes_new_map/tes_ster.ts",
+                            "src/graphics/shaders/tes_new_map/tes_w.tw");
+            borderShader =
+                Shader{"src/graphics/shaders/borders/vert.v", "src/graphics/shaders/borders/frag.f", "", ""};
             waterShader = Shader("src/graphics/shaders/water/vert.v", "src/graphics/shaders/water/frag.f",
-                       "src/graphics/shaders/water/tes_ster.ts", "src/graphics/shaders/water/tes_w.tw");
-            colorMapShader = Shader("src/graphics/shaders/map_pick/vert.v", "src/graphics/shaders/map_pick/frag.f",
-                          "src/graphics/shaders/map_pick/tes_ster.ts", "src/graphics/shaders/map_pick/tes_w.tw");
+                                 "src/graphics/shaders/water/tes_ster.ts", "src/graphics/shaders/water/tes_w.tw");
+            colorMapShader =
+                Shader("src/graphics/shaders/map_pick/vert.v", "src/graphics/shaders/map_pick/frag.f",
+                       "src/graphics/shaders/map_pick/tes_ster.ts", "src/graphics/shaders/map_pick/tes_w.tw");
         }
 
         if (window.scrollOffset) {
@@ -704,7 +680,7 @@ glm::vec3 unitPos;
             // tesLevel = sin(time) * 64.0f;
             if (tesLevel < 0.0f)
                 tesLevel *= -1.0f;
-            //Log(tesLevel);
+            // Log(tesLevel);
             tesLevel = 32.0f;
             glUseProgram(shader.GetProgram());
             glUniform1f(glGetUniformLocation(shader.GetProgram(), "level"), tesLevel);
@@ -735,7 +711,7 @@ glm::vec3 unitPos;
 
             unsigned char pixel[4];
             int pixx = window.xMouse, pixy = windowSize.y - window.yMouse;
-            //Log(pixx << " - " << pixy);
+            // Log(pixx << " - " << pixy);
             glReadPixels(pixx, pixy, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
 
             window.Refresh();
@@ -744,23 +720,23 @@ glm::vec3 unitPos;
             unsigned int phash = getHash(pixel[0], pixel[1], pixel[2]);
             if (colorToId.find(phash) != colorToId.end()) {
                 int pid = colorToId[phash];
-                Log(provinces[pid].id << ", water: " << provinces[pid].water << ", " << provinces[pid].name << ", col: " << provinces[pid].r << ", " << provinces[pid].g << ", " << provinces[pid].b);
+                Log(provinces[pid].id << ", water: " << provinces[pid].water << ", " << provinces[pid].name
+                                      << ", col: " << provinces[pid].r << ", " << provinces[pid].g << ", "
+                                      << provinces[pid].b);
                 std::cout << "Neighb: ";
-                for (auto i : provinces[pid].neighb)
-                    std::cout << i << " ";
+                for (auto i : provinces[pid].neighb) std::cout << i << " ";
                 std::cout << "\n";
                 std::cout << "NeighbSea: ";
-                for (auto i : provinces[pid].neighbSea)
-                    std::cout << i << " ";
+                for (auto i : provinces[pid].neighbSea) std::cout << i << " ";
                 std::cout << "\n";
                 unitPos.x = provinces[pid].x * scale;
                 unitPos.y = provinces[pid].y * scale;
                 unitPos.z = heightMap.GetPixels()[(int)(provinces[pid].x * 3 + provinces[pid].y * mapWidth * 3)];
-                //unitPos.z = 120.0f;
+                // unitPos.z = 120.0f;
             }
             std::cout << "R: " << (double)pixel[0] << "< ";
             std::cout << "G: " << (int)pixel[0] << "< ";
-             std::cout << "B: " << (int)pixel[2] << "< \n";
+            std::cout << "B: " << (int)pixel[2] << "< \n";
             // std::cout << "R: " << provColor.x << "< ";
             // std::cout << "G: " << provColor.y << "< ";
             // std::cout << "B: " << provColor.z << "< \n";
@@ -808,8 +784,8 @@ glm::vec3 unitPos;
 #endif
 
         glUseProgram(waterShader.GetProgram());
-    glUniform1f(glGetUniformLocation(waterShader.GetProgram(), "level"), 32);
-    glUniform1iv(glGetUniformLocation(waterShader.GetProgram(), "tex"), 32, texID);
+        glUniform1f(glGetUniformLocation(waterShader.GetProgram(), "level"), 32);
+        glUniform1iv(glGetUniformLocation(waterShader.GetProgram(), "tex"), 32, texID);
         glUniformMatrix4fv(glGetUniformLocation(waterShader.GetProgram(), "pr_matrix"), 1, GL_FALSE,
                            glm::value_ptr(matrix));
 
@@ -855,51 +831,46 @@ glm::vec3 unitPos;
         batch.Push(&vertsWater[4]);
         batch.Flush();
 
-{
+        {
+            // glm::mat4 model = glm::mat4(1.0);
+            //    unitPos = glm::vec3(mapWidth * 1.0 * 2.0, mapHeight * 1.4f * 2.0f, 100.0f);
+            glm::mat4 unitModel = glm::mat4(1.0);
+            unitModel = glm::translate(unitModel, unitPos);
 
-//glm::mat4 model = glm::mat4(1.0);
-//    unitPos = glm::vec3(mapWidth * 1.0 * 2.0, mapHeight * 1.4f * 2.0f, 100.0f);
-glm::mat4 unitModel = glm::mat4(1.0);
-unitModel = glm::translate(unitModel, unitPos);
+            float rotateX = 60.0f * 3.1459265f / 180.0f, yScale = 10.0f;
+            glm::mat4 rotate = glm::mat4{1.0f};
+            rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
+            unitModel = unitModel * rotate;
+            unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
 
-float rotateX = 60.0f*3.1459265f/180.0f, yScale = 10.0f;
-glm::mat4 rotate = glm::mat4{1.0f};
-rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0}); 
-unitModel = unitModel * rotate;
-unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
+            glUseProgram(AM::am.shader->GetProgram());
+            glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "matrix"), 1, GL_FALSE,
+                               glm::value_ptr(matrix));
+            glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE,
+                               glm::value_ptr(unitModel));
+            glUniform1iv(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"), 32, texID);
 
-
-glUseProgram(AM::am.shader->GetProgram());
-glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
-glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE, glm::value_ptr(unitModel));
-glUniform1iv(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"), 32, texID);
-
-//AM::am.model->DrawRect(model);
-AM::am.model->Draw();
-
-}
+            // AM::am.model->DrawRect(model);
+            AM::am.model->Draw();
+        }
 
         // tree
         glUseProgram(treeShader.GetProgram());
-    
-        //glUniform1iv(glGetUniformLocation(waterShader.GetProgram(), "tex"), 32, texID);
+
+        // glUniform1iv(glGetUniformLocation(waterShader.GetProgram(), "tex"), 32, texID);
 
         glUniformMatrix4fv(glGetUniformLocation(treeShader.GetProgram(), "matrix"), 1, GL_FALSE,
                            glm::value_ptr(matrix));
-//        glUniformMatrix4fv(glGetUniformLocation(treeShader.GetProgram(), "ml"), 1, GL_FALSE,
-//                           glm::value_ptr(treeMl));
+        //        glUniformMatrix4fv(glGetUniformLocation(treeShader.GetProgram(), "ml"), 1, GL_FALSE,
+        //                           glm::value_ptr(treeMl));
         glBindVertexArray(treeModel.vao);
-    //glBindBuffer(GL_ARRAY_BUFFER, treeModel.vbo);
-    //glBindBuffer(GL_ARRAY_BUFFER, treePosBuffer);
-        //glDrawElementsInstanced(GL_TRIANGLES, 0, GL_UNSIGNED_INT, 0, amount);
+        // glBindBuffer(GL_ARRAY_BUFFER, treeModel.vbo);
+        // glBindBuffer(GL_ARRAY_BUFFER, treePosBuffer);
+        // glDrawElementsInstanced(GL_TRIANGLES, 0, GL_UNSIGNED_INT, 0, amount);
         glDrawArraysInstanced(GL_TRIANGLES, 0, 3 * 2 * 5, amount);
-        //glDrawArraysInstanced(GL_TRIANGLES, 0, 3 * 2 * 12, amount);
+        // glDrawArraysInstanced(GL_TRIANGLES, 0, 3 * 2 * 12, amount);
 
         // ~treee
-
-
-
-
 
         // int indicesCount = 6;
         // glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_SHORT, NULL);
@@ -930,18 +901,17 @@ AM::am.model->Draw();
         // Log(glfwGetTime() - tt2);
         waterTime += dt;
         dt = glfwGetTime() - time;
-        //Log(dt);
+        // Log(dt);
         time = glfwGetTime();
     }
 }
 
+void savePng(unsigned char * pix, int w, int h);
 
-void saveProvinceFromImg(const unsigned char * provs, const unsigned char * water, int w, int h)
+void saveProvinceFromImg(const unsigned char* provs, const unsigned char* water, int w, int h)
 {
     std::fstream f;
     f.open("ProvDataTest.txt", std::fstream::out);
-    if (f.is_open())
-    Log("open");
     std::map<unsigned int, ProvData> pmap;
     for (int y = 0; y < h; ++y) {
         for (int x = 0; x < w; ++x) {
@@ -949,7 +919,7 @@ void saveProvinceFromImg(const unsigned char * provs, const unsigned char * wate
             int index = x * 3 + (w * y) * 3;
             if (water[windex + 0] == 0 && water[windex + 1] == 0 && water[windex + 2] == 0)
                 continue;
-            unsigned int hash = getHash(provs[index + 0], provs[index + 1], provs[index + 2]); 
+            unsigned int hash = getHash(provs[index + 0], provs[index + 1], provs[index + 2]);
             if (pmap.find(hash) == pmap.end()) {
                 ProvData pd;
                 pd.id = pmap.size();
@@ -959,21 +929,21 @@ void saveProvinceFromImg(const unsigned char * provs, const unsigned char * wate
                 pd.b = provs[index + 2];
                 pd.x = x;
                 pd.y = y;
-                ///if (x == 2787 && y == 2048 - 647) {
+                /// if (x == 2787 && y == 2048 - 647) {
                 if (water[windex + 0] == 68)
                     pd.water = true;
                 else
                     pd.water = false;
                 if (pd.r == 152 && pd.g == 118 && pd.b == 64) {
-                Log("!!!!!!id:" << pd.id << " -> " << (int)water[windex + 0] << " -> provColR: " << (int)provs[index + 0] << ", " << x << ", " << y << ", water: " << pd.water);
+                    Log("!!!!!!id:" << pd.id << " -> " << (int)water[windex + 0] << " -> provColR: "
+                                    << (int)provs[index + 0] << ", " << x << ", " << y << ", water: " << pd.water);
                 }
                 pmap[hash] = pd;
-
             }
-            else { // sprawdz czy na pewno jest woda
-                //if (water[index + 0] == 255)
+            else {  // sprawdz czy na pewno jest woda
+                // if (water[index + 0] == 255)
                 //    pmap[hash].water = false;
-                //else if (water[index + 0] == 68)
+                // else if (water[index + 0] == 68)
                 //    pmap[hash].water = true;
             }
         }
@@ -994,7 +964,7 @@ void saveProvinceFromImg(const unsigned char * provs, const unsigned char * wate
                 pmap[hash].neighbSea.insert(pmap[lastHash].id);
             else
                 pmap[hash].neighb.insert(pmap[lastHash].id);
-            
+
             if (pmap[hash].water)
                 pmap[lastHash].neighbSea.insert(pmap[hash].id);
             else
@@ -1018,7 +988,7 @@ void saveProvinceFromImg(const unsigned char * provs, const unsigned char * wate
                 pmap[hash].neighbSea.insert(pmap[lastHash].id);
             else
                 pmap[hash].neighb.insert(pmap[lastHash].id);
-            
+
             if (pmap[hash].water)
                 pmap[lastHash].neighbSea.insert(pmap[hash].id);
             else
@@ -1028,26 +998,169 @@ void saveProvinceFromImg(const unsigned char * provs, const unsigned char * wate
             lastC = col;
         }
     }
-    for (auto & pd: pmap) {
-                f << "{\n";
-                f << "id: " << pd.second.id << "\n";
-                f << "name: " << pd.second.name << '\n';
-                f << "pos: " << pd.second.x << " " << pd.second.y << '\n';
-                f << "water: " << pd.second.water << '\n';
-                f << "neighb: ";
-                for (auto i : pd.second.neighb)
-                    f << i << " ";
-                f << "\n";
-                f << "neighbSea: ";
-                for (auto i : pd.second.neighbSea)
-                    f << i << " ";
-                f << "\n";
-                f << "color: ";
-                f << std::to_string(pd.second.r) << " ";
-                f << std::to_string(pd.second.g) << " ";
-                f << std::to_string(pd.second.b) << "\n}\n";
+
+    std::vector<CountryData> ctrs;
+
+    bool visited[pmap.size()] = {0};
+
+    for (auto& pdd : pmap) {
+        auto& pd = pdd.second;
+        if (pd.water)
+            continue;
+        if (visited[pd.id])
+            continue;
+        visited[pd.id] = true;
+        CountryData cd;
+        cd.id = ctrs.size();
+        int t = ((cd.id * pd.id + 1234) * 231) % 255;
+        cd.r = t;
+        cd.g = 255 - t;
+        cd.b = t / 2;
+        cd.r = pd.r;
+        cd.g = pd.g;
+        cd.b = pd.b;
+        ctrs.push_back(cd);
+        pd.ctrId = cd.id;
+        for (auto i : pd.neighb) {
+            if (visited[i])
+                continue;
+            visited[i] = true;
+            for (auto it = pmap.begin(); it != pmap.end(); ++it) {
+                if (it->second.id == i) {
+                    it->second.ctrId = cd.id;
+                    break;
+                }
+            }
+        }
     }
-Log("pmap size = " << pmap.size());
+
+    for (auto& pd : pmap) {
+        f << "{\n";
+        f << "id: " << pd.second.id << "\n";
+        f << "name: " << pd.second.name << '\n';
+        f << "pos: " << pd.second.x << " " << pd.second.y << '\n';
+        f << "water: " << pd.second.water << '\n';
+        f << "neighb: ";
+        for (auto i : pd.second.neighb) f << i << " ";
+        f << "\n";
+        f << "neighbSea: ";
+        for (auto i : pd.second.neighbSea) f << i << " ";
+        f << "\n";
+        f << "countryId: ";
+        f << std::to_string(pd.second.ctrId);
+        f << "\n";
+        f << "color: ";
+        f << std::to_string(pd.second.r) << " ";
+        f << std::to_string(pd.second.g) << " ";
+        f << std::to_string(pd.second.b) << "\n}\n";
+    }
+    Log("pmap size = " << pmap.size());
     f.close();
+
+    f.open("CountryDataTest.txt", std::fstream::out);
+    for (auto& ctr : ctrs) {
+        f << "{\n";
+        f << "id: " << ctr.id << "\n";
+        f << "color: ";
+        f << std::to_string(ctr.r) << " ";
+        f << std::to_string(ctr.g) << " ";
+        f << std::to_string(ctr.b) << "\n}\n";
+    }
+    f.close();
+
+    unsigned char * ctrPix = new unsigned char[w * h * 3];
+    for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+            int index = x * 3 + (w * y) * 3;
+            unsigned int hash = getHash(provs[index + 0], provs[index + 1], provs[index + 2]);
+            if (pmap.find(hash) == pmap.end())
+                continue;
+            if (pmap[hash].water) {
+                ctrPix[index + 0] = 255;
+                ctrPix[index + 1] = 255;
+                ctrPix[index + 2] = 255;
+            }
+            else {
+                int ctrId = pmap[hash].ctrId;
+                assert(ctrId >= 0 && ctrId < ctrs.size());
+                ctrPix[index + 0] = ctrs[ctrId].r;
+                ctrPix[index + 1] = ctrs[ctrId].g;
+                ctrPix[index + 2] = ctrs[ctrId].b;
+            }
+            
+        }
+    }
+
+    savePng(ctrPix, w, h);
+
+    delete [] ctrPix;
+}
+
+void savePng(unsigned char * pix, int w, int h)
+{
+    const char * path = "src/img/countries_map.png";
+    FILE* file = fopen(path, "wb");
+
+    if (!file) {
+        printf("Cannot open file: %s\n", path);
+        return;
+    }
+
+    png_structp pngPtr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    if (pngPtr == NULL) {
+        printf("Error while creating png write struct\n");
+        fclose(file);
+        return;
+    }
+
+    png_infop infoPtr = png_create_info_struct(pngPtr);
+    if (infoPtr == NULL) {
+        printf("Error while creating png info struct\n");
+        fclose(file);
+        png_destroy_write_struct(&pngPtr, &infoPtr);
+        return;
+    }
+
+    /* domyslna metoda obslugi bledow, zalecana przez biblioteke libpng */
+    if (setjmp(png_jmpbuf(pngPtr))) {
+        printf("Error");
+        fclose(file);
+        png_destroy_write_struct(&pngPtr, &infoPtr);
+        return;
+    }
+
+    int pixelSize = 3;
+    int depth = 8;
+
+    /* ustawienie atrybutow obrazu */
+    png_set_IHDR(pngPtr, infoPtr, w, h, depth, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+                 PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+
+    png_byte** rowPointers = (png_byte **)png_malloc(pngPtr, h * sizeof(png_byte*));
+    for (size_t y = 0; y < h; ++y) {
+    //for (size_t y = h - 1; y >= 0; --y) {
+        png_byte* row = (png_byte *)png_malloc(pngPtr, sizeof(uint8_t) * w * pixelSize);
+        rowPointers[y] = row;
+        for (size_t x = 0; x < w; ++x) {
+            //unsigned char * pixel = pix + w * y + x;
+            int index = w * (h - y - 1) * pixelSize + x * pixelSize;
+            *row++ = pix[index + 0];
+            *row++ = pix[index + 1];
+            *row++ = pix[index + 2];
+        }
+    }
+
+    /* Zapis do pliku */
+    png_init_io(pngPtr, file);
+    png_set_rows(pngPtr, infoPtr, rowPointers);
+    png_write_png(pngPtr, infoPtr, PNG_TRANSFORM_IDENTITY, NULL);
+
+    for (size_t y = 0; y < h; ++y) {
+        png_free(pngPtr, rowPointers[y]);
+    }
+    png_free(pngPtr, rowPointers);
+
+    png_destroy_write_struct(&pngPtr, &infoPtr);
+    fclose(file);
 }
 
