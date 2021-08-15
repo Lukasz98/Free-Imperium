@@ -3,10 +3,13 @@
 #include <set>
 #include <fstream>
 #include <map>
+#include <string>
+#include <cstring>
 #include "asset_manager.h"
-
+#include "color.h"
 
 #include "graphics/texture.h"
+#include "load_values_from_txt.h"
 
 void saveProvinceFromImg(const unsigned char * provs, const unsigned char * height, int w, int h);
 
@@ -236,8 +239,9 @@ struct ProvData {
     std::string name;
     int r, g, b;
     int id;
-    bool water;
     float x, y;
+    std::set<int> neighb, neighbSea;
+    bool water;
 };
 unsigned int getHash(unsigned char r, unsigned char g, unsigned char b) {
     unsigned int res = (unsigned int)r;
@@ -249,11 +253,72 @@ unsigned int getHash(unsigned char r, unsigned char g, unsigned char b) {
 std::vector<ProvData> provinces;
 std::map<unsigned int, int> colorToId;
 
+
 void loadProvData()
 {
+unsigned int lineCount = 0;
+    lineCount = 0;
+    std::string fname{"ProvDataTest.txt"};
     std::fstream f;
-    f.open("ProvDataTest.txt", std::fstream::in);
-    std::string w;
+    f.open(fname, std::fstream::in);
+    std::string line;
+    while (getline(f, line)) {
+        ++lineCount;
+        char * ptr = strtok(line.data(), " ");
+        if (strcmp(ptr, "{") != 0) {
+            Log("ERROR -> fname: " << fname << ", line: " << lineCount);
+            break;
+        }
+
+        ProvData pd;
+        while (getline(f, line)) {
+            ++lineCount;
+            ptr = strtok(line.data(), " ");
+            if (strcmp(ptr, "}") == 0) {
+                provinces.push_back(pd);
+                colorToId[getHash(pd.r, pd.g, pd.b)] = pd.id;
+                break;
+            }
+            else if (strcmp(ptr, "id:") == 0) {
+                pd.id = loadInt(ptr);
+            }
+            else if (strcmp(ptr, "name:") == 0) {
+                ptr = strtok(NULL, " ");
+                pd.name = std::string{ptr};
+            }
+            else if (strcmp(ptr, "pos:") == 0) {
+                Vec2 v2 = loadVec2(ptr);
+                pd.x = v2.x;
+                pd.y = v2.y;
+            }
+            else if (strcmp(ptr, "water:") == 0) {
+                pd.water = loadInt(ptr);
+            }
+            else if (strcmp(ptr, "color:") == 0) {
+                pd.r = loadInt(ptr);
+                pd.g = loadInt(ptr);
+                pd.b = loadInt(ptr);
+            }
+            else if (strcmp(ptr, "neighb:") == 0) {
+                while ((ptr = strtok(NULL, " ")) != NULL) {
+                    pd.neighb.insert(loadInt2(ptr));
+                }
+            }
+            else if (strcmp(ptr, "neighbSea:") == 0) {
+                while ((ptr = strtok(NULL, " ")) != NULL) {
+                    pd.neighbSea.insert(loadInt2(ptr));
+                }
+            }
+            else if (strcmp(ptr, "color:") == 0) {
+            }
+            else {
+                Log("cos tu nie gra: file: " << fname << ", line: " << lineCount);
+                break;
+            }
+        }
+
+    }
+    /*std::string w;
     while (f >> w) {
         if (w == "{") {
             ProvData pd;
@@ -295,6 +360,7 @@ void loadProvData()
             break;
         }
     }
+    */
     f.close();
     std::sort(provinces.begin(), provinces.end(), [](ProvData a, ProvData b){ return a.id < b.id; });
     Log(provinces[2793].r << ", "<<provinces[2793].r << ", "<<provinces[2793].r << ", ");
@@ -678,7 +744,15 @@ glm::vec3 unitPos;
             unsigned int phash = getHash(pixel[0], pixel[1], pixel[2]);
             if (colorToId.find(phash) != colorToId.end()) {
                 int pid = colorToId[phash];
-                Log(provinces[pid].id << ", water: " << provinces[pid].water << ", " << provinces[pid].name << ", col: " << provinces[pid].r << ", " << provinces[pid].g << ", " << provinces[pid].b); 
+                Log(provinces[pid].id << ", water: " << provinces[pid].water << ", " << provinces[pid].name << ", col: " << provinces[pid].r << ", " << provinces[pid].g << ", " << provinces[pid].b);
+                std::cout << "Neighb: ";
+                for (auto i : provinces[pid].neighb)
+                    std::cout << i << " ";
+                std::cout << "\n";
+                std::cout << "NeighbSea: ";
+                for (auto i : provinces[pid].neighbSea)
+                    std::cout << i << " ";
+                std::cout << "\n";
                 unitPos.x = provinces[pid].x * scale;
                 unitPos.y = provinces[pid].y * scale;
                 unitPos.z = heightMap.GetPixels()[(int)(provinces[pid].x * 3 + provinces[pid].y * mapWidth * 3)];
@@ -904,12 +978,70 @@ void saveProvinceFromImg(const unsigned char * provs, const unsigned char * wate
             }
         }
     }
+    Color lastC = {0, 0, 0, 255};
+    unsigned int lastHash = 0;
+    for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+            int index = x * 3 + (w * y) * 3;
+            Color col = {provs[index + 0], provs[index + 1], provs[index + 2], 255};
+            unsigned int hash = getHash(col.r, col.g, col.b);
+            if (col == lastC || x == 0) {
+                lastC = col;
+                lastHash = hash;
+                continue;
+            }
+            if (pmap[lastHash].water)
+                pmap[hash].neighbSea.insert(pmap[lastHash].id);
+            else
+                pmap[hash].neighb.insert(pmap[lastHash].id);
+            
+            if (pmap[hash].water)
+                pmap[lastHash].neighbSea.insert(pmap[hash].id);
+            else
+                pmap[lastHash].neighb.insert(pmap[hash].id);
+
+            lastHash = hash;
+            lastC = col;
+        }
+    }
+    for (int x = 0; x < w; ++x) {
+        for (int y = 0; y < h; ++y) {
+            int index = x * 3 + (w * y) * 3;
+            Color col = {provs[index + 0], provs[index + 1], provs[index + 2], 255};
+            unsigned int hash = getHash(col.r, col.g, col.b);
+            if (col == lastC || x == 0) {
+                lastC = col;
+                lastHash = hash;
+                continue;
+            }
+            if (pmap[lastHash].water)
+                pmap[hash].neighbSea.insert(pmap[lastHash].id);
+            else
+                pmap[hash].neighb.insert(pmap[lastHash].id);
+            
+            if (pmap[hash].water)
+                pmap[lastHash].neighbSea.insert(pmap[hash].id);
+            else
+                pmap[lastHash].neighb.insert(pmap[hash].id);
+
+            lastHash = hash;
+            lastC = col;
+        }
+    }
     for (auto & pd: pmap) {
                 f << "{\n";
                 f << "id: " << pd.second.id << "\n";
                 f << "name: " << pd.second.name << '\n';
                 f << "pos: " << pd.second.x << " " << pd.second.y << '\n';
                 f << "water: " << pd.second.water << '\n';
+                f << "neighb: ";
+                for (auto i : pd.second.neighb)
+                    f << i << " ";
+                f << "\n";
+                f << "neighbSea: ";
+                for (auto i : pd.second.neighbSea)
+                    f << i << " ";
+                f << "\n";
                 f << "color: ";
                 f << std::to_string(pd.second.r) << " ";
                 f << std::to_string(pd.second.g) << " ";
