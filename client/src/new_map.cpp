@@ -1,344 +1,18 @@
 #include "new_map.h"
 
-#include <png.h>
-
 #include <cstring>
-#include <fstream>
+//#include <fstream>
 #include <map>
 #include <set>
-#include <string>
+//#include <string>
 
 #include "asset_manager.h"
 #include "color.h"
 #include "graphics/texture.h"
-#include "load_values_from_txt.h"
+#include "map_batch.h"
 
-void saveProvinceFromImg(const unsigned char* provs, const unsigned char* height, int w, int h);
-
-void MapBatch::Init()
-{
-    int vertexSize = sizeof(Vertexx);
-    int spriteSize = vertexSize * 4;
-    int vertexDataSize = spriteSize * maxSprites;
-    int indicesSize = maxSprites * 6;
-    Log(vertexSize);
-    // glGenVertexArrays(1, &vao);
-    glCreateVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    // glGenBuffers(1, &vbo);
-    glCreateBuffers(1, &vbo);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertexDataSize, NULL, GL_DYNAMIC_DRAW);
-    Log("vbo=" << vbo);
-    // Vertex vx;
-    // Log(&vx);
-    // Log(&vx.color);
-    // Log(&vx.textureId);
-    // Log(&vx.tc);
-    // Log(&vx.normal);
-    glEnableVertexArrayAttrib(vao, 0);
-    glEnableVertexArrayAttrib(vao, 1);
-    glEnableVertexArrayAttrib(vao, 2);
-    glEnableVertexArrayAttrib(vao, 3);
-    glEnableVertexArrayAttrib(vao, 4);
-    GLuint err = glGetError();
-    if (err)
-        Log("Opengl error: " << err);
-    // glEnableVertexAttribArray(0);
-    // glEnableVertexAttribArray(1);
-    // glEnableVertexAttribArray(2);
-    // glEnableVertexAttribArray(3);
-    // glEnableVertexAttribArray(4);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, NULL);  //(const GLvoid*)0);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, vertexSize,
-                          (const GLvoid*)(offsetof(Vertexx, Vertexx::color)));  //(const GLvoid*)(3 * GL_FLOAT));
-    glVertexAttribPointer(
-        2, 1, GL_FLOAT, GL_FALSE, vertexSize,
-        (const GLvoid*)(offsetof(Vertexx, Vertexx::textureId)));  //(const GLvoid*)(7 * GL_FLOAT));
-    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, vertexSize,
-                          (const GLvoid*)(offsetof(Vertexx, Vertexx::tc)));  //(const GLvoid*)(7 * GL_FLOAT));
-    glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, vertexSize,
-                          (const GLvoid*)(offsetof(Vertexx, Vertexx::normal)));  //(const GLvoid*)(7 * GL_FLOAT));
-
-    err = glGetError();
-    if (err)
-        Log("Opengl error: " << err);
-    // glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    GLushort* indices = new GLushort[indicesSize];
-    int offset = 0;
-    for (int i = 0; i < indicesSize; i += 6) {
-        indices[i] = offset + 0;
-        indices[i + 1] = offset + 1;
-        indices[i + 2] = offset + 2;
-        indices[i + 3] = offset + 2;
-        indices[i + 4] = offset + 3;
-        indices[i + 5] = offset + 0;
-        offset += 4;
-    }
-
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesSize * sizeof(GLushort), indices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    err = glGetError();
-    if (err)
-        Log("Opengl error: " << err);
-    delete[] indices;
-
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-}
-
-void MapBatch::Begin()
-{
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    vertexData = (Vertexx*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-}
-
-void MapBatch::Push(const Vertexx* verts)  // takes array of 4
-{
-    if (vertCount + 4 >= maxSprites) {
-        // if (spriteCount >= maxSprites) {
-        Flush();
-        Begin();
-    }
-
-    spriteCount++;
-    vertCount += 4;
-    indicesCount += 6;
-    for (int i = 0; i < 4; ++i, vertexData++) {
-        *vertexData = verts[i];
-        vertexData->pos = verts[i].pos;
-        vertexData->color = verts[i].color;
-        vertexData->tc = verts[i].tc;
-        vertexData->textureId = verts[i].textureId;
-        vertexData->normal = verts[i].normal;
-    }
-}
-float tFlush = 0.0f;
-void MapBatch::Flush()
-{
-    float tt2 = glfwGetTime();
-    glDrawElements(GL_PATCHES, indicesCount, GL_UNSIGNED_SHORT, NULL);
-    // glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_SHORT, NULL);
-    // Log(vertCount);
-    vertCount = 0;
-    spriteCount = 0;
-    indicesCount = 0;
-    glUnmapBuffer(GL_ARRAY_BUFFER);
-    tFlush += (glfwGetTime() - tt2);
-}
-
-struct TreeModel {
-    GLuint vao, vbo;
-
-    TreeModel()
-    {
-        glm::vec4 brown{43.0 / 255.0, 20.0 / 255.0, 20.0 / 255.0, 1.0};
-        glm::vec4 green{10.0 / 255.0, 127.0 / 255.0, 18.0 / 255.0, 1.0};
-        glm::vec4 greener{18.0 / 255.0, 74.0 / 255.0, 9.0 / 255.0, 1.0};
-        // auto vertInit = {
-        float vertInit[] = {
-            0.0f,      0.0f,      0.0f,  // front
-            brown.x,   brown.y,   brown.z,   brown.w,   1.0f,    0.0f,      0.0f,      brown.x,   brown.y,
-            brown.z,   brown.w,   1.0f,      0.0f,      1.0f,    brown.x,   brown.y,   brown.z,   brown.w,
-
-            0.0f,      0.0f,      0.0f,      brown.x,   brown.y, brown.z,   brown.w,   0.0f,      0.0f,
-            1.0f,      brown.x,   brown.y,   brown.z,   brown.w, 1.0f,      0.0f,      1.0f,      brown.x,
-            brown.y,   brown.z,   brown.w,
-
-            0.0f,      1.0f,      0.0f,  // back
-            brown.x,   brown.y,   brown.z,   brown.w,   1.0f,    1.0f,      0.0f,      brown.x,   brown.y,
-            brown.z,   brown.w,   1.0f,      1.0f,      1.0f,    brown.x,   brown.y,   brown.z,   brown.w,
-
-            0.0f,      1.0f,      0.0f,      brown.x,   brown.y, brown.z,   brown.w,   0.0f,      1.0f,
-            1.0f,      brown.x,   brown.y,   brown.z,   brown.w, 1.0f,      1.0f,      1.0f,      brown.x,
-            brown.y,   brown.z,   brown.w,
-
-            0.0f,      0.0f,      0.0f,  // left
-            brown.x,   brown.y,   brown.z,   brown.w,   0.0f,    1.0f,      0.0f,      brown.x,   brown.y,
-            brown.z,   brown.w,   0.0f,      1.0f,      1.0f,    brown.x,   brown.y,   brown.z,   brown.w,
-
-            0.0f,      0.0f,      0.0f,      brown.x,   brown.y, brown.z,   brown.w,   0.0f,      0.0f,
-            1.0f,      brown.x,   brown.y,   brown.z,   brown.w, 0.0f,      1.0f,      1.0f,      brown.x,
-            brown.y,   brown.z,   brown.w,
-
-            1.0f,      0.0f,      0.0f,  // right
-            brown.x,   brown.y,   brown.z,   brown.w,   1.0f,    1.0f,      0.0f,      brown.x,   brown.y,
-            brown.z,   brown.w,   1.0f,      1.0f,      1.0f,    brown.x,   brown.y,   brown.z,   brown.w,
-
-            1.0f,      0.0f,      0.0f,      brown.x,   brown.y, brown.z,   brown.w,   1.0f,      0.0f,
-            1.0f,      brown.x,   brown.y,   brown.z,   brown.w, 1.0f,      1.0f,      1.0f,      brown.x,
-            brown.y,   brown.z,   brown.w,
-
-            -0.5f,     0.5f,      1.0f,  // vertical 1
-            green.x,   green.y,   green.z,   green.w,   1.5f,    0.5f,      1.0f,      green.x,   green.y,
-            green.z,   green.w,   0.5f,      0.5f,      2.0f,    green.x,   green.y,   green.z,   green.w,
-
-            0.5f,      -0.5f,     1.0f,  // vertical 2
-            greener.x, greener.y, greener.z, greener.w, 0.5f,    1.5f,      1.0f,      greener.x, greener.y,
-            greener.z, greener.w, 0.5f,      0.5f,      2.0f,    greener.x, greener.y, greener.z, greener.w,
-        };
-
-        glCreateVertexArrays(1, &vao);
-        glBindVertexArray(vao);
-        glGenBuffers(1, &vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-        glBufferData(GL_ARRAY_BUFFER, 5 * 2 * 3 * 7 * sizeof(float), vertInit, GL_STATIC_DRAW);
-        // glBufferData(GL_ARRAY_BUFFER, 12 * 3 * 7 * sizeof(float), vertInit, GL_STATIC_DRAW);
-        // glBufferData(GL_ARRAY_BUFFER, 21 * 10 * sizeof(float), vertInit, GL_STATIC_DRAW);
-
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 7, 0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (void*)(3 * sizeof(float)));
-        glBindVertexArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
-};
-
-struct ProvData {
-    std::string name;
-    int r, g, b;
-    int id, ctrId = -1;
-    float x, y;
-    std::set<int> neighb, neighbSea;
-    bool water;
-};
-unsigned int getHash(unsigned char r, unsigned char g, unsigned char b)
-{
-    unsigned int res = (unsigned int)r;
-    res |= ((unsigned int)g << 8);
-    res |= ((unsigned int)b << 16);
-    return res;
-}
-
-std::vector<ProvData> provinces;
-std::map<unsigned int, int> colorToId;
-
-void loadProvData()
-{
-    unsigned int lineCount = 0;
-    lineCount = 0;
-    std::string fname{"ProvDataTest.txt"};
-    std::fstream f;
-    f.open(fname, std::fstream::in);
-    std::string line;
-    while (getline(f, line)) {
-        ++lineCount;
-        char* ptr = strtok(line.data(), " ");
-        if (strcmp(ptr, "{") != 0) {
-            Log("ERROR -> fname: " << fname << ", line: " << lineCount);
-            break;
-        }
-
-        ProvData pd;
-        while (getline(f, line)) {
-            ++lineCount;
-            ptr = strtok(line.data(), " ");
-            if (strcmp(ptr, "}") == 0) {
-                provinces.push_back(pd);
-                colorToId[getHash(pd.r, pd.g, pd.b)] = pd.id;
-                break;
-            }
-            else if (strcmp(ptr, "id:") == 0) {
-                pd.id = loadInt(ptr);
-            }
-            else if (strcmp(ptr, "name:") == 0) {
-                ptr = strtok(NULL, " ");
-                pd.name = std::string{ptr};
-            }
-            else if (strcmp(ptr, "pos:") == 0) {
-                Vec2 v2 = loadVec2(ptr);
-                pd.x = v2.x;
-                pd.y = v2.y;
-            }
-            else if (strcmp(ptr, "water:") == 0) {
-                pd.water = loadInt(ptr);
-            }
-            else if (strcmp(ptr, "color:") == 0) {
-                pd.r = loadInt(ptr);
-                pd.g = loadInt(ptr);
-                pd.b = loadInt(ptr);
-            }
-            else if (strcmp(ptr, "neighb:") == 0) {
-                while ((ptr = strtok(NULL, " ")) != NULL) {
-                    pd.neighb.insert(loadInt2(ptr));
-                }
-            }
-            else if (strcmp(ptr, "neighbSea:") == 0) {
-                while ((ptr = strtok(NULL, " ")) != NULL) {
-                    pd.neighbSea.insert(loadInt2(ptr));
-                }
-            }
-            else if (strcmp(ptr, "countryId:") == 0) {
-                pd.ctrId = loadInt(ptr);
-            }
-            else {
-                Log("cos tu nie gra: file: " << fname << ", line: " << lineCount);
-                break;
-            }
-        }
-    }
-    /*std::string w;
-    while (f >> w) {
-        if (w == "{") {
-            ProvData pd;
-            while (f >> w) {
-                if (w == "}") {
-                    provinces.push_back(pd);
-                    colorToId[getHash(pd.r, pd.g, pd.b)] = pd.id;
-                    break;
-                }
-                else if (w == "id:") {
-                    f >> w;
-                    pd.id = std::atoi(w.c_str());
-                }
-                else if (w == "name:") {
-                    f >> pd.name;
-                }
-                else if (w == "pos:") {
-                    f >> pd.x;
-                    f >> pd.y;
-                }
-                else if (w == "water:") {
-                    f >> pd.water;
-                }
-                else if (w == "color:") {
-                    f >> w;
-                    pd.r = std::atoi(w.c_str());
-                    f >> w;
-                    pd.g = std::atoi(w.c_str());
-                    f >> w;
-                    pd.b = std::atoi(w.c_str());
-                }
-                else {
-                    Log("cos tu nie gra");
-                }
-            }
-        }
-        else {
-            Log("cos tu nie gra");
-            break;
-        }
-    }
-    */
-    f.close();
-    std::sort(provinces.begin(), provinces.end(), [](ProvData a, ProvData b) { return a.id < b.id; });
-    Log(provinces[2793].r << ", " << provinces[2793].r << ", " << provinces[2793].r << ", ");
-}
-
-struct CountryData {
-    int id;
-    int r, g, b;
-};
-std::vector<CountryData> ctrsData;
-void loadCountriesData() {}
+#include "load_data.h"
+#include "save_data.h"
 
 void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
 {
@@ -374,9 +48,12 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     Texture sandT{"src/img/Sand_1.png", 32, 32, GL_REPEAT};
     Texture ctrsText{"src/img/countries_map.png", mapWidth, mapHeight};
 
-    //saveProvinceFromImg(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
-    loadProvData();
-    loadCountriesData();
+    saveProvinceFromImg(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
+    std::vector<ProvData> provinces;
+    std::map<unsigned int, int> colorToId;
+    std::vector<CountryData> ctrsData;
+    loadProvData(provinces, colorToId);
+    loadCountriesData(ctrsData);
 
     err = glGetError();
     if (err)
@@ -398,8 +75,6 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     texID[6] = sandT.GetId();
     texID[7] = AM::am.modelTexture->GetId();
     texID[8] = ctrsText.GetId();
-    Log("sand: " << texID[6]);
-    // Log("Prov kurtyzana " << texID[3]);
     glUniform1iv(glGetUniformLocation(shader.GetProgram(), "tex"), 32, texID);
     err = glGetError();
     if (err)
@@ -407,7 +82,6 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
 
     for (int i = 0; i < 9; ++i) {
         // glActiveTexture((GLuint)texID[i]);
-
         // glActiveTexture(GL_TEXTURE0 + i);
         glActiveTexture(GL_TEXTURE0 + texID[i]);
         glBindTexture(GL_TEXTURE_2D, (GLuint)texID[i]);
@@ -425,21 +99,13 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     glUniform1f(glGetUniformLocation(colorMapShader.GetProgram(), "level"), 32);
     glUniform1iv(glGetUniformLocation(colorMapShader.GetProgram(), "tex"), 32, texID);
 
-    // GLuint textures[] = {(GLuint)texID[0], (GLuint)texID[1], (GLuint)texID[2], (GLuint)texID[3]};
-    // glBindTextures(textures[0], 4, textures);
-
-    // GLuint ts[] = {0, provTexture.GetId(), heightMap.GetId(), grassT.GetId(), stoneT.GetId(),
-    //              stoneT.GetId(), provTexture.GetId(), provTexture.GetId() };
-
-    // glBindTextures(ts[0], 8, ts);
 
     const unsigned char* pix = provTexture.GetPixels();
     const unsigned char* h = heightMap.GetPixels();
 
-    // initBorders(pix, h, mapWidth, mapHeight);
 
     Log("tu1");
-    std::vector<Vertexx> vertexes;
+    std::vector<MapVertex> vertexes;
     float tid = 0.0f;
     Vec4 color{1.0f, 0.0f, 0.0f, 1.0f};
     float scale = 4.0f;
@@ -455,22 +121,14 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             Vec2 tc3{texC.x + tCL.x, texC.y + tCL.y};
             Vec2 tc4{texC.x + tCL.x, texC.y};
 
-            vertexes.push_back(Vertexx{.pos = Vec3{x, y, z},
-                                       .color = color,
-                                       .textureId = tid,
-                                       .tc = tc1});  //, .normal=Vec2{0.0f, 0.0f} });
-            vertexes.push_back(Vertexx{.pos = Vec3{x, y + ww, z},
-                                       .color = color,
-                                       .textureId = tid,
-                                       .tc = tc2});  //, .normal=Vec2{0.0f, 0.0f} });
-            vertexes.push_back(Vertexx{.pos = Vec3{x + ww, y + ww, z},
-                                       .color = color,
-                                       .textureId = tid,
-                                       .tc = tc3});  //, .normal=Vec2{0.0f, 0.0f} });
-            vertexes.push_back(Vertexx{.pos = Vec3{x + ww, y, z},
-                                       .color = color,
-                                       .textureId = tid,
-                                       .tc = tc4});  //, .normal=Vec2{0.0f, 0.0f} });
+            vertexes.push_back(MapVertex{.pos = Vec3{x, y, z},
+                                         .tc = tc1});  //, .normal=Vec2{0.0f, 0.0f} });
+            vertexes.push_back(MapVertex{.pos = Vec3{x, y + ww, z},
+                                         .tc = tc2});  //, .normal=Vec2{0.0f, 0.0f} });
+            vertexes.push_back(MapVertex{.pos = Vec3{x + ww, y + ww, z},
+                                         .tc = tc3});  //, .normal=Vec2{0.0f, 0.0f} });
+            vertexes.push_back(MapVertex{.pos = Vec3{x + ww, y, z},
+                                         .tc = tc4});  //, .normal=Vec2{0.0f, 0.0f} });
             x += ww;
             texC.x += tCL.x;
         }
@@ -481,166 +139,17 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     }
     Log("tu");
 
-    // Vec2 tc{66.0f, 666.0f};
-    // Vec2 normal{56.0f, 566.0f};
     tid = 5.0f;
-    // float x = 100.0f, y = 100.0f, z = 0.0f, ww = 10.0f;
-    // Log(vertexes.back().pos.x << " " << vertexes.back().pos.y << " " <<vertexes.back().pos.z << " ");
     color = {10.0f, 20.0f, 30.0f, 1.0f};
-    int maxSprites = vertexes.size() / 4;
-    int vertexSize = sizeof(Vertexx);
-    int spriteSize = vertexSize * 4;
-    int vertexDataSize = spriteSize * maxSprites;
-    int indicesSize = maxSprites * 6;
 
-    Log(vertexes.size());
-    GLuint vao, vbo, ibo;
-    // glGenVertexArrays(1, &vao);
-    glCreateVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    // glGenBuffers(1, &vbo);
-    glCreateBuffers(1, &vbo);
-    err = glGetError();
-    if (err)
-        Log("Opengl error: " << err);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertexDataSize, vertexes.data(), GL_STATIC_DRAW);
-    Log("vbo=" << vbo);
-    glEnableVertexArrayAttrib(vao, 0);
-    Log("tu");
-    glEnableVertexArrayAttrib(vao, 1);
-    glEnableVertexArrayAttrib(vao, 2);
-    glEnableVertexArrayAttrib(vao, 3);
-    glEnableVertexArrayAttrib(vao, 4);
-    err = glGetError();
-    if (err)
-        Log("Opengl error: " << err);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, NULL);  //(const GLvoid*)0);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, vertexSize,
-                          (const GLvoid*)(offsetof(Vertexx, Vertexx::color)));  //(const GLvoid*)(3 * GL_FLOAT));
-    glVertexAttribPointer(
-        2, 1, GL_FLOAT, GL_FALSE, vertexSize,
-        (const GLvoid*)(offsetof(Vertexx, Vertexx::textureId)));  //(const GLvoid*)(7 * GL_FLOAT));
-    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, vertexSize,
-                          (const GLvoid*)(offsetof(Vertexx, Vertexx::tc)));  //(const GLvoid*)(7 * GL_FLOAT));
-    glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, vertexSize,
-                          (const GLvoid*)(offsetof(Vertexx, Vertexx::normal)));  //(const GLvoid*)(7 * GL_FLOAT));
-
-    err = glGetError();
-    if (err)
-        Log("Opengl error: " << err);
-    // glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    GLushort* indices = new GLushort[indicesSize];
-    int offset = 0;
-    for (int i = 0; i < indicesSize; i += 6) {
-        indices[i] = offset + 0;
-        indices[i + 1] = offset + 1;
-        indices[i + 2] = offset + 2;
-        indices[i + 3] = offset + 2;
-        indices[i + 4] = offset + 3;
-        indices[i + 5] = offset + 0;
-        offset += 4;
-    }
-
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesSize * sizeof(GLushort), indices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    err = glGetError();
-    if (err)
-        Log("Opengl error: " << err);
-        // delete[] indices;
-
-#define batch_rend 1
-
-#if batch_rend
     MapBatch batch;
     batch.Init();
-#endif
+    
     err = glGetError();
     if (err)
         Log("Opengl error: " << err);
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    Shader treeShader{"src/graphics/shaders/tree/vert.v", "src/graphics/shaders/tree/frag.f", "", ""};
-
-    // glm::vec3 treePos = glm::vec3(mapWidth * 1.0 * 2.0, mapHeight * 1.4f * 2.0f, 0.0f);
-    TreeModel treeModel;
-    glBindVertexArray(treeModel.vao);
-
-    // glm::vec3 treePos = glm::vec3(-10.0f, 0.0f, 0.0f);
-    float treePos[] = {-10.0f, 0.0f, 10.0f, -5.0f, 0.0f, 10.0f, -2.0f, 0.0f, 10.0f};
-    /*
-    int amount = 300;
-    glm::mat4 * tMat = new glm::mat4[amount];
-    float tx = 0.0f, ty = 0.0f;
-    for (int i = 0; i < amount; ++i) {
-        auto treeMl = glm::mat4(1.0);
-        treeMl = glm::translate(treeMl, glm::vec3{0.0 - tx, 0.0 + ty, 80.0});
-        treeMl = glm::scale(treeMl, glm::vec3{10.0, 10.0, 10.0});
-        tMat[i] = treeMl;
-
-        tx += 15.0f;
-        if (i % 20 == 0) {
-            tx = 0;
-            ty += 15.0f;
-        }
-    }
-    */
-    std::vector<glm::mat4> tMat;
-    auto terrainPix = terrainTexture.GetPixels();
-    auto heightPix = heightMap.GetPixels();
-    for (int y = 0; y < terrainMapHeight; y += 2) {
-        for (int x = 0; x < terrainMapWidth; ++x) {
-            int index = y * terrainMapWidth * 4 + x * 4;
-            int hIndex = y * terrainMapWidth * 3 + x * 3;
-            // if (terrainPix[index] == 16 && terrainPix[index + 1] == 60 && terrainPix[index + 2] == 9) {
-            // if ((terrainPix[index] >= 14 && terrainPix[index + 1] >= 58 && terrainPix[index + 2] >= 6) &&
-            //    (terrainPix[index] <= 18 && terrainPix[index + 1] <= 62 && terrainPix[index + 2] <= 11)) {
-            if (terrainPix[index] == 41 && terrainPix[index + 1] == 155 && terrainPix[index + 2] == 22 &&
-                sin(x * y) > 0.7) {
-                auto treeMl = glm::mat4(1.0);
-                treeMl = glm::translate(treeMl,
-                                        glm::vec3{(double)x * scale, (double)y * scale, 1.0 * heightPix[hIndex]});
-                // treeMl = glm::translate(treeMl, glm::vec3{ 0.0 + x * ((double)mapWidth / terrainMapWidth) *
-                // scale, 0.0 + y * ((double)mapHeight / terrainMapHeight) * scale, 130.0});
-                treeMl = glm::scale(treeMl, glm::vec3{5.0, 5.0, 10.0});
-                tMat.push_back(treeMl);
-                // Log((int)heightPix[index]);
-            }
-            else if (terrainPix[index] == 18 && terrainPix[index + 1] == 74 && terrainPix[index + 2] == 9 &&
-                     sin(x * y) > 0.5) {
-                auto treeMl = glm::mat4(1.0);
-                treeMl = glm::translate(treeMl,
-                                        glm::vec3{(double)x * scale, (double)y * scale, 1.0 * heightPix[hIndex]});
-                treeMl = glm::scale(treeMl, glm::vec3{5.0, 5.0, 10.0});
-                tMat.push_back(treeMl);
-            }
-        }
-    }
-    int amount = tMat.size();
-    Log("trees amount = " << amount);
-    GLuint treePosBuffer;
-    glGenBuffers(1, &treePosBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, treePosBuffer);
-    // glBufferData(GL_ARRAY_BUFFER, amount * 3 * sizeof(float), treePos, GL_STATIC_DRAW);
-    glBufferData(GL_ARRAY_BUFFER, amount * 1 * sizeof(glm::mat4), tMat.data(), GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
-    glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
-    glEnableVertexAttribArray(5);
-    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
-    glVertexAttribDivisor(2, 1);
-    glVertexAttribDivisor(3, 1);
-    glVertexAttribDivisor(4, 1);
-    glVertexAttribDivisor(5, 1);
-    glBindVertexArray(0);
     float tesLevel = 32.0f;
     glm::vec3 unitPos;
     float dt = 0.0f, waterTime = 0.0f;
@@ -686,7 +195,6 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             glUniform1f(glGetUniformLocation(shader.GetProgram(), "level"), tesLevel);
         }
         glm::vec3 provColor;
-        // window.keys['L'] = 0;
         camera.Update(window.xMouse, windowSize.y - window.yMouse, pix);
         glm::mat4 matrix = camera.GetMat();
         if (window.keys['I']) {
@@ -697,7 +205,6 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                                glm::value_ptr(matrix));
             batch.Begin();
             for (int i = 0; i < vertexes.size(); i += 4) {
-                // if (camera.IsPointInFrustum((glm::vec3)vertexes[i].pos))
                 if (camera.IsPointInFrustum(glm::vec3{vertexes[i].pos.x, vertexes[i].pos.y, vertexes[i].pos.z}) ||
                     camera.IsPointInFrustum(
                         glm::vec3{vertexes[i + 1].pos.x, vertexes[i + 1].pos.y, vertexes[i + 1].pos.z}) ||
@@ -711,11 +218,9 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
 
             unsigned char pixel[4];
             int pixx = window.xMouse, pixy = windowSize.y - window.yMouse;
-            // Log(pixx << " - " << pixy);
             glReadPixels(pixx, pixy, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
 
             window.Refresh();
-            // glUseProgram(shader.GetProgram());
             provColor = {(int)pixel[0] / 255.0, (int)pixel[1] / 255.0, (int)pixel[2] / 255.0};
             unsigned int phash = getHash(pixel[0], pixel[1], pixel[2]);
             if (colorToId.find(phash) != colorToId.end()) {
@@ -732,14 +237,10 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                 unitPos.x = provinces[pid].x * scale;
                 unitPos.y = provinces[pid].y * scale;
                 unitPos.z = heightMap.GetPixels()[(int)(provinces[pid].x * 3 + provinces[pid].y * mapWidth * 3)];
-                // unitPos.z = 120.0f;
             }
             std::cout << "R: " << (double)pixel[0] << "< ";
             std::cout << "G: " << (int)pixel[0] << "< ";
             std::cout << "B: " << (int)pixel[2] << "< \n";
-            // std::cout << "R: " << provColor.x << "< ";
-            // std::cout << "G: " << provColor.y << "< ";
-            // std::cout << "B: " << provColor.z << "< \n";
         }
 
         glUseProgram(shader.GetProgram());
@@ -762,7 +263,6 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         glUniform1f(glGetUniformLocation(shader.GetProgram(), "borderTime"), waterTime);
         glUniform1iv(glGetUniformLocation(shader.GetProgram(), "tex"), 32, texID);
 
-#if batch_rend
         batch.Begin();
         for (int i = 0; i < vertexes.size(); i += 4) {
             // if (camera.IsPointInFrustum((glm::vec3)vertexes[i].pos))
@@ -776,12 +276,6 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                 batch.Push(&vertexes[i]);
         }
         batch.Flush();
-#else
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-        glDrawElements(GL_PATCHES, indicesSize, GL_UNSIGNED_SHORT, NULL);
-#endif
 
         glUseProgram(waterShader.GetProgram());
         glUniform1f(glGetUniformLocation(waterShader.GetProgram(), "level"), 32);
@@ -794,46 +288,30 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         glUniform1f(glGetUniformLocation(waterShader.GetProgram(), "waterTime"), waterTime);
 
         batch.Begin();
-        Vertexx vertsWater[8];
-        vertsWater[0] = Vertexx{
-            .pos = Vec3{0.0, 0.0, 0.0}, .color = Vec4{0.0, 0.0, 1.0, 1.0}, .textureId = 0, .tc = Vec2{0.0, 0.0}};
-        vertsWater[1] = Vertexx{.pos = Vec3{mapWidth * scale * 0.5, 0.0, 0.0},
-                                .color = Vec4{0.0, 0.0, 1.0, 1.0},
-                                .textureId = 0,
-                                .tc = Vec2{0.5, 0.0}};
-        vertsWater[2] = Vertexx{.pos = Vec3{mapWidth * scale * 0.5, mapHeight * scale, 0.0},
-                                .color = Vec4{0.0, 0.0, 1.0, 1.0},
-                                .textureId = 0,
-                                .tc = Vec2{.5, 1.0}};
-        vertsWater[3] = Vertexx{.pos = Vec3{0.0, mapHeight * scale, 0.0},
-                                .color = Vec4{0.0, 0.0, 1.0, 1.0},
-                                .textureId = 0,
-                                .tc = Vec2{0.0, 1.0}};
+        MapVertex vertsWater[8];
+        vertsWater[0] = MapVertex{.pos = Vec3{0.0, 0.0, 0.0},
+                                  .tc = Vec2{0.0, 0.0}};
+        vertsWater[1] = MapVertex{.pos = Vec3{mapWidth * scale * 0.5, 0.0, 0.0},
+                                  .tc = Vec2{0.5, 0.0}};
+        vertsWater[2] = MapVertex{.pos = Vec3{mapWidth * scale * 0.5, mapHeight * scale, 0.0},
+                                  .tc = Vec2{.5, 1.0}};
+        vertsWater[3] = MapVertex{.pos = Vec3{0.0, mapHeight * scale, 0.0},
+                                  .tc = Vec2{0.0, 1.0}};
 
-        vertsWater[4] = Vertexx{.pos = Vec3{mapWidth * scale * 0.5, 0.0, 0.0},
-                                .color = Vec4{0.0, 0.0, 1.0, 1.0},
-                                .textureId = 0,
-                                .tc = Vec2{0.5, 0.0}};
-        vertsWater[5] = Vertexx{.pos = Vec3{mapWidth * scale, 0.0, 0.0},
-                                .color = Vec4{0.0, 0.0, 1.0, 1.0},
-                                .textureId = 0,
-                                .tc = Vec2{1.0, 0.0}};
-        vertsWater[6] = Vertexx{.pos = Vec3{mapWidth * scale, mapHeight * scale, 0.0},
-                                .color = Vec4{0.0, 0.0, 1.0, 1.0},
-                                .textureId = 0,
-                                .tc = Vec2{1.0, 1.0}};
-        vertsWater[7] = Vertexx{.pos = Vec3{mapWidth * scale * 0.5, mapHeight * scale, 0.0},
-                                .color = Vec4{0.0, 0.0, 1.0, 1.0},
-                                .textureId = 0,
-                                .tc = Vec2{0.5, 1.0}};
+        vertsWater[4] = MapVertex{.pos = Vec3{mapWidth * scale * 0.5, 0.0, 0.0},
+                                  .tc = Vec2{0.5, 0.0}};
+        vertsWater[5] = MapVertex{.pos = Vec3{mapWidth * scale, 0.0, 0.0},
+                                  .tc = Vec2{1.0, 0.0}};
+        vertsWater[6] = MapVertex{.pos = Vec3{mapWidth * scale, mapHeight * scale, 0.0},
+                                  .tc = Vec2{1.0, 1.0}};
+        vertsWater[7] = MapVertex{.pos = Vec3{mapWidth * scale * 0.5, mapHeight * scale, 0.0},
+                                  .tc = Vec2{0.5, 1.0}};
 
         batch.Push(vertsWater);
         batch.Push(&vertsWater[4]);
         batch.Flush();
 
         {
-            // glm::mat4 model = glm::mat4(1.0);
-            //    unitPos = glm::vec3(mapWidth * 1.0 * 2.0, mapHeight * 1.4f * 2.0f, 100.0f);
             glm::mat4 unitModel = glm::mat4(1.0);
             unitModel = glm::translate(unitModel, unitPos);
 
@@ -854,313 +332,13 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             AM::am.model->Draw();
         }
 
-        // tree
-        glUseProgram(treeShader.GetProgram());
-
-        // glUniform1iv(glGetUniformLocation(waterShader.GetProgram(), "tex"), 32, texID);
-
-        glUniformMatrix4fv(glGetUniformLocation(treeShader.GetProgram(), "matrix"), 1, GL_FALSE,
-                           glm::value_ptr(matrix));
-        //        glUniformMatrix4fv(glGetUniformLocation(treeShader.GetProgram(), "ml"), 1, GL_FALSE,
-        //                           glm::value_ptr(treeMl));
-        glBindVertexArray(treeModel.vao);
-        // glBindBuffer(GL_ARRAY_BUFFER, treeModel.vbo);
-        // glBindBuffer(GL_ARRAY_BUFFER, treePosBuffer);
-        // glDrawElementsInstanced(GL_TRIANGLES, 0, GL_UNSIGNED_INT, 0, amount);
-        glDrawArraysInstanced(GL_TRIANGLES, 0, 3 * 2 * 5, amount);
-        // glDrawArraysInstanced(GL_TRIANGLES, 0, 3 * 2 * 12, amount);
-
-        // ~treee
-
-        // int indicesCount = 6;
-        // glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_SHORT, NULL);
-        // glDrawElements(GL_TRIANGLES, vertexes.size() * 6, GL_UNSIGNED_SHORT, indices);
-        // glDrawElements(GL_TRIANGLES, indicesSize, GL_UNSIGNED_SHORT, indices);
         float tt2 = glfwGetTime();
-        // glDrawElements(GL_PATCHES, indicesSize, GL_UNSIGNED_SHORT, indices);
-
-        /*
-                glBindVertexArray(borderDraw.vao);
-                glBindBuffer(GL_ARRAY_BUFFER, borderDraw.vbo);
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, borderDraw.ibo);
-                glUseProgram(borderShader.GetProgram());
-                glUniformMatrix4fv(glGetUniformLocation(borderShader.GetProgram(), "matrix"), 1, GL_FALSE,
-                                   glm::value_ptr(matrix));
-                glDrawElements(GL_TRIANGLES, borderDraw.vertexes.size() * 6, GL_UNSIGNED_SHORT, NULL);
-        */
-        // GLenum err = glGetError();
-        // if (err)
-        //    Log("Opengl error: " << err);
-
-        // Log(glfwGetTime() - tt2);
-        //        batch.Flush();
-        tFlush = 0.0f;
 
         window.Update();
-        // Log("flush " << glfwGetTime() - tt2);
-        // Log(glfwGetTime() - tt2);
         waterTime += dt;
         dt = glfwGetTime() - time;
         // Log(dt);
         time = glfwGetTime();
     }
-}
-
-void savePng(unsigned char * pix, int w, int h);
-
-void saveProvinceFromImg(const unsigned char* provs, const unsigned char* water, int w, int h)
-{
-    std::fstream f;
-    f.open("ProvDataTest.txt", std::fstream::out);
-    std::map<unsigned int, ProvData> pmap;
-    for (int y = 0; y < h; ++y) {
-        for (int x = 0; x < w; ++x) {
-            int windex = x * 3 + (w * y) * 3;
-            int index = x * 3 + (w * y) * 3;
-            if (water[windex + 0] == 0 && water[windex + 1] == 0 && water[windex + 2] == 0)
-                continue;
-            unsigned int hash = getHash(provs[index + 0], provs[index + 1], provs[index + 2]);
-            if (pmap.find(hash) == pmap.end()) {
-                ProvData pd;
-                pd.id = pmap.size();
-                pd.name = "Province" + std::to_string(pmap.size());
-                pd.r = provs[index + 0];
-                pd.g = provs[index + 1];
-                pd.b = provs[index + 2];
-                pd.x = x;
-                pd.y = y;
-                /// if (x == 2787 && y == 2048 - 647) {
-                if (water[windex + 0] == 68)
-                    pd.water = true;
-                else
-                    pd.water = false;
-                if (pd.r == 152 && pd.g == 118 && pd.b == 64) {
-                    Log("!!!!!!id:" << pd.id << " -> " << (int)water[windex + 0] << " -> provColR: "
-                                    << (int)provs[index + 0] << ", " << x << ", " << y << ", water: " << pd.water);
-                }
-                pmap[hash] = pd;
-            }
-            else {  // sprawdz czy na pewno jest woda
-                // if (water[index + 0] == 255)
-                //    pmap[hash].water = false;
-                // else if (water[index + 0] == 68)
-                //    pmap[hash].water = true;
-            }
-        }
-    }
-    Color lastC = {0, 0, 0, 255};
-    unsigned int lastHash = 0;
-    for (int y = 0; y < h; ++y) {
-        for (int x = 0; x < w; ++x) {
-            int index = x * 3 + (w * y) * 3;
-            Color col = {provs[index + 0], provs[index + 1], provs[index + 2], 255};
-            unsigned int hash = getHash(col.r, col.g, col.b);
-            if (col == lastC || x == 0) {
-                lastC = col;
-                lastHash = hash;
-                continue;
-            }
-            if (pmap[lastHash].water)
-                pmap[hash].neighbSea.insert(pmap[lastHash].id);
-            else
-                pmap[hash].neighb.insert(pmap[lastHash].id);
-
-            if (pmap[hash].water)
-                pmap[lastHash].neighbSea.insert(pmap[hash].id);
-            else
-                pmap[lastHash].neighb.insert(pmap[hash].id);
-
-            lastHash = hash;
-            lastC = col;
-        }
-    }
-    for (int x = 0; x < w; ++x) {
-        for (int y = 0; y < h; ++y) {
-            int index = x * 3 + (w * y) * 3;
-            Color col = {provs[index + 0], provs[index + 1], provs[index + 2], 255};
-            unsigned int hash = getHash(col.r, col.g, col.b);
-            if (col == lastC || x == 0) {
-                lastC = col;
-                lastHash = hash;
-                continue;
-            }
-            if (pmap[lastHash].water)
-                pmap[hash].neighbSea.insert(pmap[lastHash].id);
-            else
-                pmap[hash].neighb.insert(pmap[lastHash].id);
-
-            if (pmap[hash].water)
-                pmap[lastHash].neighbSea.insert(pmap[hash].id);
-            else
-                pmap[lastHash].neighb.insert(pmap[hash].id);
-
-            lastHash = hash;
-            lastC = col;
-        }
-    }
-
-    std::vector<CountryData> ctrs;
-
-    bool visited[pmap.size()] = {0};
-
-    for (auto& pdd : pmap) {
-        auto& pd = pdd.second;
-        if (pd.water)
-            continue;
-        if (visited[pd.id])
-            continue;
-        visited[pd.id] = true;
-        CountryData cd;
-        cd.id = ctrs.size();
-        int t = ((cd.id * pd.id + 1234) * 231) % 255;
-        cd.r = t;
-        cd.g = 255 - t;
-        cd.b = t / 2;
-        cd.r = pd.r;
-        cd.g = pd.g;
-        cd.b = pd.b;
-        ctrs.push_back(cd);
-        pd.ctrId = cd.id;
-        for (auto i : pd.neighb) {
-            if (visited[i])
-                continue;
-            visited[i] = true;
-            for (auto it = pmap.begin(); it != pmap.end(); ++it) {
-                if (it->second.id == i) {
-                    it->second.ctrId = cd.id;
-                    break;
-                }
-            }
-        }
-    }
-
-    for (auto& pd : pmap) {
-        f << "{\n";
-        f << "id: " << pd.second.id << "\n";
-        f << "name: " << pd.second.name << '\n';
-        f << "pos: " << pd.second.x << " " << pd.second.y << '\n';
-        f << "water: " << pd.second.water << '\n';
-        f << "neighb: ";
-        for (auto i : pd.second.neighb) f << i << " ";
-        f << "\n";
-        f << "neighbSea: ";
-        for (auto i : pd.second.neighbSea) f << i << " ";
-        f << "\n";
-        f << "countryId: ";
-        f << std::to_string(pd.second.ctrId);
-        f << "\n";
-        f << "color: ";
-        f << std::to_string(pd.second.r) << " ";
-        f << std::to_string(pd.second.g) << " ";
-        f << std::to_string(pd.second.b) << "\n}\n";
-    }
-    Log("pmap size = " << pmap.size());
-    f.close();
-
-    f.open("CountryDataTest.txt", std::fstream::out);
-    for (auto& ctr : ctrs) {
-        f << "{\n";
-        f << "id: " << ctr.id << "\n";
-        f << "color: ";
-        f << std::to_string(ctr.r) << " ";
-        f << std::to_string(ctr.g) << " ";
-        f << std::to_string(ctr.b) << "\n}\n";
-    }
-    f.close();
-
-    unsigned char * ctrPix = new unsigned char[w * h * 3];
-    for (int y = 0; y < h; ++y) {
-        for (int x = 0; x < w; ++x) {
-            int index = x * 3 + (w * y) * 3;
-            unsigned int hash = getHash(provs[index + 0], provs[index + 1], provs[index + 2]);
-            if (pmap.find(hash) == pmap.end())
-                continue;
-            if (pmap[hash].water) {
-                ctrPix[index + 0] = 255;
-                ctrPix[index + 1] = 255;
-                ctrPix[index + 2] = 255;
-            }
-            else {
-                int ctrId = pmap[hash].ctrId;
-                assert(ctrId >= 0 && ctrId < ctrs.size());
-                ctrPix[index + 0] = ctrs[ctrId].r;
-                ctrPix[index + 1] = ctrs[ctrId].g;
-                ctrPix[index + 2] = ctrs[ctrId].b;
-            }
-            
-        }
-    }
-
-    savePng(ctrPix, w, h);
-
-    delete [] ctrPix;
-}
-
-void savePng(unsigned char * pix, int w, int h)
-{
-    const char * path = "src/img/countries_map.png";
-    FILE* file = fopen(path, "wb");
-
-    if (!file) {
-        printf("Cannot open file: %s\n", path);
-        return;
-    }
-
-    png_structp pngPtr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    if (pngPtr == NULL) {
-        printf("Error while creating png write struct\n");
-        fclose(file);
-        return;
-    }
-
-    png_infop infoPtr = png_create_info_struct(pngPtr);
-    if (infoPtr == NULL) {
-        printf("Error while creating png info struct\n");
-        fclose(file);
-        png_destroy_write_struct(&pngPtr, &infoPtr);
-        return;
-    }
-
-    /* domyslna metoda obslugi bledow, zalecana przez biblioteke libpng */
-    if (setjmp(png_jmpbuf(pngPtr))) {
-        printf("Error");
-        fclose(file);
-        png_destroy_write_struct(&pngPtr, &infoPtr);
-        return;
-    }
-
-    int pixelSize = 3;
-    int depth = 8;
-
-    /* ustawienie atrybutow obrazu */
-    png_set_IHDR(pngPtr, infoPtr, w, h, depth, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
-                 PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
-
-    png_byte** rowPointers = (png_byte **)png_malloc(pngPtr, h * sizeof(png_byte*));
-    for (size_t y = 0; y < h; ++y) {
-    //for (size_t y = h - 1; y >= 0; --y) {
-        png_byte* row = (png_byte *)png_malloc(pngPtr, sizeof(uint8_t) * w * pixelSize);
-        rowPointers[y] = row;
-        for (size_t x = 0; x < w; ++x) {
-            //unsigned char * pixel = pix + w * y + x;
-            int index = w * (h - y - 1) * pixelSize + x * pixelSize;
-            *row++ = pix[index + 0];
-            *row++ = pix[index + 1];
-            *row++ = pix[index + 2];
-        }
-    }
-
-    /* Zapis do pliku */
-    png_init_io(pngPtr, file);
-    png_set_rows(pngPtr, infoPtr, rowPointers);
-    png_write_png(pngPtr, infoPtr, PNG_TRANSFORM_IDENTITY, NULL);
-
-    for (size_t y = 0; y < h; ++y) {
-        png_free(pngPtr, rowPointers[y]);
-    }
-    png_free(pngPtr, rowPointers);
-
-    png_destroy_write_struct(&pngPtr, &infoPtr);
-    fclose(file);
 }
 

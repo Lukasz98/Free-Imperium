@@ -1,8 +1,11 @@
 #pragma once
 
+#include <fstream>
 #include <string>
 #include <cstring>
 
+#include "vec.h"
+#include "log.h"
 
 
 //int lineCount = 0;
