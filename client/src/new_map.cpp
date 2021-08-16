@@ -7,11 +7,11 @@
 //#include <string>
 
 #include "asset_manager.h"
+#include "border_batch.h"
 #include "color.h"
 #include "graphics/texture.h"
-#include "map_batch.h"
-
 #include "load_data.h"
+#include "map_batch.h"
 #include "save_data.h"
 
 void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
@@ -36,19 +36,17 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         Log("Opengl error: " << err);
 
     int mapWidth = 5632, mapHeight = 2048;
-    int terrainMapWidth = 5632, terrainMapHeight = 2048;
-    Texture terrainTexture{"src/img/terrain_map.png", terrainMapWidth, terrainMapHeight};
-    Texture waterMap{"src/img/Blank_map.png", terrainMapWidth, terrainMapHeight};
-    Texture heightMap{"/home/lukasz/Pobrane/Heightmap.png", mapWidth, mapHeight};
-    Texture provTexture{"/home/lukasz/Pobrane/Provinces_org.png", mapWidth, mapHeight};
-    // int terrainMapWidth = 1279, terrainMapHeight = 463;
+    Texture terrainTexture{"src/img/terrain_map.png", mapWidth, mapHeight};
+    Texture waterMap{"src/img/Blank_map.png", mapWidth, mapHeight};
+    Texture heightMap{"src/img/Heightmap.png", mapWidth, mapHeight};
+    Texture provTexture{"src/img/Provinces_org.png", mapWidth, mapHeight};
     Texture grassT{"../shared/grass1.png", 64, 64, GL_REPEAT};
     Texture stoneT{"../shared/smoothstone.png", 64, 64, GL_REPEAT};
     Texture waterT{"../shared/water1.png", 64, 64, GL_REPEAT};
     Texture sandT{"src/img/Sand_1.png", 32, 32, GL_REPEAT};
     Texture ctrsText{"src/img/countries_map.png", mapWidth, mapHeight};
 
-    saveProvinceFromImg(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
+    // saveProvinceFromImg(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
     std::vector<ProvData> provinces;
     std::map<unsigned int, int> colorToId;
     std::vector<CountryData> ctrsData;
@@ -99,10 +97,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     glUniform1f(glGetUniformLocation(colorMapShader.GetProgram(), "level"), 32);
     glUniform1iv(glGetUniformLocation(colorMapShader.GetProgram(), "tex"), 32, texID);
 
-
     const unsigned char* pix = provTexture.GetPixels();
     const unsigned char* h = heightMap.GetPixels();
-
 
     Log("tu1");
     std::vector<MapVertex> vertexes;
@@ -121,14 +117,11 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             Vec2 tc3{texC.x + tCL.x, texC.y + tCL.y};
             Vec2 tc4{texC.x + tCL.x, texC.y};
 
-            vertexes.push_back(MapVertex{.pos = Vec3{x, y, z},
-                                         .tc = tc1});  //, .normal=Vec2{0.0f, 0.0f} });
-            vertexes.push_back(MapVertex{.pos = Vec3{x, y + ww, z},
-                                         .tc = tc2});  //, .normal=Vec2{0.0f, 0.0f} });
-            vertexes.push_back(MapVertex{.pos = Vec3{x + ww, y + ww, z},
-                                         .tc = tc3});  //, .normal=Vec2{0.0f, 0.0f} });
-            vertexes.push_back(MapVertex{.pos = Vec3{x + ww, y, z},
-                                         .tc = tc4});  //, .normal=Vec2{0.0f, 0.0f} });
+            vertexes.push_back(MapVertex{.pos = Vec3{x, y, z}, .tc = tc1});       //, .normal=Vec2{0.0f, 0.0f} });
+            vertexes.push_back(MapVertex{.pos = Vec3{x, y + ww, z}, .tc = tc2});  //, .normal=Vec2{0.0f, 0.0f} });
+            vertexes.push_back(
+                MapVertex{.pos = Vec3{x + ww, y + ww, z}, .tc = tc3});            //, .normal=Vec2{0.0f, 0.0f} });
+            vertexes.push_back(MapVertex{.pos = Vec3{x + ww, y, z}, .tc = tc4});  //, .normal=Vec2{0.0f, 0.0f} });
             x += ww;
             texC.x += tCL.x;
         }
@@ -144,11 +137,21 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
 
     MapBatch batch;
     batch.Init();
-    
+
+    BorderBatch borderBatch;
+    borderBatch.Init();
+
     err = glGetError();
     if (err)
         Log("Opengl error: " << err);
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    std::vector<BorderVertex> borVerts;
+    borVerts.push_back(BorderVertex{.pos = Vec3{0.0, 0.0, 200.0}});  //, .normal=Vec2{0.0f, 0.0f} });
+    borVerts.push_back(BorderVertex{.pos = Vec3{1000.0, 1000.0, 100.0}});  //, .normal=Vec2{0.0f, 0.0f} });
+    
+    glUseProgram(borderShader.GetProgram());
+    glUniform1iv(glGetUniformLocation(borderShader.GetProgram(), "tex"), 32, texID);
 
     float tesLevel = 32.0f;
     glm::vec3 unitPos;
@@ -289,27 +292,30 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
 
         batch.Begin();
         MapVertex vertsWater[8];
-        vertsWater[0] = MapVertex{.pos = Vec3{0.0, 0.0, 0.0},
-                                  .tc = Vec2{0.0, 0.0}};
-        vertsWater[1] = MapVertex{.pos = Vec3{mapWidth * scale * 0.5, 0.0, 0.0},
-                                  .tc = Vec2{0.5, 0.0}};
-        vertsWater[2] = MapVertex{.pos = Vec3{mapWidth * scale * 0.5, mapHeight * scale, 0.0},
-                                  .tc = Vec2{.5, 1.0}};
-        vertsWater[3] = MapVertex{.pos = Vec3{0.0, mapHeight * scale, 0.0},
-                                  .tc = Vec2{0.0, 1.0}};
+        vertsWater[0] = MapVertex{.pos = Vec3{0.0, 0.0, 0.0}, .tc = Vec2{0.0, 0.0}};
+        vertsWater[1] = MapVertex{.pos = Vec3{mapWidth * scale * 0.5, 0.0, 0.0}, .tc = Vec2{0.5, 0.0}};
+        vertsWater[2] =
+            MapVertex{.pos = Vec3{mapWidth * scale * 0.5, mapHeight * scale, 0.0}, .tc = Vec2{.5, 1.0}};
+        vertsWater[3] = MapVertex{.pos = Vec3{0.0, mapHeight * scale, 0.0}, .tc = Vec2{0.0, 1.0}};
 
-        vertsWater[4] = MapVertex{.pos = Vec3{mapWidth * scale * 0.5, 0.0, 0.0},
-                                  .tc = Vec2{0.5, 0.0}};
-        vertsWater[5] = MapVertex{.pos = Vec3{mapWidth * scale, 0.0, 0.0},
-                                  .tc = Vec2{1.0, 0.0}};
-        vertsWater[6] = MapVertex{.pos = Vec3{mapWidth * scale, mapHeight * scale, 0.0},
-                                  .tc = Vec2{1.0, 1.0}};
-        vertsWater[7] = MapVertex{.pos = Vec3{mapWidth * scale * 0.5, mapHeight * scale, 0.0},
-                                  .tc = Vec2{0.5, 1.0}};
+        vertsWater[4] = MapVertex{.pos = Vec3{mapWidth * scale * 0.5, 0.0, 0.0}, .tc = Vec2{0.5, 0.0}};
+        vertsWater[5] = MapVertex{.pos = Vec3{mapWidth * scale, 0.0, 0.0}, .tc = Vec2{1.0, 0.0}};
+        vertsWater[6] = MapVertex{.pos = Vec3{mapWidth * scale, mapHeight * scale, 0.0}, .tc = Vec2{1.0, 1.0}};
+        vertsWater[7] =
+            MapVertex{.pos = Vec3{mapWidth * scale * 0.5, mapHeight * scale, 0.0}, .tc = Vec2{0.5, 1.0}};
 
         batch.Push(vertsWater);
         batch.Push(&vertsWater[4]);
         batch.Flush();
+
+        glUseProgram(borderShader.GetProgram());
+        glUniformMatrix4fv(glGetUniformLocation(borderShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                           glm::value_ptr(matrix));
+
+        borderBatch.Begin();
+        borderBatch.Push(borVerts.data());
+        //borderBatch.Push(borVerts.data() + 2);
+        borderBatch.Flush();
 
         {
             glm::mat4 unitModel = glm::mat4(1.0);
