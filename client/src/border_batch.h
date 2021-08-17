@@ -7,6 +7,7 @@
 struct BorderVertex {
     Vec3 pos;
     Vec4 color{1.0f, 0.0f, 0.0f, 1.0f};
+    Vec2 tc;
 };
 
 struct BorderBatch {

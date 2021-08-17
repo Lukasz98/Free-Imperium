@@ -19,12 +19,15 @@ void BorderBatch::Init()
     Log("vbo=" << vbo);
     glEnableVertexArrayAttrib(vao, 0);
     glEnableVertexArrayAttrib(vao, 1);
+    glEnableVertexArrayAttrib(vao, 2);
     GLuint err = glGetError();
     if (err)
         Log("Opengl error: " << err);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, NULL);  //(const GLvoid*)0);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, vertexSize,
                           (const GLvoid*)(offsetof(BorderVertex, BorderVertex::color)));  //(const GLvoid*)(3 * GL_FLOAT));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, vertexSize,
+                            (const GLvoid*)(offsetof(BorderVertex, BorderVertex::tc)));  //(const GLvoid*)(7 * GL_FLOAT));
     //glVertexAttribPointer(
     //    2, 1, GL_FLOAT, GL_FALSE, vertexSize,
     //    (const GLvoid*)(offsetof(BorderVertex, BorderVertex::textureId)));  //(const GLvoid*)(7 * GL_FLOAT));
@@ -87,7 +90,7 @@ void BorderBatch::Push(const BorderVertex* verts)  // takes array of 4
         *vertexData = verts[i];
         vertexData->pos = verts[i].pos;
         vertexData->color = verts[i].color;
-        //vertexData->tc = verts[i].tc;
+        vertexData->tc = verts[i].tc;
         //vertexData->textureId = verts[i].textureId;
         //vertexData->normal = verts[i].normal;
     }

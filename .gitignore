@@ -8,6 +8,7 @@ server/build/*
 **/Makefile
 
 client/build/*
+client/BordersData.txt
 
 client/new_gui_sketch
 client/src/vgcore*

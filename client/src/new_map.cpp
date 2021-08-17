@@ -150,7 +150,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         texC.y += tCL.y;
     }
     Log("tu");
-
+    int chunkCount = vertexes.size() / 4;
     tid = 5.0f;
     color = {10.0f, 20.0f, 30.0f, 1.0f};
 
@@ -164,22 +164,30 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     if (err)
         Log("Opengl error: " << err);
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
+    bool chunkVisible[chunkCount] = {false};
     std::vector<BorderVertex> borVerts;
+    std::vector<int> bordChunkId;
     for (auto& nodeK : nodes) {
         auto node = nodeK.second;
         if (node.visited)
             continue;
         node.visited = 1;
-        //if (borVerts.size() > 10)
+        // if (borVerts.size() > 10)
         //    break;
         for (auto nn : node.next) {
-            //Log("--------------");
-            //Log((float)node.x << ", " << (float)node.y);
-            //Log(nodes[nn].x << ", " << nodes[nn].y);
-            //Log("-!-!-!-!-!");
-            borVerts.push_back(BorderVertex{.pos = Vec3{(float)node.x, (float)node.y, 200.0}});
-            borVerts.push_back(BorderVertex{.pos = Vec3{(float)nodes[nn].x, (float)nodes[nn].y, 200.0}});
+            // Log("--------------");
+            // Log((float)node.x << ", " << (float)node.y);
+            // Log(nodes[nn].x << ", " << nodes[nn].y);
+            // Log("-!-!-!-!-!");
+            int chunkX = node.x / (int)w;
+            int chunkY = node.y / (int)w;
+            int chunkId = chunkX + chunkY * (mapWidth / w);
+            borVerts.push_back(BorderVertex{.pos = Vec3{((float)node.x + 0.5f) * scale, ((float)node.y + 0.5f) * scale, 200.0},
+                                            .tc = Vec2{(float)node.x / mapWidth, (float)node.y / mapHeight}});
+            borVerts.push_back(
+                BorderVertex{.pos = Vec3{((float)nodes[nn].x + 0.5f) * scale, ((float)nodes[nn].y + 0.5f) * scale, 200.0},
+                             .tc = Vec2{(float)nodes[nn].x / mapWidth, (float)nodes[nn].y / mapHeight}});
+            bordChunkId.push_back(chunkId);
         }
     }
     Log("nodes.size: " << nodes.size());
@@ -192,6 +200,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     glUseProgram(borderShader.GetProgram());
     glUniform1iv(glGetUniformLocation(borderShader.GetProgram(), "tex"), 32, texID);
 
+    glm::vec3 provColor;
     float tesLevel = 32.0f;
     glm::vec3 unitPos;
     float dt = 0.0f, waterTime = 0.0f;
@@ -236,9 +245,25 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             glUseProgram(shader.GetProgram());
             glUniform1f(glGetUniformLocation(shader.GetProgram(), "level"), tesLevel);
         }
-        glm::vec3 provColor;
         camera.Update(window.xMouse, windowSize.y - window.yMouse, pix);
         glm::mat4 matrix = camera.GetMat();
+
+        for (int i = 0, c = 0; i < vertexes.size(); i += 4, ++c) {
+            if (camera.IsPointInFrustum(glm::vec3{vertexes[i].pos.x, vertexes[i].pos.y, vertexes[i].pos.z}) ||
+                camera.IsPointInFrustum(
+                    glm::vec3{vertexes[i + 1].pos.x, vertexes[i + 1].pos.y, vertexes[i + 1].pos.z}) ||
+                camera.IsPointInFrustum(
+                    glm::vec3{vertexes[i + 2].pos.x, vertexes[i + 2].pos.y, vertexes[i + 2].pos.z}) ||
+                camera.IsPointInFrustum(
+                    glm::vec3{vertexes[i + 3].pos.x, vertexes[i + 3].pos.y, vertexes[i + 3].pos.z}))
+            {
+                chunkVisible[c] = true;
+            }
+            else
+                chunkVisible[c] = false;
+            // batch.Push(&vertexes[i]);
+        }
+
         if (window.keys['I']) {
             glUseProgram(colorMapShader.GetProgram());
             glUniformMatrix4fv(glGetUniformLocation(colorMapShader.GetProgram(), "pr_matrix"), 1, GL_FALSE,
@@ -246,6 +271,11 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             glUniformMatrix4fv(glGetUniformLocation(colorMapShader.GetProgram(), "matrix"), 1, GL_FALSE,
                                glm::value_ptr(matrix));
             batch.Begin();
+            for (int i = 0, c = 0; i < vertexes.size(); i += 4, ++c) {
+                if (chunkVisible[c])
+                    batch.Push(&vertexes[i]);
+            }
+            /*
             for (int i = 0; i < vertexes.size(); i += 4) {
                 if (camera.IsPointInFrustum(glm::vec3{vertexes[i].pos.x, vertexes[i].pos.y, vertexes[i].pos.z}) ||
                     camera.IsPointInFrustum(
@@ -256,6 +286,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                         glm::vec3{vertexes[i + 3].pos.x, vertexes[i + 3].pos.y, vertexes[i + 3].pos.z}))
                     batch.Push(&vertexes[i]);
             }
+            */
             batch.Flush();
 
             unsigned char pixel[4];
@@ -306,6 +337,12 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         glUniform1iv(glGetUniformLocation(shader.GetProgram(), "tex"), 32, texID);
 
         batch.Begin();
+        for (int i = 0, c = 0; i < vertexes.size(); i += 4, ++c) {
+            if (chunkVisible[c]) {
+                batch.Push(&vertexes[i]);
+            }
+        }
+        /*
         for (int i = 0; i < vertexes.size(); i += 4) {
             // if (camera.IsPointInFrustum((glm::vec3)vertexes[i].pos))
             if (camera.IsPointInFrustum(glm::vec3{vertexes[i].pos.x, vertexes[i].pos.y, vertexes[i].pos.z}) ||
@@ -317,6 +354,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                     glm::vec3{vertexes[i + 3].pos.x, vertexes[i + 3].pos.y, vertexes[i + 3].pos.z}))
                 batch.Push(&vertexes[i]);
         }
+        */
         batch.Flush();
 
         glUseProgram(waterShader.GetProgram());
@@ -352,10 +390,12 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                            glm::value_ptr(matrix));
 
         borderBatch.Begin();
-        for (std::size_t i = 0; i < borVerts.size(); i += 2) {
-            borderBatch.Push(&borVerts[i]);
+        for (std::size_t i = 0, c = 0; i < borVerts.size(); i += 2, ++c) {
+            if (chunkVisible[bordChunkId[c]])
+                borderBatch.Push(&borVerts[i]);
         }
         borderBatch.Flush();
+        // bordChunkId.push_back(chunkId);
 
         {
             glm::mat4 unitModel = glm::mat4(1.0);
@@ -398,13 +438,13 @@ bool ok = false;
 
 void borRec(int x, int y, int up)
 {
-   //if (x == 5471 && y == 19)
-   if (x == 5485 && y == 81)
-   Log("a");
+    // if (x == 5471 && y == 19)
+    if (x == 5485 && y == 81)
+        Log("a");
     // if (!ok) {ok = 1; Log((long)pix); }
     while (1) {
         int lx = x;
-        int llx = lx;// - 1;
+        int llx = lx;  // - 1;
         std::vector<int> nextRowX;
         int findUp = 1;
         while (1) {
@@ -437,15 +477,15 @@ void borRec(int x, int y, int up)
             }
         }
         int rx = x;
-        int rrx = rx;// + 1;
+        int rrx = rx;  // + 1;
         findUp = 1;
         while (1) {
             if (rrx >= wW)
                 rrx = wW - rrx;
             int rindex = rrx * 3 + y * wW * 3;
             Color rcol{pix[rindex + 0], pix[rindex + 1], pix[rindex + 2]};
-            //Log("rcol: " << (int)rcol.r << ", " << (int)rcol.g << ", " << (int)rcol.b);
-            //Log("col: " << (int)currCol.r << ", " << (int)currCol.g << ", " << (int)currCol.b);
+            // Log("rcol: " << (int)rcol.r << ", " << (int)rcol.g << ", " << (int)rcol.b);
+            // Log("col: " << (int)currCol.r << ", " << (int)currCol.g << ", " << (int)currCol.b);
             if (rcol == currCol) {
                 if (y + 1 * up < hH && y + 1 * up >= 0) {  // up
                     int urindex = rrx * 3 + (y + 1 * up) * wW * 3;
@@ -469,7 +509,7 @@ void borRec(int x, int y, int up)
                 break;
             }
         }
-        //Log("DDDDDDDDDDDD " << nextRowX.size());
+        // Log("DDDDDDDDDDDD " << nextRowX.size());
         if (lx == 0 || rx == 0)
             Log("CO JEST");
         // if (left.size() || right.size())
@@ -494,6 +534,10 @@ void borRec(int x, int y, int up)
                 nodes[lhash].x = lx;
                 nodes[lhash].y = y;
             }
+            if (left.size()) {
+                int lastHash = left.back();
+                nodes[lastHash].next.push_back(lhash);
+            }
             left.push_back(lhash);
         }
         if (right.size() && nodes[right.back()].x != rx) {
@@ -515,9 +559,13 @@ void borRec(int x, int y, int up)
                 nodes[rhash].x = rx;
                 nodes[rhash].y = y;
             }
+            if (right.size()) {
+                int lastHash = right.back();
+                nodes[lastHash].next.push_back(rhash);
+            }
             right.push_back(rhash);
         }
-//Log("podejrzane1");
+        // Log("podejrzane1");
         for (std::size_t i = 1; i < nextRowX.size(); ++i) {
             if (nextRowX[i] == nextRowX[0]) {
                 nextRowX.erase(nextRowX.begin() + 1);
@@ -541,12 +589,12 @@ void borRec(int x, int y, int up)
             if (left.size())
                 lastLeftH = left.back();
             int lastRightH = -1;
-            if (right.size()) 
+            if (right.size())
                 lastRightH = right.back();
             left.clear();
             right.clear();
             for (std::size_t i = 0; i < nextRowX.size(); ++i) {
-//Log("podejrzane2 y = " << y);
+                // Log("podejrzane2 y = " << y);
                 if (i == 0) {
                     // Log("1");
                     if (lastLeftH != -1)
@@ -567,7 +615,7 @@ void borRec(int x, int y, int up)
                 }
             }
 
-//Log("podejrzane3");
+            // Log("podejrzane3");
             break;
         }
         break;
@@ -581,20 +629,20 @@ void saveBorders(const unsigned char* ppix, int ww, int hh, std::vector<ProvData
     wW = ww;
     hH = hh;
     Log("HH = " << hh);
-    int ii= 0;
+    int ii = 0;
     for (auto& pd : provD) {
         if (pd.water)
             continue;
         //++ii;
-        //if (ii == 1)
+        // if (ii == 1)
         //    Log(pd.r << ", " << pd.g << ", " << pd.b);
         currCol = Color{pd.r, pd.g, pd.b};
         left.clear();
         right.clear();
         borRec(pd.x, pd.y, 1);
-        //break;
+        // break;
         // borRec(pd.x, pd.y, -1);
-        Log(pd.id);
+        // Log(pd.id);
         // std::cout << std::endl;
     }
     Log("nodes: " << nodes.size());

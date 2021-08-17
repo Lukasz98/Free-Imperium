@@ -216,6 +216,7 @@ bool test = true;
 */
         }
         else {
+        /*
             float vv = 0.3;
             // vec4 provColoror = vec4(27.0 / 255.0, 36.0 / 255.0, 255.0 / 255.0, 1.0);
             if (c1.xyz == provColor || c2.xyz == provColor || c3.xyz == provColor || c4.xyz == provColor ||
@@ -233,6 +234,7 @@ bool test = true;
             }
             else
                 color = vec4(vv, vv, vv, 1.0);
+        */
         }
 
         // color = fs_in.ccolor;
