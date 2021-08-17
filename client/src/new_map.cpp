@@ -14,6 +14,23 @@
 #include "map_batch.h"
 #include "save_data.h"
 
+// int nodeHash(unsigned short x, unsigned short y)
+int nodeHash(int x, int y)
+{
+    int r = x | (y << 16);
+    // r = r | (((int)y) << 16);
+    return r;
+}
+struct Node {
+    int x = 2, y = 2, chunk;
+    std::vector<int> next;
+    bool visited = false;
+};
+
+std::map<int, Node> nodes;
+void saveBorders(const unsigned char* pix, int ww, int hh, std::vector<ProvData> provD);
+std::vector<BorderVertex> loadBorders();
+
 void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
 {
     GLuint err = glGetError();
@@ -52,6 +69,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     std::vector<CountryData> ctrsData;
     loadProvData(provinces, colorToId);
     loadCountriesData(ctrsData);
+    // saveBorders(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
+    saveBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces);
 
     err = glGetError();
     if (err)
@@ -147,9 +166,29 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     std::vector<BorderVertex> borVerts;
-    borVerts.push_back(BorderVertex{.pos = Vec3{0.0, 0.0, 200.0}});  //, .normal=Vec2{0.0f, 0.0f} });
-    borVerts.push_back(BorderVertex{.pos = Vec3{1000.0, 1000.0, 100.0}});  //, .normal=Vec2{0.0f, 0.0f} });
-    
+    for (auto& nodeK : nodes) {
+        auto node = nodeK.second;
+        if (node.visited)
+            continue;
+        node.visited = 1;
+        //if (borVerts.size() > 10)
+        //    break;
+        for (auto nn : node.next) {
+            //Log("--------------");
+            //Log((float)node.x << ", " << (float)node.y);
+            //Log(nodes[nn].x << ", " << nodes[nn].y);
+            //Log("-!-!-!-!-!");
+            borVerts.push_back(BorderVertex{.pos = Vec3{(float)node.x, (float)node.y, 200.0}});
+            borVerts.push_back(BorderVertex{.pos = Vec3{(float)nodes[nn].x, (float)nodes[nn].y, 200.0}});
+        }
+    }
+    Log("nodes.size: " << nodes.size());
+    Log("borVerts.size: " << borVerts.size());
+    // borVerts.push_back(BorderVertex{.pos = Vec3{0.0, 0.0, 200.0}});        //, .normal=Vec2{0.0f, 0.0f} });
+    // borVerts.push_back(BorderVertex{.pos = Vec3{1000.0, 1000.0, 200.0}});  //, .normal=Vec2{0.0f, 0.0f} });
+    // borVerts.push_back(BorderVertex{.pos = Vec3{100.0, 0.0, 200.0}});      //, .normal=Vec2{0.0f, 0.0f} });
+    // borVerts.push_back(BorderVertex{.pos = Vec3{1100.0, 1000.0, 200.0}});  //, .normal=Vec2{0.0f, 0.0f} });
+
     glUseProgram(borderShader.GetProgram());
     glUniform1iv(glGetUniformLocation(borderShader.GetProgram(), "tex"), 32, texID);
 
@@ -313,8 +352,9 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                            glm::value_ptr(matrix));
 
         borderBatch.Begin();
-        borderBatch.Push(borVerts.data());
-        //borderBatch.Push(borVerts.data() + 2);
+        for (std::size_t i = 0; i < borVerts.size(); i += 2) {
+            borderBatch.Push(&borVerts[i]);
+        }
         borderBatch.Flush();
 
         {
@@ -346,5 +386,279 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         // Log(dt);
         time = glfwGetTime();
     }
+}
+
+std::vector<BorderVertex> loadBorders() {}
+
+Color currCol;
+const unsigned char* pix;
+int wW, hH;
+std::vector<int> left, right;
+bool ok = false;
+
+void borRec(int x, int y, int up)
+{
+   //if (x == 5471 && y == 19)
+   if (x == 5485 && y == 81)
+   Log("a");
+    // if (!ok) {ok = 1; Log((long)pix); }
+    while (1) {
+        int lx = x;
+        int llx = lx;// - 1;
+        std::vector<int> nextRowX;
+        int findUp = 1;
+        while (1) {
+            if (llx < 0)
+                llx = wW - llx * -1;
+            int lindex = llx * 3 + y * wW * 3;
+            Color lcol{pix[lindex + 0], pix[lindex + 1], pix[lindex + 2]};
+            if (lcol == currCol) {
+                //           Log("h = " << hH);
+                if (y + 1 * up < hH && y + 1 * up >= 0) {  // up
+                    //                Log("AAAAAAAAAAAAAAAAAAAAAAAAAAA L: " << y + 1 * up);
+                    int ulindex = llx * 3 + (y + 1 * up) * wW * 3;
+                    Color ulCol{pix[ulindex + 0], pix[ulindex + 1], pix[ulindex + 2]};
+                    if (ulCol == currCol) {
+                        if (findUp) {
+                            nextRowX.push_back(llx);
+                            findUp = 0;
+                        }
+                    }
+                    else if (findUp == 0) {
+                        findUp = 1;
+                    }
+                }
+                llx -= 1;
+                continue;
+            }
+            else {
+                lx = llx;
+                break;
+            }
+        }
+        int rx = x;
+        int rrx = rx;// + 1;
+        findUp = 1;
+        while (1) {
+            if (rrx >= wW)
+                rrx = wW - rrx;
+            int rindex = rrx * 3 + y * wW * 3;
+            Color rcol{pix[rindex + 0], pix[rindex + 1], pix[rindex + 2]};
+            //Log("rcol: " << (int)rcol.r << ", " << (int)rcol.g << ", " << (int)rcol.b);
+            //Log("col: " << (int)currCol.r << ", " << (int)currCol.g << ", " << (int)currCol.b);
+            if (rcol == currCol) {
+                if (y + 1 * up < hH && y + 1 * up >= 0) {  // up
+                    int urindex = rrx * 3 + (y + 1 * up) * wW * 3;
+                    Color urCol{pix[urindex + 0], pix[urindex + 1], pix[urindex + 2]};
+                    //                  Log("AAAAAAAAAAAAAAAAAAAAAAAAAAA R");
+                    if (urCol == currCol) {
+                        if (findUp) {
+                            nextRowX.push_back(rrx);
+                            findUp = 0;
+                        }
+                    }
+                    else if (findUp == 0) {
+                        findUp = 1;
+                    }
+                }
+                rrx += 1;
+                continue;
+            }
+            else {
+                rx = rrx - 1;
+                break;
+            }
+        }
+        //Log("DDDDDDDDDDDD " << nextRowX.size());
+        if (lx == 0 || rx == 0)
+            Log("CO JEST");
+        // if (left.size() || right.size())
+        // Log("left: " << left.size() << ", right: " << right.size());
+        // if (nextRowX.size()) Log("nextrow.size: " << nextRowX.size());
+        if (left.size() && nodes[left.back()].x != lx) {
+            int lhash = nodeHash(lx, y);
+            if (nodes.find(lhash) == nodes.end()) {
+                nodes[lhash] = Node{};
+                nodes[lhash].x = lx;
+                nodes[lhash].y = y;
+            }
+            // Log("leftPush");
+            int lastHash = left.back();
+            nodes[lastHash].next.push_back(lhash);
+            left.push_back(lhash);
+        }
+        else if (left.size() == 0 || nextRowX.size() == 0) {
+            int lhash = nodeHash(lx, y);
+            if (nodes.find(lhash) == nodes.end()) {
+                nodes[lhash] = Node{};
+                nodes[lhash].x = lx;
+                nodes[lhash].y = y;
+            }
+            left.push_back(lhash);
+        }
+        if (right.size() && nodes[right.back()].x != rx) {
+            int rhash = nodeHash(rx, y);
+            if (nodes.find(rhash) == nodes.end()) {
+                nodes[rhash] = Node{};
+                nodes[rhash].x = rx;
+                nodes[rhash].y = y;
+            }
+            int lastHash = right.back();
+            nodes[lastHash].next.push_back(rhash);
+            // Log("rightPush");
+            right.push_back(rhash);
+        }
+        else if (right.size() == 0 || nextRowX.size() == 0) {
+            int rhash = nodeHash(rx, y);
+            if (nodes.find(rhash) == nodes.end()) {
+                nodes[rhash] = Node{};
+                nodes[rhash].x = rx;
+                nodes[rhash].y = y;
+            }
+            right.push_back(rhash);
+        }
+//Log("podejrzane1");
+        for (std::size_t i = 1; i < nextRowX.size(); ++i) {
+            if (nextRowX[i] == nextRowX[0]) {
+                nextRowX.erase(nextRowX.begin() + 1);
+                break;
+            }
+        }
+        if (nextRowX.size() == 1) {
+            x = nextRowX[0];
+            y += 1 * up;
+            continue;
+        }
+        else if (nextRowX.size() == 0) {
+            int lhash = nodeHash(lx, y);
+            int rhash = nodeHash(rx, y);
+            nodes[lhash].next.push_back(rhash);
+            break;
+        }
+        else {
+            std::sort(nextRowX.begin(), nextRowX.end());
+            int lastLeftH = -1;
+            if (left.size())
+                lastLeftH = left.back();
+            int lastRightH = -1;
+            if (right.size()) 
+                lastRightH = right.back();
+            left.clear();
+            right.clear();
+            for (std::size_t i = 0; i < nextRowX.size(); ++i) {
+//Log("podejrzane2 y = " << y);
+                if (i == 0) {
+                    // Log("1");
+                    if (lastLeftH != -1)
+                        left.push_back(lastLeftH);
+                    borRec(nextRowX[i], y + 1 * up, up);
+                    left.clear();
+                }
+                else if (i == nextRowX.size() - 1) {
+                    // Log("2");
+                    if (lastRightH != -1)
+                        right.push_back(lastRightH);
+                    borRec(nextRowX[i], y + 1 * up, up);
+                    right.clear();
+                }
+                else {
+                    // Log("3");
+                    borRec(nextRowX[i], y + 1 * up, up);
+                }
+            }
+
+//Log("podejrzane3");
+            break;
+        }
+        break;
+    }
+}
+
+void saveBorders(const unsigned char* ppix, int ww, int hh, std::vector<ProvData> provD)
+{
+    pix = ppix;
+    // Log((long)ppix);
+    wW = ww;
+    hH = hh;
+    Log("HH = " << hh);
+    int ii= 0;
+    for (auto& pd : provD) {
+        if (pd.water)
+            continue;
+        //++ii;
+        //if (ii == 1)
+        //    Log(pd.r << ", " << pd.g << ", " << pd.b);
+        currCol = Color{pd.r, pd.g, pd.b};
+        left.clear();
+        right.clear();
+        borRec(pd.x, pd.y, 1);
+        //break;
+        // borRec(pd.x, pd.y, -1);
+        Log(pd.id);
+        // std::cout << std::endl;
+    }
+    Log("nodes: " << nodes.size());
+
+    std::fstream f;
+    f.open("BordersData.txt", std::fstream::out);
+    for (auto& nk : nodes) {
+        auto node = nk.second;
+        f << node.x << " " << node.y << " | next : ";
+        for (auto next : node.next) {
+            f << nodes[next].x << " " << nodes[next].y << ", ";
+        }
+        f << '\n';
+    }
+    f.close();
+    /*
+    for (auto & pd : provD) {
+        int rbi = pd.x * 3 + pd.y * w * 3;
+        int lbi = (pd.x - 1) * 3 + pd.y * w * 3;
+        int rti = pd.x * 3 + (pd.y + 1) * w * 3;
+        int lti = (pd.x - 1) * 3 + (pd.y + 1) * w * 3;
+        if (pd.x - 1 < 0) {
+            lbi = (w - 1) * 3 + pd.y * w * 3;
+            lti = (w - 1) * 3 + (pd.y + 1) * w * 3;
+        }
+        if (pd.y >= h || pd.x >= w)
+            continue;
+        int nhash = nodeHash(pd.x, pd.y);
+        nodes[nhash] = Node{pd.x, pd.y};
+        Log(pd.id);
+        currC{pd.r, pd.g, pd.b};
+        int dir = -1;
+        while (1) {
+            Color rbiC{pix[rbi], pix[rbi + 1], pid[rbi + 2]};
+            Color lbiC{pix[lbi], pix[lbi + 1], pid[lbi + 2]};
+            Color rtiC{pix[rti], pix[rti + 1], pid[rti + 2]};
+            Color ltiC{pix[lti], pix[lti + 1], pid[lti + 2]};
+
+            if (rbiC == currC && rtiC == currC) {
+                if (dir == 2) dir = 2 // down;
+                else dir = 1; // up
+            }
+            else if (rbiC == currC && lbiC == currC) {
+                if (dir == 0) dir = 0 // left;
+                else dir = 3; // right
+            }
+            else if (rbiC == currC && rtiC != currC && lbiC != currC && ltiC != currC) {
+                if (dir == 1) dir = 3; // if was up then right
+                else if (dir == 0) dir == 2; // if was left then bottom;
+            }
+            else if (rtiC == currC && rbiC != currC && lbiC != currC && ltiC != currC) {
+                if (dir == 2) dir = 3; // if was down then right
+                else if (dir == 0) dir == 1; // if was left then up;
+            }
+            else if (lbiC == currC && rtiC != currC && rbiC != currC && ltiC != currC) {
+                if (dir == 3) dir = 2; // if was right then down
+                else if (dir == 1) dir == 0; // if was up then left;
+            }
+            else if (ltiC == currC && rtiC != currC && rbiC != currC && lbiC != currC) {
+                if (dir == 3) dir = 1; // if was right then up
+                else if (dir == 2) dir == 0; // if was down then left;
+            }
+        }
+    }
+    */
 }
 
