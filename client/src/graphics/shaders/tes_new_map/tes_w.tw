@@ -90,6 +90,7 @@ void main(void)
         pos.y += cos(vv);
     }
     */
+    /*
     if (c1 != c2) {
         float vv = waterTime + pos.y;
         //vv = pos.y;
@@ -100,7 +101,7 @@ void main(void)
        //vv = pos.x;
         pos.y += cos(vv);
     }
-
+*/
     //
     tes_out.x = pos.x;
     tes_out.y = pos.y;

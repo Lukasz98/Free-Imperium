@@ -3,6 +3,7 @@
 #include <cstring>
 //#include <fstream>
 #include <map>
+#include <queue>
 #include <set>
 //#include <string>
 
@@ -182,11 +183,14 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             int chunkX = node.x / (int)w;
             int chunkY = node.y / (int)w;
             int chunkId = chunkX + chunkY * (mapWidth / w);
-            borVerts.push_back(BorderVertex{.pos = Vec3{((float)node.x + 0.5f) * scale, ((float)node.y + 0.5f) * scale, 200.0},
-                                            .tc = Vec2{(float)node.x / mapWidth, (float)node.y / mapHeight}});
             borVerts.push_back(
-                BorderVertex{.pos = Vec3{((float)nodes[nn].x + 0.5f) * scale, ((float)nodes[nn].y + 0.5f) * scale, 200.0},
-                             .tc = Vec2{(float)nodes[nn].x / mapWidth, (float)nodes[nn].y / mapHeight}});
+                //BorderVertex{.pos = Vec3{((float)node.x + 0.5f) * scale, ((float)node.y + 0.5f) * scale, 200.0},
+                              BorderVertex{.pos = Vec3{((float)node.x) * scale, ((float)node.y) * scale, 200.0},
+                             .tc = Vec2{(float)node.x / mapWidth, (float)node.y / mapHeight}});
+            borVerts.push_back(BorderVertex{
+                .pos = Vec3{((float)nodes[nn].x) * scale, ((float)nodes[nn].y) * scale, 200.0},
+                //.pos = Vec3{((float)nodes[nn].x + 0.5f) * scale, ((float)nodes[nn].y + 0.5f) * scale, 200.0},
+                .tc = Vec2{(float)nodes[nn].x / mapWidth, (float)nodes[nn].y / mapHeight}});
             bordChunkId.push_back(chunkId);
         }
     }
@@ -427,7 +431,9 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         time = glfwGetTime();
     }
 }
-
+struct HashPair {
+    int left, right;
+};
 std::vector<BorderVertex> loadBorders() {}
 
 Color currCol;
@@ -436,18 +442,21 @@ int wW, hH;
 std::vector<int> left, right;
 bool ok = false;
 
-void borRec(int x, int y, int up)
+HashPair borRec(int x, int y, int up)
 {
     // if (x == 5471 && y == 19)
-    if (x == 5485 && y == 81)
-        Log("a");
+    // if (x == 5485 && y == 81)
     // if (!ok) {ok = 1; Log((long)pix); }
+    bool nextLxUp = false, nextRxUp = false;
+    int firstLeft = -1, firstRight = -1;
     while (1) {
         int lx = x;
         int llx = lx;  // - 1;
         std::vector<int> nextRowX;
         int findUp = 1;
         while (1) {
+            if (currCol.r == 119 && currCol.g == 212 && currCol.b == 150 && llx == 2788)
+                Log("a");
             if (llx < 0)
                 llx = wW - llx * -1;
             int lindex = llx * 3 + y * wW * 3;
@@ -462,17 +471,28 @@ void borRec(int x, int y, int up)
                         if (findUp) {
                             nextRowX.push_back(llx);
                             findUp = 0;
+                            nextLxUp = true;
                         }
                     }
-                    else if (findUp == 0) {
+                    else {  // if (findUp == 0)
                         findUp = 1;
+                        nextLxUp = false;
                     }
                 }
                 llx -= 1;
                 continue;
             }
             else {
-                lx = llx;
+                lx = llx;  // + 1;
+                /*
+                if (y + 1 * up < hH && y + 1 * up >= 0) {  // up
+                    int ulindex = llx * 3 + (y + 1 * up) * wW * 3;
+                    Color ulCol{pix[ulindex + 0], pix[ulindex + 1], pix[ulindex + 2]};
+                    if (ulCol != currCol) {
+                        nextLxUp = false;
+                    }
+                }
+                */
                 break;
             }
         }
@@ -495,10 +515,12 @@ void borRec(int x, int y, int up)
                         if (findUp) {
                             nextRowX.push_back(rrx);
                             findUp = 0;
+                            nextRxUp = true;
                         }
                     }
-                    else if (findUp == 0) {
+                    else {  // if (findUp == 0)
                         findUp = 1;
+                        nextRxUp = false;
                     }
                 }
                 rrx += 1;
@@ -506,6 +528,15 @@ void borRec(int x, int y, int up)
             }
             else {
                 rx = rrx - 1;
+                /*
+                if (y + 1 * up < hH && y + 1 * up >= 0) {  // up
+                    int ulindex = rrx * 3 + (y + 1 * up) * wW * 3;
+                    Color ulCol{pix[ulindex + 0], pix[ulindex + 1], pix[ulindex + 2]};
+                    if (ulCol != currCol) {
+                        nextRxUp = false;
+                    }
+                }
+                */
                 break;
             }
         }
@@ -514,8 +545,18 @@ void borRec(int x, int y, int up)
             Log("CO JEST");
         // if (left.size() || right.size())
         // Log("left: " << left.size() << ", right: " << right.size());
+        for (std::size_t i = 1; i < nextRowX.size(); ++i) {
+            if (nextRowX[i] == nextRowX[0]) {
+                nextRowX.erase(nextRowX.begin() + i);
+                break;
+            }
+        }
         // if (nextRowX.size()) Log("nextrow.size: " << nextRowX.size());
-        if (left.size() && nodes[left.back()].x != lx) {
+        if (nextRowX.size()) {
+            std::sort(nextRowX.begin(), nextRowX.end());
+        }
+        // if (left.size() && (nodes[left.back()].x != lx)) {
+        if (left.size()) {  // && (nodes[left.back()].x != lx || (nextRowX.size() && nextRowX[0] != lx))) {
             int lhash = nodeHash(lx, y);
             if (nodes.find(lhash) == nodes.end()) {
                 nodes[lhash] = Node{};
@@ -529,6 +570,8 @@ void borRec(int x, int y, int up)
         }
         else if (left.size() == 0 || nextRowX.size() == 0) {
             int lhash = nodeHash(lx, y);
+            if (firstLeft == -1)
+                firstLeft = lhash;
             if (nodes.find(lhash) == nodes.end()) {
                 nodes[lhash] = Node{};
                 nodes[lhash].x = lx;
@@ -540,7 +583,9 @@ void borRec(int x, int y, int up)
             }
             left.push_back(lhash);
         }
-        if (right.size() && nodes[right.back()].x != rx) {
+        if (right.size())
+        {  // && (nodes[right.back()].x != rx || (nextRowX.size() && nextRowX[nextRowX.size() - 1] != rx))) {
+            // if (right.size() && (nodes[right.back()].x != rx)) {
             int rhash = nodeHash(rx, y);
             if (nodes.find(rhash) == nodes.end()) {
                 nodes[rhash] = Node{};
@@ -554,6 +599,8 @@ void borRec(int x, int y, int up)
         }
         else if (right.size() == 0 || nextRowX.size() == 0) {
             int rhash = nodeHash(rx, y);
+            if (firstRight == -1)
+                firstRight = rhash;
             if (nodes.find(rhash) == nodes.end()) {
                 nodes[rhash] = Node{};
                 nodes[rhash].x = rx;
@@ -566,12 +613,6 @@ void borRec(int x, int y, int up)
             right.push_back(rhash);
         }
         // Log("podejrzane1");
-        for (std::size_t i = 1; i < nextRowX.size(); ++i) {
-            if (nextRowX[i] == nextRowX[0]) {
-                nextRowX.erase(nextRowX.begin() + 1);
-                break;
-            }
-        }
         if (nextRowX.size() == 1) {
             x = nextRowX[0];
             y += 1 * up;
@@ -581,10 +622,13 @@ void borRec(int x, int y, int up)
             int lhash = nodeHash(lx, y);
             int rhash = nodeHash(rx, y);
             nodes[lhash].next.push_back(rhash);
-            break;
+            // return HashPair{lhash, rhash};
+            assert(left.size() && right.size());
+            // return HashPair{left[0], right[0]};
+            return HashPair{firstLeft, firstRight};
+            // break;
         }
         else {
-            std::sort(nextRowX.begin(), nextRowX.end());
             int lastLeftH = -1;
             if (left.size())
                 lastLeftH = left.back();
@@ -593,37 +637,171 @@ void borRec(int x, int y, int up)
                 lastRightH = right.back();
             left.clear();
             right.clear();
+            HashPair hpair;
+            int lhash, rhash;
             for (std::size_t i = 0; i < nextRowX.size(); ++i) {
                 // Log("podejrzane2 y = " << y);
                 if (i == 0) {
                     // Log("1");
                     if (lastLeftH != -1)
                         left.push_back(lastLeftH);
-                    borRec(nextRowX[i], y + 1 * up, up);
+                    hpair = borRec(nextRowX[i], y + 1 * up, up);
+                    lhash = hpair.left;
                     left.clear();
+                    right.clear();
                 }
                 else if (i == nextRowX.size() - 1) {
                     // Log("2");
                     if (lastRightH != -1)
                         right.push_back(lastRightH);
-                    borRec(nextRowX[i], y + 1 * up, up);
+                    HashPair hp = borRec(nextRowX[i], y + 1 * up, up);
+                    nodes[hpair.right].next.push_back(hp.left);
+                    hpair = hp;
+                    rhash = hpair.right;
+                    left.clear();
                     right.clear();
                 }
                 else {
                     // Log("3");
-                    borRec(nextRowX[i], y + 1 * up, up);
+                    HashPair hp = borRec(nextRowX[i], y + 1 * up, up);
+                    nodes[hpair.right].next.push_back(hp.left);
+                    hpair = hp;
+                    // rhash = hpair.right;
+                    left.clear();
+                    right.clear();
                 }
             }
 
+            return HashPair{firstLeft, firstRight};
+            // return HashPair{lhash, rhash};
             // Log("podejrzane3");
             break;
         }
-        break;
+        // break;
+    }
+}
+
+void bord2(const unsigned char* pix, int x, int y, int w, int h)
+{
+    std::map<int, int> tmp;
+    std::queue<int> que;
+    // int initx = x, inity = y;
+    que.push(x | (y << 16));
+    while (que.size()) {
+        int key = que.front();
+        que.pop();
+        y = key >> 16;
+        x = key ^ (y << 16);
+        int nh = nodeHash(x, y);
+        if (tmp.find(nh) != tmp.end())
+            continue;
+        tmp[nh] = nh;
+        int lx = x - 1, ly1 = y, ly2 = y + 1;
+        int tx1 = x, tx2 = x + 1, ty = y + 1;
+        int rx = x + 1, ry1 = y + 1, ry2 = y;
+        int bx1 = x + 1, bx2 = x, by = y - 1;
+
+        int currI = x * 3 + y * w * 3;
+
+        int nextI = lx * 3 + y * w * 3;
+        if (lx < 0)
+            nextI = (w - 1) * 3 + ly1 * w * 3;
+
+        Color nc{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
+        bool goL = (currCol == nc);
+        if (goL == false) {
+            int thash = nodeHash(lx + 1, ly1);
+            if (nodes.find(thash) == nodes.end())
+                nodes[thash] = Node{.x = lx + 1, .y = ly1};
+            int thash2 = nodeHash(lx + 1, ly2);
+            if (nodes.find(thash2) == nodes.end())
+                nodes[thash2] = Node{.x = lx + 1, .y = ly2};
+            nodes[thash].next.push_back(thash2);
+        }
+        else {
+            que.push(lx | (ly1 << 16));
+        }
+
+        bool goT = false;
+        if (ty < h) {
+            nextI = tx1 * 3 + ty * w * 3;
+            nc = Color{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
+            goT = (currCol == nc);
+            if (goT == false) {
+                int thash = nodeHash(tx1, ty);
+                if (nodes.find(thash) == nodes.end())
+                    nodes[thash] = Node{.x = tx1, .y = ty};
+                int thash2 = nodeHash(tx2, ty);
+                if (nodes.find(thash2) == nodes.end())
+                    nodes[thash2] = Node{.x = tx2, .y = ty};
+                nodes[thash].next.push_back(thash2);
+                //if (goL == false) {
+                //    nodes[nodeHash(lx, ly2)].next.push_back(thash);
+                //}
+            }
+            else {
+                que.push(tx1 | (ty << 16));
+            }
+        }
+
+        bool goR = false;
+        if (rx < w) {
+            nextI = rx * 3 + ry2 * w * 3;
+            nc = Color{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
+            goR = (currCol == nc);
+            if (goR == false) {
+                int thash = nodeHash(rx, ry2);
+                if (nodes.find(thash) == nodes.end())
+                    nodes[thash] = Node{.x = rx, .y = ry2};
+                int thash2 = nodeHash(rx, ry1);
+                if (nodes.find(thash2) == nodes.end())
+                    nodes[thash2] = Node{.x = rx, .y = ry1};
+                nodes[thash].next.push_back(thash2);
+                //if (goT == false) {
+                //    nodes[nodeHash(tx2, ty)].next.push_back(thash2);
+                //}
+            }
+            else {
+                que.push(rx | (ry2 << 16));
+            }
+        }
+
+        bool goB = false;
+        if (by > 0) {
+            nextI = bx2 * 3 + by * w * 3;
+            nc = Color{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
+            goB = (currCol == nc);
+            if (goB == false) {
+                int thash = nodeHash(bx2, by + 1);
+                if (nodes.find(thash) == nodes.end())
+                    nodes[thash] = Node{.x = bx2, .y = by + 1};
+                int thash2 = nodeHash(bx1, by + 1);
+                if (nodes.find(thash2) == nodes.end())
+                    nodes[thash2] = Node{.x = bx1, .y = by + 1};
+                nodes[thash].next.push_back(thash2);
+                //if (goR == false) {
+                //    nodes[nodeHash(rx, ry2)].next.push_back(thash2);
+                //}
+                //if (goL == false) {
+                //    nodes[nodeHash(lx, ly1)].next.push_back(thash);
+                //}
+            }
+            else {
+                que.push(bx2 | (by << 16));
+            }
+        }
     }
 }
 
 void saveBorders(const unsigned char* ppix, int ww, int hh, std::vector<ProvData> provD)
 {
+    // unsigned char * ppp = new unsigned char[ww * hh * 3];
+    // for (int i = 0; i < ww * hh * 3; ++i) {
+    //    ppp[i] = ppix[i];
+    //}
+    // bord2(ppp, ww, hh);
+    // delete ppp[];
+    // return;
     pix = ppix;
     // Log((long)ppix);
     wW = ww;
@@ -639,10 +817,12 @@ void saveBorders(const unsigned char* ppix, int ww, int hh, std::vector<ProvData
         currCol = Color{pd.r, pd.g, pd.b};
         left.clear();
         right.clear();
-        borRec(pd.x, pd.y, 1);
+        // borRec(pd.x, pd.y, 1);
+        Log(pd.id);
+        bord2(pix, pd.x, pd.y, ww, hh);
         // break;
         // borRec(pd.x, pd.y, -1);
-        // Log(pd.id);
+        Log(pd.id);
         // std::cout << std::endl;
     }
     Log("nodes: " << nodes.size());
@@ -658,55 +838,109 @@ void saveBorders(const unsigned char* ppix, int ww, int hh, std::vector<ProvData
         f << '\n';
     }
     f.close();
-    /*
-    for (auto & pd : provD) {
-        int rbi = pd.x * 3 + pd.y * w * 3;
-        int lbi = (pd.x - 1) * 3 + pd.y * w * 3;
-        int rti = pd.x * 3 + (pd.y + 1) * w * 3;
-        int lti = (pd.x - 1) * 3 + (pd.y + 1) * w * 3;
-        if (pd.x - 1 < 0) {
-            lbi = (w - 1) * 3 + pd.y * w * 3;
-            lti = (w - 1) * 3 + (pd.y + 1) * w * 3;
-        }
-        if (pd.y >= h || pd.x >= w)
-            continue;
-        int nhash = nodeHash(pd.x, pd.y);
-        nodes[nhash] = Node{pd.x, pd.y};
-        Log(pd.id);
-        currC{pd.r, pd.g, pd.b};
-        int dir = -1;
-        while (1) {
-            Color rbiC{pix[rbi], pix[rbi + 1], pid[rbi + 2]};
-            Color lbiC{pix[lbi], pix[lbi + 1], pid[lbi + 2]};
-            Color rtiC{pix[rti], pix[rti + 1], pid[rti + 2]};
-            Color ltiC{pix[lti], pix[lti + 1], pid[lti + 2]};
-
-            if (rbiC == currC && rtiC == currC) {
-                if (dir == 2) dir = 2 // down;
-                else dir = 1; // up
-            }
-            else if (rbiC == currC && lbiC == currC) {
-                if (dir == 0) dir = 0 // left;
-                else dir = 3; // right
-            }
-            else if (rbiC == currC && rtiC != currC && lbiC != currC && ltiC != currC) {
-                if (dir == 1) dir = 3; // if was up then right
-                else if (dir == 0) dir == 2; // if was left then bottom;
-            }
-            else if (rtiC == currC && rbiC != currC && lbiC != currC && ltiC != currC) {
-                if (dir == 2) dir = 3; // if was down then right
-                else if (dir == 0) dir == 1; // if was left then up;
-            }
-            else if (lbiC == currC && rtiC != currC && rbiC != currC && ltiC != currC) {
-                if (dir == 3) dir = 2; // if was right then down
-                else if (dir == 1) dir == 0; // if was up then left;
-            }
-            else if (ltiC == currC && rtiC != currC && rbiC != currC && lbiC != currC) {
-                if (dir == 3) dir = 1; // if was right then up
-                else if (dir == 2) dir == 0; // if was down then left;
-            }
-        }
-    }
-    */
 }
 
+/*
+
+    int initx = x, inity = y;
+    do {
+        int lx = x - 1, ly1 = y, ly2 = y + 1;
+        int tx1 = x, tx2 = x + 1, ty = y + 1;
+        int rx = x + 1, ry1 = y + 1, ry2 = y;
+        int bx1 = x + 1, bx2 = x, by = y;
+
+        int currI = x * 3 + y * w * 3;
+
+        int nextI = lx * 3 + y * w * 3;
+        if (lx < 0)
+            nextI = (w - 1) * 3 + ly1 * w * 3;
+
+        Color nc{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
+        bool goL = (currCol == nc);
+        if (goL == false) {
+                int thash = nodeHash(lx, ly1);
+                if (nodes.find(thash) == nodes.end())
+                nodes[thash] = Node{.x = lx, .y = ly1};
+                int thash2 = nodeHash(lx, ly2);
+                if (nodes.find(thash2) == nodes.end())
+                nodes[thash2] = Node{.x = lx, .y = ly2};
+                //nodes[thash].next.push_back(thash2);
+        }
+
+        bool goT = false;
+        if (ty < h) {
+            nextI = tx1 * 3 + ty * w * 3;
+            nc = Color{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
+            goT = (currCol == nc);
+            if (goT == false) {
+                int thash = nodeHash(tx1, ty);
+                if (nodes.find(thash) == nodes.end())
+                nodes[thash] = Node{.x = tx1, .y = ty};
+                int thash2 = nodeHash(tx2, ty);
+                if (nodes.find(thash2) == nodes.end())
+                nodes[thash2] = Node{.x = tx2, .y = ty};
+                nodes[thash].next.push_back(thash2);
+                if (goL == false) {
+                    nodes[nodeHash(lx, ly2)].next.push_back(thash);
+                }
+            }
+        }
+
+        bool goR = false;
+        if (rx < w) {
+            nextI = rx * 3 + ry1 * w * 3;
+            nc = Color{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
+            goR = (currCol == nc);
+            if (goR == false) {
+                int thash = nodeHash(rx, ry2);
+                if (nodes.find(thash) == nodes.end())
+                nodes[thash] = Node{.x = rx, .y = ry2};
+                int thash2 = nodeHash(rx, ry1);
+                if (nodes.find(thash2) == nodes.end())
+                nodes[thash2] = Node{.x = rx, .y = ry1};
+                nodes[thash].next.push_back(thash2);
+                if (goT == false) {
+                    nodes[nodeHash(tx2, ty)].next.push_back(thash2);
+                }
+            }
+        }
+
+        bool goB = false;
+        if (by > 0) {
+            nextI = bx1 * 3 + by * w * 3;
+            nc = Color{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
+            goB = (currCol == nc);
+            if (goB == false) {
+                int thash = nodeHash(bx2, by);
+                if (nodes.find(thash) == nodes.end())
+                nodes[thash] = Node{.x = bx2, .y = by};
+                int thash2 = nodeHash(bx1, by);
+                if (nodes.find(thash2) == nodes.end())
+                nodes[thash2] = Node{.x = bx1, .y = by};
+                nodes[thash].next.push_back(thash2);
+                if (goR == false) {
+                    nodes[nodeHash(rx, ry2)].next.push_back(thash2);
+                }
+                if (goL == false) {
+                    nodes[nodeHash(lx, ly1)].next.push_back(thash);
+                }
+            }
+        }
+
+        if (goL) {
+            --x;
+        }
+        else if (goT) {
+            ++y;
+        }
+        else if (goR) {
+            ++x;
+        }
+        else if (goB) {
+            --y;
+        }
+        else break;
+
+    } while (initx != x || inity != y);
+
+*/

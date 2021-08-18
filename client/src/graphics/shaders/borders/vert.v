@@ -14,5 +14,5 @@ void main()
 {
 col = Color;
 float z = texture(tex[3], Tc).r;// * 4.0f * 2.0f * 30.0f + 10.0f;
-    gl_Position = matrix * vec4(Pos.xy, z * 255.0f + 0.5f, 1.0f);
+    gl_Position = matrix * vec4(Pos.xy, z * 255.0f - 0.0f, 1.0f);
 }
