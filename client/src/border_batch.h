@@ -12,8 +12,9 @@ struct BorderVertex {
 
 struct BorderBatch {
     GLuint vao, vbo, ibo;
-    int maxSprites = 5000, vertCount = 0, indicesCount = 0, spriteCount = 0;
+    int maxSprites = 10000, vertCount = 0, indicesCount = 0, spriteCount = 0;
     BorderVertex* vertexData;
+double dt = 0.0;
 
     void Init();
     void Begin();

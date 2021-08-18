@@ -1,5 +1,5 @@
 #include "border_batch.h"
-
+#include "graphics/window.h"
 
 
 
@@ -19,14 +19,14 @@ void BorderBatch::Init()
     Log("vbo=" << vbo);
     glEnableVertexArrayAttrib(vao, 0);
     glEnableVertexArrayAttrib(vao, 1);
-    glEnableVertexArrayAttrib(vao, 2);
+    //glEnableVertexArrayAttrib(vao, 2);
     GLuint err = glGetError();
     if (err)
         Log("Opengl error: " << err);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, NULL);  //(const GLvoid*)0);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, vertexSize,
-                          (const GLvoid*)(offsetof(BorderVertex, BorderVertex::color)));  //(const GLvoid*)(3 * GL_FLOAT));
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, vertexSize,
+    //glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, vertexSize,
+    //                      (const GLvoid*)(offsetof(BorderVertex, BorderVertex::color)));  //(const GLvoid*)(3 * GL_FLOAT));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vertexSize,
                             (const GLvoid*)(offsetof(BorderVertex, BorderVertex::tc)));  //(const GLvoid*)(7 * GL_FLOAT));
     //glVertexAttribPointer(
     //    2, 1, GL_FLOAT, GL_FALSE, vertexSize,
@@ -66,9 +66,12 @@ void BorderBatch::Init()
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 }
-
+double ttime = 0.0;
 void BorderBatch::Begin()
 {
+    //Log(ttime);
+    ttime = 0.0;
+    //dt = glfwGetTime();
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -89,7 +92,7 @@ void BorderBatch::Push(const BorderVertex* verts)  // takes array of 4
     for (int i = 0; i < 2; ++i, vertexData++) {
         *vertexData = verts[i];
         vertexData->pos = verts[i].pos;
-        vertexData->color = verts[i].color;
+        //vertexData->color = verts[i].color;
         vertexData->tc = verts[i].tc;
         //vertexData->textureId = verts[i].textureId;
         //vertexData->normal = verts[i].normal;
@@ -98,6 +101,9 @@ void BorderBatch::Push(const BorderVertex* verts)  // takes array of 4
 //float tFlush = 0.0f;
 void BorderBatch::Flush()
 {
+    Log("spriteCount: " << spriteCount);
+    dt = glfwGetTime();
+    //dt += (dt - glfwGetTime();
     //float tt2 = glfwGetTime();
     //glDrawElements(GL_LINES, vertCount, GL_UNSIGNED_SHORT, NULL);
     glDrawArrays(GL_LINES, 0, vertCount);
@@ -108,4 +114,5 @@ void BorderBatch::Flush()
     //indicesCount = 0;
     glUnmapBuffer(GL_ARRAY_BUFFER);
     //tFlush += (glfwGetTime() - tt2);
+    ttime += (glfwGetTime() - dt);
 }

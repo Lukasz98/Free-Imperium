@@ -28,6 +28,10 @@ struct Node {
     bool visited = false;
 };
 
+struct Line {
+    int x, y;
+};
+
 std::map<int, Node> nodes;
 void saveBorders(const unsigned char* pix, int ww, int hh, std::vector<ProvData> provD);
 std::vector<BorderVertex> loadBorders();
@@ -70,8 +74,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     std::vector<CountryData> ctrsData;
     loadProvData(provinces, colorToId);
     loadCountriesData(ctrsData);
-    // saveBorders(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
-    saveBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces);
+    //// saveBorders(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
+    //saveBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces);
 
     err = glGetError();
     if (err)
@@ -168,6 +172,32 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     bool chunkVisible[chunkCount] = {false};
     std::vector<BorderVertex> borVerts;
     std::vector<int> bordChunkId;
+    std::fstream file;
+    file.open("BordersData.txt", std::fstream::in);
+    std::string ss;
+    while (file >> ss) {
+        int x1 = std::atoi(ss.data());
+        file >> ss;
+        int y1 = std::atoi(ss.data());
+        file >> ss;
+        int x2 = std::atoi(ss.data());
+        file >> ss;
+        int y2 = std::atoi(ss.data());
+        //file >> ss;
+            int chunkX = x1 / (int)w;
+            int chunkY = y1 / (int)w;
+            int chunkId = chunkX + chunkY * (mapWidth / w);
+            borVerts.push_back(
+                // BorderVertex{.pos = Vec3{((float)node.x + 0.5f) * scale, ((float)node.y + 0.5f) * scale, 200.0},
+                BorderVertex{.pos = Vec3{((float)x1) * scale, ((float)y1) * scale, 200.0},
+                             .tc = Vec2{(float)x1 / mapWidth, (float)y1 / mapHeight}});
+            borVerts.push_back(BorderVertex{
+                .pos = Vec3{((float)x2) * scale, ((float)y2) * scale, 200.0},
+                //.pos = Vec3{((float)x2 + 0.5f) * scale, ((float)y2 + 0.5f) * scale, 200.0},
+                .tc = Vec2{(float)x2 / mapWidth, (float)y2 / mapHeight}});
+            bordChunkId.push_back(chunkId);
+    }
+    /*
     for (auto& nodeK : nodes) {
         auto node = nodeK.second;
         if (node.visited)
@@ -184,8 +214,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             int chunkY = node.y / (int)w;
             int chunkId = chunkX + chunkY * (mapWidth / w);
             borVerts.push_back(
-                //BorderVertex{.pos = Vec3{((float)node.x + 0.5f) * scale, ((float)node.y + 0.5f) * scale, 200.0},
-                              BorderVertex{.pos = Vec3{((float)node.x) * scale, ((float)node.y) * scale, 200.0},
+                // BorderVertex{.pos = Vec3{((float)node.x + 0.5f) * scale, ((float)node.y + 0.5f) * scale, 200.0},
+                BorderVertex{.pos = Vec3{((float)node.x) * scale, ((float)node.y) * scale, 200.0},
                              .tc = Vec2{(float)node.x / mapWidth, (float)node.y / mapHeight}});
             borVerts.push_back(BorderVertex{
                 .pos = Vec3{((float)nodes[nn].x) * scale, ((float)nodes[nn].y) * scale, 200.0},
@@ -194,6 +224,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             bordChunkId.push_back(chunkId);
         }
     }
+    */
+
     Log("nodes.size: " << nodes.size());
     Log("borVerts.size: " << borVerts.size());
     // borVerts.push_back(BorderVertex{.pos = Vec3{0.0, 0.0, 200.0}});        //, .normal=Vec2{0.0f, 0.0f} });
@@ -394,11 +426,13 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                            glm::value_ptr(matrix));
 
         borderBatch.Begin();
+        double dxd = glfwGetTime();
         for (std::size_t i = 0, c = 0; i < borVerts.size(); i += 2, ++c) {
             if (chunkVisible[bordChunkId[c]])
                 borderBatch.Push(&borVerts[i]);
         }
         borderBatch.Flush();
+        Log(glfwGetTime() - dxd);
         // bordChunkId.push_back(chunkId);
 
         {
@@ -427,7 +461,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         window.Update();
         waterTime += dt;
         dt = glfwGetTime() - time;
-        // Log(dt);
+        //Log(dt);
         time = glfwGetTime();
     }
 }
@@ -717,6 +751,7 @@ void bord2(const unsigned char* pix, int x, int y, int w, int h)
             if (nodes.find(thash2) == nodes.end())
                 nodes[thash2] = Node{.x = lx + 1, .y = ly2};
             nodes[thash].next.push_back(thash2);
+            nodes[thash2].next.push_back(thash);
         }
         else {
             que.push(lx | (ly1 << 16));
@@ -735,7 +770,8 @@ void bord2(const unsigned char* pix, int x, int y, int w, int h)
                 if (nodes.find(thash2) == nodes.end())
                     nodes[thash2] = Node{.x = tx2, .y = ty};
                 nodes[thash].next.push_back(thash2);
-                //if (goL == false) {
+                nodes[thash2].next.push_back(thash);
+                // if (goL == false) {
                 //    nodes[nodeHash(lx, ly2)].next.push_back(thash);
                 //}
             }
@@ -757,7 +793,8 @@ void bord2(const unsigned char* pix, int x, int y, int w, int h)
                 if (nodes.find(thash2) == nodes.end())
                     nodes[thash2] = Node{.x = rx, .y = ry1};
                 nodes[thash].next.push_back(thash2);
-                //if (goT == false) {
+                nodes[thash2].next.push_back(thash);
+                // if (goT == false) {
                 //    nodes[nodeHash(tx2, ty)].next.push_back(thash2);
                 //}
             }
@@ -779,10 +816,11 @@ void bord2(const unsigned char* pix, int x, int y, int w, int h)
                 if (nodes.find(thash2) == nodes.end())
                     nodes[thash2] = Node{.x = bx1, .y = by + 1};
                 nodes[thash].next.push_back(thash2);
-                //if (goR == false) {
+                nodes[thash2].next.push_back(thash);
+                // if (goR == false) {
                 //    nodes[nodeHash(rx, ry2)].next.push_back(thash2);
                 //}
-                //if (goL == false) {
+                // if (goL == false) {
                 //    nodes[nodeHash(lx, ly1)].next.push_back(thash);
                 //}
             }
@@ -791,6 +829,22 @@ void bord2(const unsigned char* pix, int x, int y, int w, int h)
             }
         }
     }
+}
+
+int dirKind(int x1, int y1, int x2, int y2)
+{
+    if (x1 == x2)
+        return 1;
+    else if (y1 == y2)
+        return 2;
+    else if (x1 == x2 + 1 && y1 == y2 + 1)
+        return 3;
+    else if (x1 == x2 - 1 && y1 == y2 + 1)
+        return 4;
+    else if (x1 == x2 + 1 && y1 == y2 - 1)
+        return 5;
+    else if (x1 == x2 - 1 && y1 == y2 - 1)
+        return 6;
 }
 
 void saveBorders(const unsigned char* ppix, int ww, int hh, std::vector<ProvData> provD)
@@ -826,9 +880,126 @@ void saveBorders(const unsigned char* ppix, int ww, int hh, std::vector<ProvData
         // std::cout << std::endl;
     }
     Log("nodes: " << nodes.size());
+    
+    std::vector<int> toDelete;
+    std::size_t initialSize = nodes.size();
+   
+    bool deleted = false;
+    int deletedLines = 0;
+    do {
+    deleted = 0;
+    for (auto & alele : nodes) {
+    //for (int i = 0; i < nodes.size(); ++i) {
+        //auto it = nodes.begin() + i;
+        auto & it = alele.second;
+        for (auto n : it.next) {
+            if (n == nodeHash(it.x, it.y))
+                continue;
+            if (nodes[n].next.size() > 2)
+                continue;
+            int kind = dirKind(it.x, it.y, nodes[n].x, nodes[n].y);
+            if (kind == -1)
+                continue;
+            int kind2 = -1;
+            for (auto nn : nodes[n].next) {
+                if (n == nn || nn == nodeHash(it.x, it.y))
+                    continue;
+                //if (nodes[nn].next.size() > 2)
+                //    continue;
+                kind2 = dirKind(nodes[n].x, nodes[n].y, nodes[nn].x, nodes[nn].y);
+                if (kind != kind2)
+                    continue;
+                ++deletedLines;
+                it.next.push_back(nn);
+                nodes[nn].next.push_back(nodeHash(it.x, it.y));
+                for (int j = 0; j < nodes[nn].next.size(); ++j) {
+                    if (nodes[nn].next[j] == n) {
+                        nodes[nn].next.erase(nodes[nn].next.begin() + j);
+                        --j;
+                    }
+                }
+                for (int j = 0; j < nodes[n].next.size(); ++j) {
+                    if (nodes[n].next[j] == nn) {
+                        nodes[n].next.erase(nodes[n].next.begin() + j);
+                        --j;
+                    }
+                }
+                for (int j = 0; j < nodes[n].next.size(); ++j) {
+                    if (nodes[n].next[j] == nodeHash(it.x, it.y)) {
+                        nodes[n].next.erase(nodes[n].next.begin() + j);
+                        --j;
+                    }
+                }
+                for (int j = 0; j < it.next.size(); ++j) {
+                    if (it.next[j] == n) {
+                        it.next.erase(it.next.begin() + j);
+                        --j;
+                    }
+                }
+                deleted = true;
+                break;
+            }
+            if (kind2 != -1 && kind2 == kind)
+                break;
+        }
+    }
+    Log("deleted lines: " << deletedLines);
+    } while (deleted && deletedLines < 2000000);
+    
+    deleted = false;
+    int deletedDuplicats = 0;
+    do {
+        deleted = false;
+        for (auto & alele : nodes) {
+            auto & it = alele.second;
+            for (int i = 0; i < it.next.size(); ++i) {
+                if (it.next[i] == nodeHash(it.x, it.y)) {
+                    deletedDuplicats++;
+                    deleted = true;
+                    it.next.erase(it.next.begin() + i);
+                    --i;
+                }
+            }
+        }
+    Log("deleted duplicats: " << deletedDuplicats);
+    } while (deleted && 0);
 
+    int deletedEmpty = 0;
+    for (auto it = nodes.begin(); it != nodes.end();) {
+        if (it->second.next.size() == 0) {
+            it = nodes.erase(it);
+            deletedEmpty++;
+        }
+        else {
+            ++it;
+        }
+    }
+
+
+    Log("deleted empty: " << deletedEmpty);
+    Log("nodes size: " << nodes.size());
     std::fstream f;
     f.open("BordersData.txt", std::fstream::out);
+    
+ int dell = 0;
+    for (auto & alel : nodes) {
+        auto & it = alel.second;
+        for (int i = 0; i < it.next.size(); ++i) {
+            int n = it.next[i];
+            f << it.x << " " << it.y << " " << nodes[n].x << " " << nodes[n].y << '\n';
+            
+                for (int j = 0; j < nodes[n].next.size(); ++j) {
+                    if (nodes[n].next[j] == nodeHash(it.x, it.y)) {
+                        nodes[n].next.erase(nodes[n].next.begin() + j);
+                        dell++;
+                        --j;
+                    }
+                }
+        }
+    }
+    Log("dell = " << dell);
+
+    /*
     for (auto& nk : nodes) {
         auto node = nk.second;
         f << node.x << " " << node.y << " | next : ";
@@ -837,6 +1008,7 @@ void saveBorders(const unsigned char* ppix, int ww, int hh, std::vector<ProvData
         }
         f << '\n';
     }
+    */
     f.close();
 }
 
