@@ -66,10 +66,9 @@ void BorderBatch::Init()
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 }
-double ttime = 0.0;
 void BorderBatch::Begin()
 {
-    //Log(ttime);
+    Log(ttime);
     ttime = 0.0;
     //dt = glfwGetTime();
     glBindVertexArray(vao);

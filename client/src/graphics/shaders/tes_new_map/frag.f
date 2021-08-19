@@ -78,66 +78,6 @@ vec4 getTerrainColor()
 
 void main()
 {
-bool test = true;
-    if (!test) {
-        float shortOff = 0.00007, shortOffY = 0.000135;
-        vec4 c1 = texture(tex[5], fs_in.tc);
-        vec4 c2 = texture(tex[5], vec2(fs_in.tc.x + shortOff, fs_in.tc.y));
-        vec4 c3 = texture(tex[5], vec2(fs_in.tc.x + shortOff, fs_in.tc.y + shortOffY));
-        vec4 c4 = texture(tex[5], vec2(fs_in.tc.x + shortOff, fs_in.tc.y - shortOffY));
-        vec4 c5 = texture(tex[5], vec2(fs_in.tc.x, fs_in.tc.y + shortOffY));
-        vec4 c6 = texture(tex[5], vec2(fs_in.tc.x, fs_in.tc.y - shortOffY));
-        vec4 c7 = texture(tex[5], vec2(fs_in.tc.x - shortOff, fs_in.tc.y + shortOffY));
-        vec4 c8 = texture(tex[5], vec2(fs_in.tc.x - shortOff, fs_in.tc.y));
-        vec4 c9 = texture(tex[5], vec2(fs_in.tc.x - shortOff, fs_in.tc.y - shortOffY));
-        vec4 black = vec4(0.0, 0.0, 0.0, 1.0);
-        // if (c1 == black) {
-        if (c1 == black && c2 == black && c3 == black && c3 == black && c4 == black && c5 == black &&
-            c6 == black && c7 == black && c8 == black && c9 == black)
-        {
-            vec4 borderColor = vec4(0.3, 0.3, 0.3, 1.0);
-            // if (c1.xyz == provColor || c2.xyz == provColor || c3.xyz == provColor || c4.xyz == provColor ||
-            //    c5.xyz == provColor || c6.xyz == provColor)
-            if (texture(tex[1], fs_in.tc).xyz == provColor) {
-                float sinBor = sin(borderTime);
-                float d = sin(borderTime + fs_in.x / 64.0);
-                float r = abs(d), g = abs(d), b = 0.0f;
-                if (r < 0.5)
-                    r = 0.5;
-                if (g < 0.5)
-                    g = 0.5;
-                borderColor = vec4(r, g, b, 1.0);
-                borderColor = mix(vec4(r, g, b, 1.0), vec4(0.9f, 0.8f, 0.0f, 1.0), d);
-            }
-            float longOff = 0.00008, longOffY = 0.0002;
-            vec4 cc1 = texture(tex[5], fs_in.tc);
-            vec4 cc2 = texture(tex[5], vec2(fs_in.tc.x + longOff, fs_in.tc.y));
-            vec4 cc3 = texture(tex[5], vec2(fs_in.tc.x + longOff, fs_in.tc.y + longOffY));
-            vec4 cc4 = texture(tex[5], vec2(fs_in.tc.x + longOff, fs_in.tc.y - longOffY));
-            vec4 cc5 = texture(tex[5], vec2(fs_in.tc.x, fs_in.tc.y + longOffY));
-            vec4 cc6 = texture(tex[5], vec2(fs_in.tc.x, fs_in.tc.y - longOffY));
-            vec4 cc7 = texture(tex[5], vec2(fs_in.tc.x - longOff, fs_in.tc.y));
-            vec4 cc8 = texture(tex[5], vec2(fs_in.tc.x - longOff, fs_in.tc.y + longOffY));
-            vec4 cc9 = texture(tex[5], vec2(fs_in.tc.x - longOff, fs_in.tc.y - longOffY));
-            // if (cc1 != black || cc2 != black || cc3 != black || cc4 != black || cc5 != black || cc6 != black ||
-            //    cc7 != black || cc8 != black || cc9 != black)
-            if ((cc5 != black || cc6 != black) || (cc2 != black || cc7 != black)) {
-                color = getTerrainColor();
-                color = mix(color, borderColor, 0.3);
-                // color.x = 1.0;
-                // color = borderColor;
-            }
-            else {
-                color = getTerrainColor();
-                color = mix(color, borderColor, 0.7);
-                color = borderColor;
-            }
-        }
-        else {
-            color = getTerrainColor();
-        }
-    }
-    else {
         // color = texture(tex[1], fs_in.tc);
         float off = 0.00008;
         vec4 c1 = texture(tex[1], fs_in.tc);
@@ -147,7 +87,8 @@ bool test = true;
         vec4 c5 = texture(tex[1], vec2(fs_in.tc.x, fs_in.tc.y + off));
         vec4 c6 = texture(tex[1], vec2(fs_in.tc.x, fs_in.tc.y - off));
 
-        if (c1 == c2 && c1 == c3 && c1 == c4 && c1 == c5 && c1 == c6) {
+        //if (c1 == c2 && c1 == c3 && c1 == c4 && c1 == c5 && c1 == c6) {
+        if (true) {
             // color = mix(texture(tex[0], fs_in.tc * 1000), vec4(fs_in.normal, 1.0, 1.0), 0.8);
             // color = mix(vec4(fs_in.normal, 1.0, 1.0), texture(tex[0], fs_in.tc * 1000), 0.8);
             color = texture(tex[0], fs_in.tc * 1000);
@@ -242,5 +183,4 @@ bool test = true;
 
         // color = vec4(fs_in.tc.x, fs_in.tc.y, 0.0,1.0);
         // color = vec4(1.0,0.0,0.0,1.0);
-    }
 }
