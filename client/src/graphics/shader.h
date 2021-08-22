@@ -15,6 +15,6 @@ class Shader
 
 public:
 Shader() {}
-    Shader(std::string vertS, std::string fragS, std::string tesSter, std::string tesW);
+    Shader(std::string vertS, std::string fragS, std::string tesSter, std::string tesW, std::string geomstr = "");
     GLuint GetProgram() { return program; }
 };

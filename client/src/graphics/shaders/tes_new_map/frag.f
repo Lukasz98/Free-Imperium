@@ -93,7 +93,7 @@ void main()
             // color = mix(vec4(fs_in.normal, 1.0, 1.0), texture(tex[0], fs_in.tc * 1000), 0.8);
             color = texture(tex[0], fs_in.tc * 1000);
             color = mix(color, texture(tex[0], fs_in.tc * 1000), 0.7);
-
+            if (false) {
             vec4 mountain = vec4(105.0 / 255.0, 24.0 / 255.0, 4.0 / 255.0, 1.0);
             vec4 highland = vec4(176.0 / 255.0, 129.0 / 255.0, 21.0 / 255.0, 1.0);
             vec4 steppe = vec4(147.0 / 255.0, 200.0 / 255.0, 83.0 / 255.0, 1.0);
@@ -132,6 +132,7 @@ void main()
                 vec4 pick = vec4(209.0 / 255.0, 219.0 / 255.0, 160.0 / 255.0, 1.0f);
                 color = mix(color, pick, 1.0);                              // fs_in.h / 20.0f);
                 //color = mix(color, texture(tex[6], fs_in.tc * 1000), 0.7);  // fs_in.h / 20.0f);
+            }
             }
             
             if (texture(tex[8], fs_in.tc) != vec4(1.0, 1.0, 1.0, 1.0))

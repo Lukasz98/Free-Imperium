@@ -25,6 +25,7 @@ int nodeHash(int x, int y)
 struct Node {
     int x = 2, y = 2, chunk;
     std::vector<int> next;
+    std::vector<int> provId;
     bool visited = false;
 };
 
@@ -43,11 +44,13 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         Log("Opengl error: " << err);
     Shader shader("src/graphics/shaders/tes_new_map/vert.v", "src/graphics/shaders/tes_new_map/frag.f",
                   "src/graphics/shaders/tes_new_map/tes_ster.ts", "src/graphics/shaders/tes_new_map/tes_w.tw");
-    Shader borderShader{"src/graphics/shaders/borders/vert.v", "src/graphics/shaders/borders/frag.f", "", ""};
+    Shader borderShader{"src/graphics/shaders/borders/vert.v", "src/graphics/shaders/borders/frag.f", "", "",
+                        "src/graphics/shaders/borders/geom.g"};
     Shader waterShader("src/graphics/shaders/water/vert.v", "src/graphics/shaders/water/frag.f",
                        "src/graphics/shaders/water/tes_ster.ts", "src/graphics/shaders/water/tes_w.tw");
     Shader colorMapShader("src/graphics/shaders/map_pick/vert.v", "src/graphics/shaders/map_pick/frag.f",
                           "src/graphics/shaders/map_pick/tes_ster.ts", "src/graphics/shaders/map_pick/tes_w.tw");
+    Shader polyShader{"src/graphics/shaders/poly/vert.v", "src/graphics/shaders/poly/frag.f", "", ""};
     Camera camera{window.GetSize()};
     glUseProgram(shader.GetProgram());
     glPatchParameteri(GL_PATCH_VERTICES, 3);
@@ -75,8 +78,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     loadProvData(provinces, colorToId);
     loadCountriesData(ctrsData);
     //// saveBorders(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
-    //saveBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces);
-    
+    saveBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces);
+    // return;
     err = glGetError();
     if (err)
         Log("Opengl error: " << err);
@@ -187,61 +190,91 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         int chunkX = x1 / (int)w;
         int chunkY = y1 / (int)w;
         int chunkId = chunkX + chunkY * (mapWidth / w);
+        int i1 = x1 * 3 + y1 * mapWidth * 3;
+        if (i1 > mapHeight * mapWidth * 3 - 3)
+            i1 = mapHeight * mapWidth * 3 - 3;
+        int i2 = x2 * 3 + y2 * mapWidth * 3;
+        if (i2 > mapHeight * mapWidth * 3 - 3)
+            i2 = mapHeight * mapWidth * 3 - 3;
         borVerts.push_back(
             // BorderVertex{.pos = Vec3{((float)node.x + 0.5f) * scale, ((float)node.y + 0.5f) * scale, 200.0},
-            BorderVertex{.pos = Vec3{((float)x1) * scale, ((float)y1) * scale, 200.0},
+            BorderVertex{.pos = Vec3{((float)x1) * scale, ((float)y1) * scale, h[i1]},
                          .tc = Vec2{(float)x1 / mapWidth, (float)y1 / mapHeight}});
         borVerts.push_back(
-            BorderVertex{.pos = Vec3{((float)x2) * scale, ((float)y2) * scale, 200.0},
+            BorderVertex{.pos = Vec3{((float)x2) * scale, ((float)y2) * scale, h[i2]},
                          //.pos = Vec3{((float)x2 + 0.5f) * scale, ((float)y2 + 0.5f) * scale, 200.0},
                          .tc = Vec2{(float)x2 / mapWidth, (float)y2 / mapHeight}});
         bordChunkId.push_back(chunkId);
     }
-    /*
-    for (auto& nodeK : nodes) {
-        auto node = nodeK.second;
-        if (node.visited)
-            continue;
-        node.visited = 1;
-        // if (borVerts.size() > 10)
-        //    break;
-        for (auto nn : node.next) {
-            // Log("--------------");
-            // Log((float)node.x << ", " << (float)node.y);
-            // Log(nodes[nn].x << ", " << nodes[nn].y);
-            // Log("-!-!-!-!-!");
-            int chunkX = node.x / (int)w;
-            int chunkY = node.y / (int)w;
-            int chunkId = chunkX + chunkY * (mapWidth / w);
-            borVerts.push_back(
-                // BorderVertex{.pos = Vec3{((float)node.x + 0.5f) * scale, ((float)node.y + 0.5f) * scale, 200.0},
-                BorderVertex{.pos = Vec3{((float)node.x) * scale, ((float)node.y) * scale, 200.0},
-                             .tc = Vec2{(float)node.x / mapWidth, (float)node.y / mapHeight}});
-            borVerts.push_back(BorderVertex{
-                .pos = Vec3{((float)nodes[nn].x) * scale, ((float)nodes[nn].y) * scale, 200.0},
-                //.pos = Vec3{((float)nodes[nn].x + 0.5f) * scale, ((float)nodes[nn].y + 0.5f) * scale, 200.0},
-                .tc = Vec2{(float)nodes[nn].x / mapWidth, (float)nodes[nn].y / mapHeight}});
-            bordChunkId.push_back(chunkId);
-        }
-    }
-    */
+    file.close();
 
+    struct PolyVert {
+        float x, y, z;
+        // float r = 1.0f, g = 0, b = 0, a = 1.0;
+        glm::vec4 col{1.0f, 0.0f, 0.0f, 1.0f};
+    };
+    int polyCount = 0;
+    GLuint polyVao, polyVbo;
+    {  // load prov polygon
+        std::vector<PolyVert> pverts;
+        file.open("polygon.txt", std::fstream::in);
+        std::string ss;
+        int provId = 0;
+        while (file >> ss) {
+            if (ss == "id:") {
+                file >> ss;
+                provId = std::atoi(ss.data());
+                file >> ss;
+            }
+            int x1 = std::atoi(ss.data());
+            file >> ss;
+            int y1 = std::atoi(ss.data());
+            file >> ss;
+            int x2 = std::atoi(ss.data());
+            file >> ss;
+            int y2 = std::atoi(ss.data());
+            file >> ss;
+            int x3 = std::atoi(ss.data());
+            file >> ss;
+            int y3 = std::atoi(ss.data());
+            float z = 200.0f;
+            glm::vec4 col{(float)provinces[provId].r / 255.0f, (float)provinces[provId].g / 255.0f, (float)provinces[provId].b / 255.0f, 1.0f};
+            pverts.push_back(PolyVert{.x = x1 * scale, .y = y1 * scale, .z = z, .col = col});
+            pverts.push_back(PolyVert{.x = x2 * scale, .y = y2 * scale, .z = z, .col = col});
+            pverts.push_back(PolyVert{.x = x3 * scale, .y = y3 * scale, .z = z, .col = col});
+            //if (pverts.size() > 1500) break;
+        }
+        polyCount = pverts.size();
+        glCreateVertexArrays(1, &polyVao);
+        glBindVertexArray(polyVao);
+        glCreateBuffers(1, &polyVbo);
+
+        glBindBuffer(GL_ARRAY_BUFFER, polyVbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(PolyVert) * pverts.size(), pverts.data(), GL_STATIC_DRAW);
+        glEnableVertexArrayAttrib(polyVao, 0);
+        glEnableVertexArrayAttrib(polyVao, 1);
+        GLuint err = glGetError();
+        if (err)
+            Log("Opengl error: " << err);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(PolyVert), NULL);  //(const GLvoid*)0);
+        glVertexAttribPointer(
+            1, 4, GL_FLOAT, GL_FALSE, sizeof(PolyVert),
+            (const GLvoid*)(offsetof(PolyVert, PolyVert::col)));  //(const GLvoid*)(7 * GL_FLOAT));
+    }
     Log("nodes.size: " << nodes.size());
     Log("borVerts.size: " << borVerts.size());
-    // borVerts.push_back(BorderVertex{.pos = Vec3{0.0, 0.0, 200.0}});        //, .normal=Vec2{0.0f, 0.0f} });
-    // borVerts.push_back(BorderVertex{.pos = Vec3{1000.0, 1000.0, 200.0}});  //, .normal=Vec2{0.0f, 0.0f} });
-    // borVerts.push_back(BorderVertex{.pos = Vec3{100.0, 0.0, 200.0}});      //, .normal=Vec2{0.0f, 0.0f} });
-    // borVerts.push_back(BorderVertex{.pos = Vec3{1100.0, 1000.0, 200.0}});  //, .normal=Vec2{0.0f, 0.0f} });
 
     glUseProgram(borderShader.GetProgram());
     glUniform1iv(glGetUniformLocation(borderShader.GetProgram(), "tex"), 32, texID);
-
+    bool drawBorders = true;
     glm::vec3 provColor;
     float tesLevel = 32.0f;
     glm::vec3 unitPos;
     float dt = 0.0f, waterTime = 0.0f;
     float time = glfwGetTime();
     while (!window.ShouldClose()) {
+        // glEnable(GL_DEPTH_TEST);   // Enable depth testing for z-culling
+        // glDepthFunc(GL_LESS);
         window.Refresh();
         if (window.keys['A'])
             camera.MoveHor(-1, dt);
@@ -366,8 +399,11 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         if (window.keys['K'])
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-        if (window.keys['B'])
-            glUniform1f(glGetUniformLocation(shader.GetProgram(), "waterTime"), waterTime);
+        if (window.keys['B']) {
+            drawBorders = !drawBorders;
+        }
+
+        //    glUniform1f(glGetUniformLocation(shader.GetProgram(), "waterTime"), waterTime);
 
         glUniform1f(glGetUniformLocation(shader.GetProgram(), "borderTime"), waterTime);
         glUniform1iv(glGetUniformLocation(shader.GetProgram(), "tex"), 32, texID);
@@ -421,21 +457,38 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         batch.Push(&vertsWater[4]);
         batch.Flush();
 
+        {  // poly
+            glUseProgram(polyShader.GetProgram());
+            glUniformMatrix4fv(glGetUniformLocation(polyShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                               glm::value_ptr(matrix));
+
+            glBindVertexArray(polyVao);
+            glBindBuffer(GL_ARRAY_BUFFER, polyVbo);
+            glDrawArrays(GL_TRIANGLES, 0, polyCount);
+        }
+
         glUseProgram(borderShader.GetProgram());
         glUniformMatrix4fv(glGetUniformLocation(borderShader.GetProgram(), "matrix"), 1, GL_FALSE,
                            glm::value_ptr(matrix));
-
-        borderBatch.Begin();
-        double dxd = glfwGetTime();
-       borderBatch.ttime = 0.0; 
-        for (std::size_t i = 0, c = 0; i < borVerts.size(); i += 2, ++c) {
-            if (chunkVisible[bordChunkId[c]])
-                borderBatch.Push(&borVerts[i]);
+        if (drawBorders) {
+            // glDisable(GL_DEPTH_TEST);   // Enable depth testing for z-culling
+            // glDepthFunc(GL_GEQUAL);//QUAL);
+            glUseProgram(borderShader.GetProgram());
+            glUniform1iv(glGetUniformLocation(borderShader.GetProgram(), "tex"), 32, texID);
+            borderBatch.Begin();
+            double dxd = glfwGetTime();
+            borderBatch.flushtime = 0.0;
+            borderBatch.pushtime = 0.0;
+            for (std::size_t i = 0, c = 0; i < borVerts.size(); i += 2, ++c) {
+                if (chunkVisible[bordChunkId[c]])
+                    borderBatch.Push(&borVerts[i]);
+            }
+            borderBatch.Flush();
+            // Log("push" << borderBatch.pushtime);
+            // Log("flush: " << borderBatch.flushtime);
+            // Log(glfwGetTime() - dxd);
+            // bordChunkId.push_back(chunkId);
         }
-        borderBatch.Flush();
-        Log(borderBatch.ttime);
-        //Log(glfwGetTime() - dxd);
-        // bordChunkId.push_back(chunkId);
 
         {
             glm::mat4 unitModel = glm::mat4(1.0);
@@ -457,7 +510,6 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             // AM::am.model->DrawRect(model);
             AM::am.model->Draw();
         }
-
         float tt2 = glfwGetTime();
 
         window.Update();
@@ -473,249 +525,11 @@ struct HashPair {
 std::vector<BorderVertex> loadBorders() {}
 
 Color currCol;
+int provId;
 const unsigned char* pix;
 int wW, hH;
 std::vector<int> left, right;
 bool ok = false;
-
-HashPair borRec(int x, int y, int up)
-{
-    // if (x == 5471 && y == 19)
-    // if (x == 5485 && y == 81)
-    // if (!ok) {ok = 1; Log((long)pix); }
-    bool nextLxUp = false, nextRxUp = false;
-    int firstLeft = -1, firstRight = -1;
-    while (1) {
-        int lx = x;
-        int llx = lx;  // - 1;
-        std::vector<int> nextRowX;
-        int findUp = 1;
-        while (1) {
-            if (currCol.r == 119 && currCol.g == 212 && currCol.b == 150 && llx == 2788)
-                Log("a");
-            if (llx < 0)
-                llx = wW - llx * -1;
-            int lindex = llx * 3 + y * wW * 3;
-            Color lcol{pix[lindex + 0], pix[lindex + 1], pix[lindex + 2]};
-            if (lcol == currCol) {
-                //           Log("h = " << hH);
-                if (y + 1 * up < hH && y + 1 * up >= 0) {  // up
-                    //                Log("AAAAAAAAAAAAAAAAAAAAAAAAAAA L: " << y + 1 * up);
-                    int ulindex = llx * 3 + (y + 1 * up) * wW * 3;
-                    Color ulCol{pix[ulindex + 0], pix[ulindex + 1], pix[ulindex + 2]};
-                    if (ulCol == currCol) {
-                        if (findUp) {
-                            nextRowX.push_back(llx);
-                            findUp = 0;
-                            nextLxUp = true;
-                        }
-                    }
-                    else {  // if (findUp == 0)
-                        findUp = 1;
-                        nextLxUp = false;
-                    }
-                }
-                llx -= 1;
-                continue;
-            }
-            else {
-                lx = llx;  // + 1;
-                /*
-                if (y + 1 * up < hH && y + 1 * up >= 0) {  // up
-                    int ulindex = llx * 3 + (y + 1 * up) * wW * 3;
-                    Color ulCol{pix[ulindex + 0], pix[ulindex + 1], pix[ulindex + 2]};
-                    if (ulCol != currCol) {
-                        nextLxUp = false;
-                    }
-                }
-                */
-                break;
-            }
-        }
-        int rx = x;
-        int rrx = rx;  // + 1;
-        findUp = 1;
-        while (1) {
-            if (rrx >= wW)
-                rrx = wW - rrx;
-            int rindex = rrx * 3 + y * wW * 3;
-            Color rcol{pix[rindex + 0], pix[rindex + 1], pix[rindex + 2]};
-            // Log("rcol: " << (int)rcol.r << ", " << (int)rcol.g << ", " << (int)rcol.b);
-            // Log("col: " << (int)currCol.r << ", " << (int)currCol.g << ", " << (int)currCol.b);
-            if (rcol == currCol) {
-                if (y + 1 * up < hH && y + 1 * up >= 0) {  // up
-                    int urindex = rrx * 3 + (y + 1 * up) * wW * 3;
-                    Color urCol{pix[urindex + 0], pix[urindex + 1], pix[urindex + 2]};
-                    //                  Log("AAAAAAAAAAAAAAAAAAAAAAAAAAA R");
-                    if (urCol == currCol) {
-                        if (findUp) {
-                            nextRowX.push_back(rrx);
-                            findUp = 0;
-                            nextRxUp = true;
-                        }
-                    }
-                    else {  // if (findUp == 0)
-                        findUp = 1;
-                        nextRxUp = false;
-                    }
-                }
-                rrx += 1;
-                continue;
-            }
-            else {
-                rx = rrx - 1;
-                /*
-                if (y + 1 * up < hH && y + 1 * up >= 0) {  // up
-                    int ulindex = rrx * 3 + (y + 1 * up) * wW * 3;
-                    Color ulCol{pix[ulindex + 0], pix[ulindex + 1], pix[ulindex + 2]};
-                    if (ulCol != currCol) {
-                        nextRxUp = false;
-                    }
-                }
-                */
-                break;
-            }
-        }
-        // Log("DDDDDDDDDDDD " << nextRowX.size());
-        if (lx == 0 || rx == 0)
-            Log("CO JEST");
-        // if (left.size() || right.size())
-        // Log("left: " << left.size() << ", right: " << right.size());
-        for (std::size_t i = 1; i < nextRowX.size(); ++i) {
-            if (nextRowX[i] == nextRowX[0]) {
-                nextRowX.erase(nextRowX.begin() + i);
-                break;
-            }
-        }
-        // if (nextRowX.size()) Log("nextrow.size: " << nextRowX.size());
-        if (nextRowX.size()) {
-            std::sort(nextRowX.begin(), nextRowX.end());
-        }
-        // if (left.size() && (nodes[left.back()].x != lx)) {
-        if (left.size()) {  // && (nodes[left.back()].x != lx || (nextRowX.size() && nextRowX[0] != lx))) {
-            int lhash = nodeHash(lx, y);
-            if (nodes.find(lhash) == nodes.end()) {
-                nodes[lhash] = Node{};
-                nodes[lhash].x = lx;
-                nodes[lhash].y = y;
-            }
-            // Log("leftPush");
-            int lastHash = left.back();
-            nodes[lastHash].next.push_back(lhash);
-            left.push_back(lhash);
-        }
-        else if (left.size() == 0 || nextRowX.size() == 0) {
-            int lhash = nodeHash(lx, y);
-            if (firstLeft == -1)
-                firstLeft = lhash;
-            if (nodes.find(lhash) == nodes.end()) {
-                nodes[lhash] = Node{};
-                nodes[lhash].x = lx;
-                nodes[lhash].y = y;
-            }
-            if (left.size()) {
-                int lastHash = left.back();
-                nodes[lastHash].next.push_back(lhash);
-            }
-            left.push_back(lhash);
-        }
-        if (right.size())
-        {  // && (nodes[right.back()].x != rx || (nextRowX.size() && nextRowX[nextRowX.size() - 1] != rx))) {
-            // if (right.size() && (nodes[right.back()].x != rx)) {
-            int rhash = nodeHash(rx, y);
-            if (nodes.find(rhash) == nodes.end()) {
-                nodes[rhash] = Node{};
-                nodes[rhash].x = rx;
-                nodes[rhash].y = y;
-            }
-            int lastHash = right.back();
-            nodes[lastHash].next.push_back(rhash);
-            // Log("rightPush");
-            right.push_back(rhash);
-        }
-        else if (right.size() == 0 || nextRowX.size() == 0) {
-            int rhash = nodeHash(rx, y);
-            if (firstRight == -1)
-                firstRight = rhash;
-            if (nodes.find(rhash) == nodes.end()) {
-                nodes[rhash] = Node{};
-                nodes[rhash].x = rx;
-                nodes[rhash].y = y;
-            }
-            if (right.size()) {
-                int lastHash = right.back();
-                nodes[lastHash].next.push_back(rhash);
-            }
-            right.push_back(rhash);
-        }
-        // Log("podejrzane1");
-        if (nextRowX.size() == 1) {
-            x = nextRowX[0];
-            y += 1 * up;
-            continue;
-        }
-        else if (nextRowX.size() == 0) {
-            int lhash = nodeHash(lx, y);
-            int rhash = nodeHash(rx, y);
-            nodes[lhash].next.push_back(rhash);
-            // return HashPair{lhash, rhash};
-            assert(left.size() && right.size());
-            // return HashPair{left[0], right[0]};
-            return HashPair{firstLeft, firstRight};
-            // break;
-        }
-        else {
-            int lastLeftH = -1;
-            if (left.size())
-                lastLeftH = left.back();
-            int lastRightH = -1;
-            if (right.size())
-                lastRightH = right.back();
-            left.clear();
-            right.clear();
-            HashPair hpair;
-            int lhash, rhash;
-            for (std::size_t i = 0; i < nextRowX.size(); ++i) {
-                // Log("podejrzane2 y = " << y);
-                if (i == 0) {
-                    // Log("1");
-                    if (lastLeftH != -1)
-                        left.push_back(lastLeftH);
-                    hpair = borRec(nextRowX[i], y + 1 * up, up);
-                    lhash = hpair.left;
-                    left.clear();
-                    right.clear();
-                }
-                else if (i == nextRowX.size() - 1) {
-                    // Log("2");
-                    if (lastRightH != -1)
-                        right.push_back(lastRightH);
-                    HashPair hp = borRec(nextRowX[i], y + 1 * up, up);
-                    nodes[hpair.right].next.push_back(hp.left);
-                    hpair = hp;
-                    rhash = hpair.right;
-                    left.clear();
-                    right.clear();
-                }
-                else {
-                    // Log("3");
-                    HashPair hp = borRec(nextRowX[i], y + 1 * up, up);
-                    nodes[hpair.right].next.push_back(hp.left);
-                    hpair = hp;
-                    // rhash = hpair.right;
-                    left.clear();
-                    right.clear();
-                }
-            }
-
-            return HashPair{firstLeft, firstRight};
-            // return HashPair{lhash, rhash};
-            // Log("podejrzane3");
-            break;
-        }
-        // break;
-    }
-}
 
 void bord2(const unsigned char* pix, int x, int y, int w, int h)
 {
@@ -747,11 +561,15 @@ void bord2(const unsigned char* pix, int x, int y, int w, int h)
         bool goL = (currCol == nc);
         if (goL == false) {
             int thash = nodeHash(lx + 1, ly1);
-            if (nodes.find(thash) == nodes.end())
+            if (nodes.find(thash) == nodes.end()) {
                 nodes[thash] = Node{.x = lx + 1, .y = ly1};
+            }
             int thash2 = nodeHash(lx + 1, ly2);
-            if (nodes.find(thash2) == nodes.end())
+            if (nodes.find(thash2) == nodes.end()) {
                 nodes[thash2] = Node{.x = lx + 1, .y = ly2};
+            }
+            nodes[thash].provId.push_back(provId);
+            nodes[thash2].provId.push_back(provId);
             nodes[thash].next.push_back(thash2);
             nodes[thash2].next.push_back(thash);
         }
@@ -760,19 +578,24 @@ void bord2(const unsigned char* pix, int x, int y, int w, int h)
         }
 
         bool goT = false;
-        if (ty < h) {
+        if (ty < h)// {
             nextI = tx1 * 3 + ty * w * 3;
+            
             nc = Color{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
             goT = (currCol == nc);
-            if (goT == false) {
+            if (goT == false || ty >= h) {
                 int thash = nodeHash(tx1, ty);
-                if (nodes.find(thash) == nodes.end())
+                if (nodes.find(thash) == nodes.end()) {
                     nodes[thash] = Node{.x = tx1, .y = ty};
+                }
                 int thash2 = nodeHash(tx2, ty);
-                if (nodes.find(thash2) == nodes.end())
+                if (nodes.find(thash2) == nodes.end()) {
                     nodes[thash2] = Node{.x = tx2, .y = ty};
+                }
                 nodes[thash].next.push_back(thash2);
                 nodes[thash2].next.push_back(thash);
+                nodes[thash].provId.push_back(provId);
+                nodes[thash2].provId.push_back(provId);
                 // if (goL == false) {
                 //    nodes[nodeHash(lx, ly2)].next.push_back(thash);
                 //}
@@ -780,7 +603,7 @@ void bord2(const unsigned char* pix, int x, int y, int w, int h)
             else {
                 que.push(tx1 | (ty << 16));
             }
-        }
+        //}
 
         bool goR = false;
         if (rx < w) {
@@ -789,11 +612,15 @@ void bord2(const unsigned char* pix, int x, int y, int w, int h)
             goR = (currCol == nc);
             if (goR == false) {
                 int thash = nodeHash(rx, ry2);
-                if (nodes.find(thash) == nodes.end())
+                if (nodes.find(thash) == nodes.end()) {
                     nodes[thash] = Node{.x = rx, .y = ry2};
+                }
                 int thash2 = nodeHash(rx, ry1);
-                if (nodes.find(thash2) == nodes.end())
+                if (nodes.find(thash2) == nodes.end()) {
                     nodes[thash2] = Node{.x = rx, .y = ry1};
+                }
+                nodes[thash].provId.push_back(provId);
+                nodes[thash2].provId.push_back(provId);
                 nodes[thash].next.push_back(thash2);
                 nodes[thash2].next.push_back(thash);
                 // if (goT == false) {
@@ -819,6 +646,8 @@ void bord2(const unsigned char* pix, int x, int y, int w, int h)
                     nodes[thash2] = Node{.x = bx1, .y = by + 1};
                 nodes[thash].next.push_back(thash2);
                 nodes[thash2].next.push_back(thash);
+                nodes[thash].provId.push_back(provId);
+                nodes[thash2].provId.push_back(provId);
                 // if (goR == false) {
                 //    nodes[nodeHash(rx, ry2)].next.push_back(thash2);
                 //}
@@ -889,6 +718,7 @@ void saveBorders(const unsigned char* ppix, int ww, int hh, std::vector<ProvData
     for (auto& pd : provD) {
         if (pd.water)
             continue;
+        provId = pd.id;
         //++ii;
         // if (ii == 1)
         //    Log(pd.r << ", " << pd.g << ", " << pd.b);
@@ -992,10 +822,10 @@ label:
         }
         Log("deleted lines: " << deletedLines << ", endedat: " << endedat);
     } while ((deleted && deletedLines < 2000000) || deletedLines == endedat - 1);
-if (onlyStep) {
-    onlyStep = false;
-    goto label;
-}
+    if (onlyStep) {
+        onlyStep = false;
+        goto label;
+    }
     deleted = false;
     int deletedDuplicats = 0;
     do {
@@ -1027,9 +857,9 @@ if (onlyStep) {
 
     Log("deleted empty: " << deletedEmpty);
     Log("nodes size: " << nodes.size());
+    /* // its for borders, for a moment disabling it for polygon provinces
     std::fstream f;
     f.open("BordersData.txt", std::fstream::out);
-
     int dell = 0;
     for (auto& alel : nodes) {
         auto& it = alel.second;
@@ -1046,7 +876,9 @@ if (onlyStep) {
             }
         }
     }
+    f.close();
     Log("dell = " << dell);
+    */
 
     /*
     for (auto& nk : nodes) {
@@ -1058,110 +890,174 @@ if (onlyStep) {
         f << '\n';
     }
     */
-    f.close();
+
+    std::fstream f2;
+    f2.open("polygon.txt", std::fstream::out);
+    for (auto& pd : provD) {
+        if (pd.water)
+            continue;
+
+        f2 << "id: ";
+        f2 << std::to_string(pd.id) << "\n";
+        // create list
+        int firstVert = -1;
+        for (auto& alel : nodes) {
+            auto& it = alel.second;
+            if (std::find(it.provId.begin(), it.provId.end(), pd.id) != it.provId.end()) {
+                firstVert = alel.first;
+                break;
+            }
+        }
+        assert(firstVert != -1);
+        std::vector<int> verts;
+        verts.push_back(firstVert);
+        int vert = firstVert;
+        for (int j = 0; j < nodes[vert].next.size(); ++j) {
+            //Log("next size: " << nodes[vert].next.size() << ", vert: " << vert << ", j: " << j);
+            if (std::find(verts.begin(), verts.end(), nodes[vert].next[j]) != verts.end())
+                continue;
+            if (std::find(nodes[nodes[vert].next[j]].provId.begin(), nodes[nodes[vert].next[j]].provId.end(),
+                          pd.id) == nodes[nodes[vert].next[j]].provId.end())
+                continue;
+            verts.push_back(nodes[vert].next[j]);
+            vert = nodes[vert].next[j];
+            j = -1;
+        }
+Log(pd.id);
+        //Log("Duzy TEST");
+        //Log("pid = " << pd.id << ", x:y = " << pd.x << ":" << pd.y);
+        //Log("col: " << pd.r << " " << pd.g << " " << pd.b);
+        //Log("raw:");
+        //for (auto i : verts) {
+        //    std::cout << nodes[i].x << ":" << nodes[i].y << ", ";
+        //}
+        //Log("");
+
+        // erase from list
+        for (int j = 0; j < verts.size(); ++j) {
+            int next = j + 1;
+            if (next >= verts.size())
+                next = 0;
+            if (next == j)
+                break;
+            int next2 = j + 2;
+            if (next2 >= verts.size())
+                next2 = next2 % verts.size();
+            if (next2 == j)
+                break;
+
+            if ((nodes[verts[j]].x == nodes[verts[next]].x && nodes[verts[next]].x == nodes[verts[next2]].x) ||
+                (nodes[verts[j]].y == nodes[verts[next]].y && nodes[verts[next]].y == nodes[verts[next2]].y))
+            {
+                verts.erase(verts.begin() + next);
+                j = -1;
+            }
+            else {
+                float a1 = (float)(nodes[verts[j]].y - nodes[verts[next]].y) /
+                           (float)(nodes[verts[j]].x - nodes[verts[next]].x);
+                float b1 = (float)nodes[verts[j]].y - a1 * (float)(nodes[verts[j]].x);
+                float a2 = (float)(nodes[verts[j]].y - nodes[verts[next2]].y) /
+                           (float)(nodes[verts[j]].x - nodes[verts[next2]].x);
+                float b2 = (float)nodes[verts[j]].y - a2 * (float)(nodes[verts[j]].x);
+                if (a1 == a2 && b1 == b2) {
+                    verts.erase(verts.begin() + next);
+                    j = -1;
+                }
+            }
+        }
+        /*
+        //Log("row2");
+        //        for (auto i : verts) {
+        //            std::cout << nodes[i].x << ":" << nodes[i].y << ", ";
+        //        }
+        */
+        // check if clockwise
+        int sum = 0;
+        for (int j = 0; j < verts.size(); ++j) {
+            int next = (j + 1) % verts.size();
+            int val = (nodes[verts[next]].x - nodes[verts[j]].x) * (nodes[verts[next]].y + nodes[verts[j]].y);
+            sum += val;
+        }
+        if (sum < 0) {  // counter clockwise
+            std::reverse(verts.begin(), verts.end());
+        }
+        //for (auto i : verts) {
+         //   std::cout << nodes[i].x << ":" << nodes[i].y << ", ";
+       // }
+       // Log("");
+        //Log("verts count: " << verts.size());
+        int dkd = -1;
+        while (verts.size() > 3) {
+            for (int j = 0; j < verts.size() && verts.size() > 3; ++j) {
+                int next = (j + 1) % verts.size();
+                int prev = (j - 1);
+                if (prev < 0)
+                    prev = verts.size() - 1;
+                glm::vec2 vp{(float)nodes[verts[prev]].x, (float)nodes[verts[prev]].y};
+                glm::vec2 vj{(float)nodes[verts[j]].x, (float)nodes[verts[j]].y};
+                glm::vec2 vn{(float)nodes[verts[next]].x, (float)nodes[verts[next]].y};
+                glm::vec3 jToP{vp.x - vj.x, vp.y - vj.y, 0.0};
+                glm::vec3 jToN{vn.x - vj.x, vn.y - vj.y, 0.0};
+                glm::vec3 nToP{vp.x - vn.x, vp.y - vn.y, 0.0};
+                // if (glm::cross(jToP, jToN)
+                if (jToP.x * jToN.y - jToP.y * jToN.x < 0.0f) {  // cross product ?
+                    continue;
+                }
+                bool ok = true;
+                // czy jest w trojkacie
+                for (int k = 0; k < verts.size(); ++k) {
+                    if (k == j || k == prev || k == next)
+                        continue;
+                    glm::vec2 vk{(float)nodes[verts[k]].x, (float)nodes[verts[k]].y};
+                    // glm::vec3 jToK{vk.x - vj.x, vk.y - vj.y, 0.0};
+                    // glm::vec3 nToK{vk.x - vn.x, vk.y - vn.y, 0.0};
+                    // glm::vec3 pToK{vk.x - vp.x, vk.y - vp.y, 0.0};
+                    // float cr1 = (jToP.x * jToK.y - jToP.y * jToK.x);  // cross product ?
+                    // float cr2 = (jToN.x * nToK.y - jToN.y * nToK.x);  // cross product ?
+                    // float cr3 = (nToP.x * pToK.y - nToP.y * pToK.x);  // cross product ?
+                    // if (cr1 > 0.0f || cr2 > 0.0f || cr3 > 0.0f) {
+                    //    ok = false;
+                    //    break;
+                    //}
+                    glm::vec2 ab = vj - vp;
+                    glm::vec2 bc = vn - vj;
+                    glm::vec2 ca = vp - vn;
+
+                    glm::vec2 ap = vk - vp;
+                    glm::vec2 bp = vk - vj;
+                    glm::vec2 cp = vk - vn;
+
+                    float cr1 = ab.x * ap.y - ab.y * ap.x;
+                    float cr2 = bc.x * bp.y - bc.y * bp.x;
+                    float cr3 = ca.x * cp.y - ca.y * cp.x;
+
+                    if (cr1 <= 0.0f && cr2 <= 0.0f && cr3 <= 0.0f) {
+                        ok = false;
+                        break;
+                    }
+                }
+                if (!ok)
+                    continue;
+                f2 << vp.x << " " << vp.y << " " << vj.x << " " << vj.y << " " << vn.x << " " << vn.y << "\n";
+                verts.erase(verts.begin() + j);
+                --j;
+            }
+            if (pd.id == 3703) {
+                Log(verts.size());
+            }
+            if (dkd == verts.size()) {
+                break;
+            }
+            dkd = verts.size();
+        }
+        for (int j = 0; j < verts.size(); ++j) {
+            f2 << nodes[verts[j]].x << " " << nodes[verts[j]].y << " ";
+        }
+        f2 << "\n";
+        //Log("");
+
+        //break;
+    }
+    f2.close();
 }
 
-/*
-
-    int initx = x, inity = y;
-    do {
-        int lx = x - 1, ly1 = y, ly2 = y + 1;
-        int tx1 = x, tx2 = x + 1, ty = y + 1;
-        int rx = x + 1, ry1 = y + 1, ry2 = y;
-        int bx1 = x + 1, bx2 = x, by = y;
-
-        int currI = x * 3 + y * w * 3;
-
-        int nextI = lx * 3 + y * w * 3;
-        if (lx < 0)
-            nextI = (w - 1) * 3 + ly1 * w * 3;
-
-        Color nc{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
-        bool goL = (currCol == nc);
-        if (goL == false) {
-                int thash = nodeHash(lx, ly1);
-                if (nodes.find(thash) == nodes.end())
-                nodes[thash] = Node{.x = lx, .y = ly1};
-                int thash2 = nodeHash(lx, ly2);
-                if (nodes.find(thash2) == nodes.end())
-                nodes[thash2] = Node{.x = lx, .y = ly2};
-                //nodes[thash].next.push_back(thash2);
-        }
-
-        bool goT = false;
-        if (ty < h) {
-            nextI = tx1 * 3 + ty * w * 3;
-            nc = Color{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
-            goT = (currCol == nc);
-            if (goT == false) {
-                int thash = nodeHash(tx1, ty);
-                if (nodes.find(thash) == nodes.end())
-                nodes[thash] = Node{.x = tx1, .y = ty};
-                int thash2 = nodeHash(tx2, ty);
-                if (nodes.find(thash2) == nodes.end())
-                nodes[thash2] = Node{.x = tx2, .y = ty};
-                nodes[thash].next.push_back(thash2);
-                if (goL == false) {
-                    nodes[nodeHash(lx, ly2)].next.push_back(thash);
-                }
-            }
-        }
-
-        bool goR = false;
-        if (rx < w) {
-            nextI = rx * 3 + ry1 * w * 3;
-            nc = Color{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
-            goR = (currCol == nc);
-            if (goR == false) {
-                int thash = nodeHash(rx, ry2);
-                if (nodes.find(thash) == nodes.end())
-                nodes[thash] = Node{.x = rx, .y = ry2};
-                int thash2 = nodeHash(rx, ry1);
-                if (nodes.find(thash2) == nodes.end())
-                nodes[thash2] = Node{.x = rx, .y = ry1};
-                nodes[thash].next.push_back(thash2);
-                if (goT == false) {
-                    nodes[nodeHash(tx2, ty)].next.push_back(thash2);
-                }
-            }
-        }
-
-        bool goB = false;
-        if (by > 0) {
-            nextI = bx1 * 3 + by * w * 3;
-            nc = Color{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
-            goB = (currCol == nc);
-            if (goB == false) {
-                int thash = nodeHash(bx2, by);
-                if (nodes.find(thash) == nodes.end())
-                nodes[thash] = Node{.x = bx2, .y = by};
-                int thash2 = nodeHash(bx1, by);
-                if (nodes.find(thash2) == nodes.end())
-                nodes[thash2] = Node{.x = bx1, .y = by};
-                nodes[thash].next.push_back(thash2);
-                if (goR == false) {
-                    nodes[nodeHash(rx, ry2)].next.push_back(thash2);
-                }
-                if (goL == false) {
-                    nodes[nodeHash(lx, ly1)].next.push_back(thash);
-                }
-            }
-        }
-
-        if (goL) {
-            --x;
-        }
-        else if (goT) {
-            ++y;
-        }
-        else if (goR) {
-            ++x;
-        }
-        else if (goB) {
-            --y;
-        }
-        else break;
-
-    } while (initx != x || inity != y);
-
-*/

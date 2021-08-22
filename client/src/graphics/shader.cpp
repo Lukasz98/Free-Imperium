@@ -1,6 +1,6 @@
 #include "shader.h"
 
-Shader::Shader(std::string vertS, std::string fragS, std::string tesSter, std::string tesW)
+Shader::Shader(std::string vertS, std::string fragS, std::string tesSter, std::string tesW, std::string geomstr)
 {
 	bool tes = (tesSter.size() != 0 && tesW.size() != 0);
 	program = glCreateProgram();
@@ -49,6 +49,21 @@ Shader::Shader(std::string vertS, std::string fragS, std::string tesSter, std::s
 		glAttachShader(program, tes_ster);
 		glAttachShader(program, tes_w);	
 	}
+    
+    GLuint geom;
+    if (geomstr.size()) {
+		geom = glCreateShader(GL_GEOMETRY_SHADER);
+ 		std::string gstr = readFile(geomstr.c_str());
+		const char *gsrc = gstr.c_str();
+		glShaderSource(geom, 1, &gsrc, NULL);
+    
+		glCompileShader(geom);
+		if (CheckShaderError(geom, GL_COMPILE_STATUS, false, "geom Shader Compile Failed: ")) {
+			glDeleteShader(geom);
+		}
+		glAttachShader(program, geom);
+
+    }
 
 	glAttachShader(program, fragment);
 	glLinkProgram(program);
@@ -62,6 +77,9 @@ Shader::Shader(std::string vertS, std::string fragS, std::string tesSter, std::s
 		glDeleteShader(tes_ster);
 		glDeleteShader(tes_w);
 	}
+    if (geomstr.size()) {
+        glDeleteShader(geom);
+    }
 }
 
 std::string Shader::readFile(const char* filepath)

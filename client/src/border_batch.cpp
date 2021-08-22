@@ -68,8 +68,8 @@ void BorderBatch::Init()
 }
 void BorderBatch::Begin()
 {
-    Log(ttime);
-    ttime = 0.0;
+    //Log(ttime);
+    //ttime = 0.0;
     //dt = glfwGetTime();
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -84,6 +84,7 @@ void BorderBatch::Push(const BorderVertex* verts)  // takes array of 4
         Flush();
         Begin();
     }
+    dt = glfwGetTime();
 
     spriteCount++;
     vertCount += 2;
@@ -96,12 +97,13 @@ void BorderBatch::Push(const BorderVertex* verts)  // takes array of 4
         //vertexData->textureId = verts[i].textureId;
         //vertexData->normal = verts[i].normal;
     }
+    pushtime += (glfwGetTime() - dt);
 }
 //float tFlush = 0.0f;
 void BorderBatch::Flush()
 {
-    Log("spriteCount: " << spriteCount);
-    dt = glfwGetTime();
+    double dtt = glfwGetTime();
+    //Log("spriteCount: " << spriteCount);
     //dt += (dt - glfwGetTime();
     //float tt2 = glfwGetTime();
     //glDrawElements(GL_LINES, vertCount, GL_UNSIGNED_SHORT, NULL);
@@ -113,5 +115,5 @@ void BorderBatch::Flush()
     //indicesCount = 0;
     glUnmapBuffer(GL_ARRAY_BUFFER);
     //tFlush += (glfwGetTime() - tt2);
-    ttime += (glfwGetTime() - dt);
+    flushtime += (glfwGetTime() - dtt);
 }
