@@ -78,7 +78,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     loadProvData(provinces, colorToId);
     loadCountriesData(ctrsData);
     //// saveBorders(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
-    saveBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces);
+    // saveBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces);
     // return;
     err = glGetError();
     if (err)
@@ -207,24 +207,36 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         bordChunkId.push_back(chunkId);
     }
     file.close();
+    Log("nodes.size: " << nodes.size());
+    Log("borVerts.size: " << borVerts.size());
 
     struct PolyVert {
         float x, y, z;
         // float r = 1.0f, g = 0, b = 0, a = 1.0;
-        glm::vec4 col{1.0f, 0.0f, 0.0f, 1.0f};
+        glm::vec3 col{1.0f, 0.0f, 0.0f};
+        float tx;
     };
     int polyCount = 0;
-    GLuint polyVao, polyVbo;
-    {  // load prov polygon
+    struct Map {
         std::vector<PolyVert> pverts;
+        GLuint polyVao, polyVbo;
+    };
+    Map initMap, countryMap;
+    {  // load prov polygon
         file.open("polygon.txt", std::fstream::in);
         std::string ss;
-        int provId = 0;
+        int provId = -1;
+        int vertCount = 0;
         while (file >> ss) {
             if (ss == "id:") {
                 file >> ss;
+                if (provId != -1)
+                    provinces[provId].vertCount = vertCount;
+
                 provId = std::atoi(ss.data());
                 file >> ss;
+                provinces[provId].firstVertId = initMap.pverts.size();
+                vertCount = 0;
             }
             int x1 = std::atoi(ss.data());
             file >> ss;
@@ -238,36 +250,80 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             file >> ss;
             int y3 = std::atoi(ss.data());
             float z = 200.0f;
-            glm::vec4 col{(float)provinces[provId].r / 255.0f, (float)provinces[provId].g / 255.0f, (float)provinces[provId].b / 255.0f, 1.0f};
-            pverts.push_back(PolyVert{.x = x1 * scale, .y = y1 * scale, .z = z, .col = col});
-            pverts.push_back(PolyVert{.x = x2 * scale, .y = y2 * scale, .z = z, .col = col});
-            pverts.push_back(PolyVert{.x = x3 * scale, .y = y3 * scale, .z = z, .col = col});
-            //if (pverts.size() > 1500) break;
+            glm::vec3 col{(float)provinces[provId].r / 255.0f, (float)provinces[provId].g / 255.0f,
+                          (float)provinces[provId].b / 255.0f};
+            float tx = (float)provId + 0.5f;
+            initMap.pverts.push_back(PolyVert{.x = x1 * scale, .y = y1 * scale, .z = z, .col = col, .tx = tx});
+            initMap.pverts.push_back(PolyVert{.x = x2 * scale, .y = y2 * scale, .z = z, .col = col, .tx = tx});
+            initMap.pverts.push_back(PolyVert{.x = x3 * scale, .y = y3 * scale, .z = z, .col = col, .tx = tx});
+            vertCount += 3;
+            // if (pverts.size() > 1500) break;
         }
-        polyCount = pverts.size();
-        glCreateVertexArrays(1, &polyVao);
-        glBindVertexArray(polyVao);
-        glCreateBuffers(1, &polyVbo);
+        polyCount = initMap.pverts.size();
+        glCreateVertexArrays(1, &initMap.polyVao);
+        glBindVertexArray(initMap.polyVao);
+        glCreateBuffers(1, &initMap.polyVbo);
 
-        glBindBuffer(GL_ARRAY_BUFFER, polyVbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(PolyVert) * pverts.size(), pverts.data(), GL_STATIC_DRAW);
-        glEnableVertexArrayAttrib(polyVao, 0);
-        glEnableVertexArrayAttrib(polyVao, 1);
+        glBindBuffer(GL_ARRAY_BUFFER, initMap.polyVbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(PolyVert) * initMap.pverts.size(), initMap.pverts.data(),
+                     GL_STATIC_DRAW);
+        glEnableVertexArrayAttrib(initMap.polyVao, 0);
+        glEnableVertexArrayAttrib(initMap.polyVao, 1);
+        glEnableVertexArrayAttrib(initMap.polyVao, 2);
         GLuint err = glGetError();
         if (err)
             Log("Opengl error: " << err);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(PolyVert), NULL);  //(const GLvoid*)0);
-        glVertexAttribPointer(
-            1, 4, GL_FLOAT, GL_FALSE, sizeof(PolyVert),
-            (const GLvoid*)(offsetof(PolyVert, PolyVert::col)));  //(const GLvoid*)(7 * GL_FLOAT));
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(PolyVert),
+                              (const GLvoid*)(offsetof(PolyVert, PolyVert::col)));
+        glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(PolyVert),
+                              (const GLvoid*)(offsetof(PolyVert, PolyVert::tx)));
+        Log(polyCount * sizeof(PolyVert));
     }
-    Log("nodes.size: " << nodes.size());
-    Log("borVerts.size: " << borVerts.size());
+    float mapCreateTime = glfwGetTime();
+    {  // copy to country map
+        countryMap.pverts = std::vector<PolyVert>{initMap.pverts};
+        for (auto& prov : provinces) {
+            if (prov.ctrId <= -1)
+                continue;
+
+            glm::vec3 col{(float)ctrsData[prov.ctrId].r / 255.0f, (float)ctrsData[prov.ctrId].g / 255.0f,
+                         (float)ctrsData[prov.ctrId].b / 255.0f};
+            for (int i = prov.firstVertId; i < prov.firstVertId + prov.vertCount; ++i) {
+                if (i < countryMap.pverts.size())
+                    countryMap.pverts[i].col = col;
+                else {
+                    break;
+                }
+            }
+        }
+        mapCreateTime = glfwGetTime();
+        glCreateVertexArrays(1, &countryMap.polyVao);
+        glBindVertexArray(countryMap.polyVao);
+        glCreateBuffers(1, &countryMap.polyVbo);
+
+        glBindBuffer(GL_ARRAY_BUFFER, countryMap.polyVbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(PolyVert) * countryMap.pverts.size(), countryMap.pverts.data(),
+                     GL_STATIC_DRAW);
+        glEnableVertexArrayAttrib(countryMap.polyVao, 0);
+        glEnableVertexArrayAttrib(countryMap.polyVao, 1);
+        glEnableVertexArrayAttrib(countryMap.polyVao, 2);
+        GLuint err = glGetError();
+        if (err)
+            Log("Opengl error: " << err);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(PolyVert), NULL);  //(const GLvoid*)0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(PolyVert),
+                              (const GLvoid*)(offsetof(PolyVert, PolyVert::col)));
+        glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(PolyVert),
+                              (const GLvoid*)(offsetof(PolyVert, PolyVert::tx)));
+    }
+    Log("mapTime: " << glfwGetTime() - mapCreateTime);
 
     glUseProgram(borderShader.GetProgram());
     glUniform1iv(glGetUniformLocation(borderShader.GetProgram(), "tex"), 32, texID);
     bool drawBorders = true;
     glm::vec3 provColor;
+    float markedProvId = -1.0f;
     float tesLevel = 32.0f;
     glm::vec3 unitPos;
     float dt = 0.0f, waterTime = 0.0f;
@@ -334,29 +390,27 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         }
 
         if (window.keys['I']) {
-            glUseProgram(colorMapShader.GetProgram());
-            glUniformMatrix4fv(glGetUniformLocation(colorMapShader.GetProgram(), "pr_matrix"), 1, GL_FALSE,
-                               glm::value_ptr(matrix));
-            glUniformMatrix4fv(glGetUniformLocation(colorMapShader.GetProgram(), "matrix"), 1, GL_FALSE,
-                               glm::value_ptr(matrix));
+            // glUseProgram(colorMapShader.GetProgram());
+            // glUniformMatrix4fv(glGetUniformLocation(colorMapShader.GetProgram(), "pr_matrix"), 1, GL_FALSE,
+            //                   glm::value_ptr(matrix));
+            // glUniformMatrix4fv(glGetUniformLocation(colorMapShader.GetProgram(), "matrix"), 1, GL_FALSE,
+            //                   glm::value_ptr(matrix));
+            /*
             batch.Begin();
             for (int i = 0, c = 0; i < vertexes.size(); i += 4, ++c) {
                 if (chunkVisible[c])
                     batch.Push(&vertexes[i]);
             }
-            /*
-            for (int i = 0; i < vertexes.size(); i += 4) {
-                if (camera.IsPointInFrustum(glm::vec3{vertexes[i].pos.x, vertexes[i].pos.y, vertexes[i].pos.z}) ||
-                    camera.IsPointInFrustum(
-                        glm::vec3{vertexes[i + 1].pos.x, vertexes[i + 1].pos.y, vertexes[i + 1].pos.z}) ||
-                    camera.IsPointInFrustum(
-                        glm::vec3{vertexes[i + 2].pos.x, vertexes[i + 2].pos.y, vertexes[i + 2].pos.z}) ||
-                    camera.IsPointInFrustum(
-                        glm::vec3{vertexes[i + 3].pos.x, vertexes[i + 3].pos.y, vertexes[i + 3].pos.z}))
-                    batch.Push(&vertexes[i]);
-            }
-            */
             batch.Flush();
+            */
+            glUseProgram(polyShader.GetProgram());
+            glUniformMatrix4fv(glGetUniformLocation(polyShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                               glm::value_ptr(matrix));
+            glUniform1iv(glGetUniformLocation(polyShader.GetProgram(), "tex"), 32, texID);
+
+            glBindVertexArray(initMap.polyVao);
+            glBindBuffer(GL_ARRAY_BUFFER, initMap.polyVbo);
+            glDrawArrays(GL_TRIANGLES, 0, polyCount);
 
             unsigned char pixel[4];
             int pixx = window.xMouse, pixy = windowSize.y - window.yMouse;
@@ -367,22 +421,23 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             unsigned int phash = getHash(pixel[0], pixel[1], pixel[2]);
             if (colorToId.find(phash) != colorToId.end()) {
                 int pid = colorToId[phash];
-                Log(provinces[pid].id << ", water: " << provinces[pid].water << ", " << provinces[pid].name
-                                      << ", col: " << provinces[pid].r << ", " << provinces[pid].g << ", "
-                                      << provinces[pid].b);
-                std::cout << "Neighb: ";
-                for (auto i : provinces[pid].neighb) std::cout << i << " ";
-                std::cout << "\n";
-                std::cout << "NeighbSea: ";
-                for (auto i : provinces[pid].neighbSea) std::cout << i << " ";
-                std::cout << "\n";
+                markedProvId = (float)pid + 0.5f;
+                //Log(provinces[pid].id << ", water: " << provinces[pid].water << ", " << provinces[pid].name
+                //                      << ", col: " << provinces[pid].r << ", " << provinces[pid].g << ", "
+                //                      << provinces[pid].b);
+                //std::cout << "Neighb: ";
+                //for (auto i : provinces[pid].neighb) std::cout << i << " ";
+                //std::cout << "\n";
+                //std::cout << "NeighbSea: ";
+                //for (auto i : provinces[pid].neighbSea) std::cout << i << " ";
+                //std::cout << "\n";
                 unitPos.x = provinces[pid].x * scale;
                 unitPos.y = provinces[pid].y * scale;
                 unitPos.z = heightMap.GetPixels()[(int)(provinces[pid].x * 3 + provinces[pid].y * mapWidth * 3)];
             }
-            std::cout << "R: " << (double)pixel[0] << "< ";
-            std::cout << "G: " << (int)pixel[0] << "< ";
-            std::cout << "B: " << (int)pixel[2] << "< \n";
+            //std::cout << "R: " << (double)pixel[0] << "< ";
+            //std::cout << "G: " << (int)pixel[0] << "< ";
+            //std::cout << "B: " << (int)pixel[2] << "< \n";
         }
 
         glUseProgram(shader.GetProgram());
@@ -409,11 +464,11 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         glUniform1iv(glGetUniformLocation(shader.GetProgram(), "tex"), 32, texID);
 
         batch.Begin();
-        for (int i = 0, c = 0; i < vertexes.size(); i += 4, ++c) {
-            if (chunkVisible[c]) {
-                batch.Push(&vertexes[i]);
-            }
-        }
+        // for (int i = 0, c = 0; i < vertexes.size(); i += 4, ++c) {
+        //    if (chunkVisible[c]) {
+        //        batch.Push(&vertexes[i]);
+        //    }
+        //}
         /*
         for (int i = 0; i < vertexes.size(); i += 4) {
             // if (camera.IsPointInFrustum((glm::vec3)vertexes[i].pos))
@@ -461,10 +516,21 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             glUseProgram(polyShader.GetProgram());
             glUniformMatrix4fv(glGetUniformLocation(polyShader.GetProgram(), "matrix"), 1, GL_FALSE,
                                glm::value_ptr(matrix));
+            glUniform1iv(glGetUniformLocation(polyShader.GetProgram(), "tex"), 32, texID);
+            glUniform3fv(glGetUniformLocation(polyShader.GetProgram(), "provColor"), 1, glm::value_ptr(provColor));
+            glUniform1f(glGetUniformLocation(polyShader.GetProgram(), "provId"), markedProvId);
+            
 
-            glBindVertexArray(polyVao);
-            glBindBuffer(GL_ARRAY_BUFFER, polyVbo);
-            glDrawArrays(GL_TRIANGLES, 0, polyCount);
+            if (window.keys['P']) {
+                glBindVertexArray(initMap.polyVao);
+                glBindBuffer(GL_ARRAY_BUFFER, initMap.polyVbo);
+                glDrawArrays(GL_TRIANGLES, 0, polyCount);
+            }
+            else {
+                glBindVertexArray(countryMap.polyVao);
+                glBindBuffer(GL_ARRAY_BUFFER, countryMap.polyVbo);
+                glDrawArrays(GL_TRIANGLES, 0, polyCount);
+            }
         }
 
         glUseProgram(borderShader.GetProgram());
@@ -515,7 +581,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         window.Update();
         waterTime += dt;
         dt = glfwGetTime() - time;
-        //Log(dt);
+        // Log(dt);
         time = glfwGetTime();
     }
 }
@@ -578,31 +644,31 @@ void bord2(const unsigned char* pix, int x, int y, int w, int h)
         }
 
         bool goT = false;
-        if (ty < h)// {
+        if (ty < h)  // {
             nextI = tx1 * 3 + ty * w * 3;
-            
-            nc = Color{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
-            goT = (currCol == nc);
-            if (goT == false || ty >= h) {
-                int thash = nodeHash(tx1, ty);
-                if (nodes.find(thash) == nodes.end()) {
-                    nodes[thash] = Node{.x = tx1, .y = ty};
-                }
-                int thash2 = nodeHash(tx2, ty);
-                if (nodes.find(thash2) == nodes.end()) {
-                    nodes[thash2] = Node{.x = tx2, .y = ty};
-                }
-                nodes[thash].next.push_back(thash2);
-                nodes[thash2].next.push_back(thash);
-                nodes[thash].provId.push_back(provId);
-                nodes[thash2].provId.push_back(provId);
-                // if (goL == false) {
-                //    nodes[nodeHash(lx, ly2)].next.push_back(thash);
-                //}
+
+        nc = Color{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
+        goT = (currCol == nc);
+        if (goT == false || ty >= h) {
+            int thash = nodeHash(tx1, ty);
+            if (nodes.find(thash) == nodes.end()) {
+                nodes[thash] = Node{.x = tx1, .y = ty};
             }
-            else {
-                que.push(tx1 | (ty << 16));
+            int thash2 = nodeHash(tx2, ty);
+            if (nodes.find(thash2) == nodes.end()) {
+                nodes[thash2] = Node{.x = tx2, .y = ty};
             }
+            nodes[thash].next.push_back(thash2);
+            nodes[thash2].next.push_back(thash);
+            nodes[thash].provId.push_back(provId);
+            nodes[thash2].provId.push_back(provId);
+            // if (goL == false) {
+            //    nodes[nodeHash(lx, ly2)].next.push_back(thash);
+            //}
+        }
+        else {
+            que.push(tx1 | (ty << 16));
+        }
         //}
 
         bool goR = false;
@@ -913,7 +979,7 @@ label:
         verts.push_back(firstVert);
         int vert = firstVert;
         for (int j = 0; j < nodes[vert].next.size(); ++j) {
-            //Log("next size: " << nodes[vert].next.size() << ", vert: " << vert << ", j: " << j);
+            // Log("next size: " << nodes[vert].next.size() << ", vert: " << vert << ", j: " << j);
             if (std::find(verts.begin(), verts.end(), nodes[vert].next[j]) != verts.end())
                 continue;
             if (std::find(nodes[nodes[vert].next[j]].provId.begin(), nodes[nodes[vert].next[j]].provId.end(),
@@ -923,15 +989,15 @@ label:
             vert = nodes[vert].next[j];
             j = -1;
         }
-Log(pd.id);
-        //Log("Duzy TEST");
-        //Log("pid = " << pd.id << ", x:y = " << pd.x << ":" << pd.y);
-        //Log("col: " << pd.r << " " << pd.g << " " << pd.b);
-        //Log("raw:");
-        //for (auto i : verts) {
+        Log(pd.id);
+        // Log("Duzy TEST");
+        // Log("pid = " << pd.id << ", x:y = " << pd.x << ":" << pd.y);
+        // Log("col: " << pd.r << " " << pd.g << " " << pd.b);
+        // Log("raw:");
+        // for (auto i : verts) {
         //    std::cout << nodes[i].x << ":" << nodes[i].y << ", ";
         //}
-        //Log("");
+        // Log("");
 
         // erase from list
         for (int j = 0; j < verts.size(); ++j) {
@@ -981,11 +1047,11 @@ Log(pd.id);
         if (sum < 0) {  // counter clockwise
             std::reverse(verts.begin(), verts.end());
         }
-        //for (auto i : verts) {
-         //   std::cout << nodes[i].x << ":" << nodes[i].y << ", ";
-       // }
-       // Log("");
-        //Log("verts count: " << verts.size());
+        // for (auto i : verts) {
+        //   std::cout << nodes[i].x << ":" << nodes[i].y << ", ";
+        // }
+        // Log("");
+        // Log("verts count: " << verts.size());
         int dkd = -1;
         while (verts.size() > 3) {
             for (int j = 0; j < verts.size() && verts.size() > 3; ++j) {
@@ -1050,13 +1116,13 @@ Log(pd.id);
             }
             dkd = verts.size();
         }
-        for (int j = 0; j < verts.size(); ++j) {
+        for (int j = 0; j < verts.size() && j < 3; ++j) {
             f2 << nodes[verts[j]].x << " " << nodes[verts[j]].y << " ";
         }
         f2 << "\n";
-        //Log("");
+        // Log("");
 
-        //break;
+        // break;
     }
     f2.close();
 }

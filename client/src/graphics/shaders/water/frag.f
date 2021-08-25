@@ -31,5 +31,5 @@ void main()
     //color = mix(color, vec4(0.2, 0.2, 1.0, 1.0), 0.5 - sin(waterTime) * 0.2);
     //color.w = 0.5;
     //color = vec4(0.0, 0.0, 1.0, 1.0);
-    color = vec4(145.0 / 255.0, 174.0 / 255.0, 183.0 / 255.0, 0.4);
+    color = vec4(145.0 / 255.0, 174.0 / 255.0, 183.0 / 255.0, sin(waterTime));//1.0);
 }

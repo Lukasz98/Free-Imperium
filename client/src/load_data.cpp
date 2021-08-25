@@ -78,5 +78,44 @@ void loadProvData(std::vector<ProvData> & provinces, std::map<unsigned int, int>
 
 
 
-void loadCountriesData(std::vector<CountryData> & ctrsData) {}
+void loadCountriesData(std::vector<CountryData> & ctrsData)
+{
+    unsigned int lineCount = 0;
+    lineCount = 0;
+    std::string fname{"CountryDataTest.txt"};
+    std::fstream f;
+    f.open(fname, std::fstream::in);
+    std::string line;
+    while (getline(f, line)) {
+        ++lineCount;
+        char* ptr = strtok(line.data(), " ");
+        if (strcmp(ptr, "{") != 0) {
+            Log("ERROR -> fname: " << fname << ", line: " << lineCount);
+            break;
+        }
+
+        CountryData ctr;
+        while (getline(f, line)) {
+            ++lineCount;
+            ptr = strtok(line.data(), " ");
+            if (strcmp(ptr, "}") == 0) {
+                ctrsData.push_back(ctr);
+                break;
+            }
+            else if (strcmp(ptr, "id:") == 0) {
+                ctr.id = loadInt(ptr);
+            }
+            else if (strcmp(ptr, "color:") == 0) {
+                ctr.r = loadInt(ptr);
+                ctr.g = loadInt(ptr);
+                ctr.b = loadInt(ptr);
+            }
+            else {
+                Log("cos tu nie gra: file: " << fname << ", line: " << lineCount);
+                break;
+            }
+        }
+    }
+    f.close();
+}
 
