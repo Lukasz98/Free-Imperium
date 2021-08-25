@@ -51,6 +51,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     Shader colorMapShader("src/graphics/shaders/map_pick/vert.v", "src/graphics/shaders/map_pick/frag.f",
                           "src/graphics/shaders/map_pick/tes_ster.ts", "src/graphics/shaders/map_pick/tes_w.tw");
     Shader polyShader{"src/graphics/shaders/poly/vert.v", "src/graphics/shaders/poly/frag.f", "", ""};
+    Shader polyProvShader{"src/graphics/shaders/polyProv/vert.v", "src/graphics/shaders/polyProv/frag.f", "", ""};
     Camera camera{window.GetSize()};
     glUseProgram(shader.GetProgram());
     glPatchParameteri(GL_PATCH_VERTICES, 3);
@@ -345,11 +346,13 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         if (window.keys['T'])
             camera.Rotate(-1, dt);
         if (window.keys['M']) {
+            polyShader = Shader{"src/graphics/shaders/poly/vert.v", "src/graphics/shaders/poly/frag.f", "", ""};
+            polyProvShader = Shader{"src/graphics/shaders/polyProv/vert.v", "src/graphics/shaders/polyProv/frag.f", "", ""};
             shader = Shader("src/graphics/shaders/tes_new_map/vert.v", "src/graphics/shaders/tes_new_map/frag.f",
                             "src/graphics/shaders/tes_new_map/tes_ster.ts",
                             "src/graphics/shaders/tes_new_map/tes_w.tw");
-            borderShader =
-                Shader{"src/graphics/shaders/borders/vert.v", "src/graphics/shaders/borders/frag.f", "", ""};
+            borderShader = Shader{"src/graphics/shaders/borders/vert.v", "src/graphics/shaders/borders/frag.f", "", "",
+                        "src/graphics/shaders/borders/geom.g"};
             waterShader = Shader("src/graphics/shaders/water/vert.v", "src/graphics/shaders/water/frag.f",
                                  "src/graphics/shaders/water/tes_ster.ts", "src/graphics/shaders/water/tes_w.tw");
             colorMapShader =
@@ -403,10 +406,10 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             }
             batch.Flush();
             */
-            glUseProgram(polyShader.GetProgram());
-            glUniformMatrix4fv(glGetUniformLocation(polyShader.GetProgram(), "matrix"), 1, GL_FALSE,
+            glUseProgram(polyProvShader.GetProgram());
+            glUniformMatrix4fv(glGetUniformLocation(polyProvShader.GetProgram(), "matrix"), 1, GL_FALSE,
                                glm::value_ptr(matrix));
-            glUniform1iv(glGetUniformLocation(polyShader.GetProgram(), "tex"), 32, texID);
+            glUniform1iv(glGetUniformLocation(polyProvShader.GetProgram(), "tex"), 32, texID);
 
             glBindVertexArray(initMap.polyVao);
             glBindBuffer(GL_ARRAY_BUFFER, initMap.polyVbo);

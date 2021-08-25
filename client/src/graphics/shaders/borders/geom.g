@@ -37,29 +37,35 @@ void main()
 
     }
     else {
+        float width = 0.5f;
+
         float a = (gl_in[1].gl_Position.y - gl_in[0].gl_Position.y) / (gl_in[1].gl_Position.x - gl_in[0].gl_Position.x);
         float b = gl_in[1].gl_Position.y - gl_in[1].gl_Position.x * a;
         
         float a1 = -1.0f / a;
+        width = 0.5f * a;
         float b1 = gl_in[1].gl_Position.y - (a1 * gl_in[1].gl_Position.x);
-        float x1 = gl_in[1].gl_Position.x + 1.0f;
+        float x1 = gl_in[1].gl_Position.x + width;
         float y1 = a1 * x1 + b1;
         gl_Position = vec4(x1, y1, gl_in[1].gl_Position.zw);
         EmitVertex();
-        x1 = gl_in[1].gl_Position.x - 1.0f;
+        x1 = gl_in[1].gl_Position.x - width;
+        y1 = a1 * x1 + b1;
         gl_Position = vec4(x1, y1, gl_in[1].gl_Position.zw);
         EmitVertex();
         
 
         a = (gl_in[0].gl_Position.y - gl_in[1].gl_Position.y) / (gl_in[0].gl_Position.x - gl_in[1].gl_Position.x);
         b = gl_in[0].gl_Position.y - gl_in[0].gl_Position.x * a;
+        width = 0.5f * a;
         a1 = -1.0f / a;
         b1 = gl_in[0].gl_Position.y - (a1 * gl_in[0].gl_Position.x);
-        x1 = gl_in[0].gl_Position.x + 1.0f;
+        x1 = gl_in[0].gl_Position.x + width;
         y1 = a1 * x1 + b1;
         gl_Position = vec4(x1, y1, gl_in[0].gl_Position.zw);
         EmitVertex();
-        x1 = gl_in[0].gl_Position.x - 1.0f;
+        x1 = gl_in[0].gl_Position.x - width;
+        y1 = a1 * x1 + b1;
         gl_Position = vec4(x1, y1, gl_in[0].gl_Position.zw);
         EmitVertex();
     }

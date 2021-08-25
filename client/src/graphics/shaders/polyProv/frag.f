@@ -14,11 +14,11 @@ void main()
 {
 //gl_FragColor = color;
 color = vec4(col, 1.0f);
-color = mix(color, texture(tex[0],  tc* 1000.0), 0.4);
+//color = mix(color, texture(tex[0],  tc* 1000.0), 0.4);
 //if (provColor == vec3(col.xyz))
 
 if (ProvId == provId)
-color = mix(color, vec4(1.0, 1.0, 1.0, 1.0), 0.5);
+color = mix(color, vec4(1.0, 1.0, 1.0, 1.0), 0.1);
 
 //color = texture(tex[1], fs_in.tc);
 //color = vec4(fs_in.tc.x, fs_in.tc.y, 0.0,1.0);

@@ -1,0 +1,119 @@
+#version 450 core
+
+layout(triangles, equal_spacing, cw) in;
+
+in TCS_OUT
+{
+    vec2 tc;
+}
+tes_in[];
+
+out TES_OUT
+{
+    vec2 tc;
+    float h;
+    float x, y;
+    float stone;
+    vec2 normal;
+    vec4 ccolor;
+}
+tes_out;
+
+// layout (binding=2) uniform sampler2D height;
+uniform sampler2D tex[32];
+
+uniform mat4 matrix;
+uniform float waterTime;
+
+void main(void)
+{
+    vec2 tc = vec2(0.0, 0.0);
+    tc += gl_TessCoord[0] * tes_in[0].tc;
+    tc += gl_TessCoord[1] * tes_in[1].tc;
+    tc += gl_TessCoord[2] * tes_in[2].tc;
+
+    //
+    vec4 abc = texture(tex[1], tes_in[0].tc);
+    vec4 bca = texture(tex[1], tes_in[1].tc);
+    vec4 cab = texture(tex[1], tes_in[2].tc);
+    abc = texture(tex[1], gl_TessCoord[0] * tes_in[0].tc);
+    bca = texture(tex[1], gl_TessCoord[1] * tes_in[1].tc);
+    cab = texture(tex[1], gl_TessCoord[2] * tes_in[2].tc);
+    if (abc == bca && abc == cab) {
+        tes_out.ccolor = abc;  // texture(tex[1], tes_in[0].tc);
+    }
+    else {
+        tes_out.ccolor = vec4(0.0, 0.0, 0.0, 1.0);
+    }
+    //
+
+    vec4 pos = (gl_TessCoord.x * gl_in[0].gl_Position + gl_TessCoord.y * gl_in[1].gl_Position +
+                gl_TessCoord.z * gl_in[2].gl_Position);
+
+    // float z =  ( texture(height, tc).r);
+    float z = (texture(tex[3], tc).r) * 4.0 * 2.0;
+    vec4 zz;
+    if (z != 0.0) {
+        zz = vec4(0.0, 0.0, z * 30.0, 0.0);
+    }
+    else {
+        zz = vec4(0.0, 0.0, sin(waterTime) * 1, 0.0);
+        float waveLen = 5.0f;
+        float pi = 3.1456f;
+        float radX = (pos.x / waveLen + waterTime / 2) * 2.0 * pi;
+        float radY = (pos.y / waveLen + waterTime / 2) * 2.0 * pi;
+        float wa = 2.0f;
+        float ww = wa * 0.5 * (sin(radX) + cos(radY));
+        zz.z = ww;
+    }
+
+    pos += zz;
+
+    tes_out.tc = tc;
+    tes_out.h = z;
+
+    //
+    float off = 0.0001;
+    vec4 c1 = texture(tex[1], tes_out.tc);
+    vec4 c2 = texture(tex[1], vec2(tes_out.tc.x + off, tes_out.tc.y));
+    vec4 c3 = texture(tex[1], vec2(tes_out.tc.x + off, tes_out.tc.y + off));
+    vec4 c4 = texture(tex[1], vec2(tes_out.tc.x + off, tes_out.tc.y - off));
+    vec4 c5 = texture(tex[1], vec2(tes_out.tc.x, tes_out.tc.y + off));
+    vec4 c6 = texture(tex[1], vec2(tes_out.tc.x, tes_out.tc.y - off));
+/*
+    if (c1 == c2 && c1 == c3 && c1 == c4 && c1 == c5 && c1 == c6) {
+        //pos.y += cos(waterTime);
+    }
+    else {
+        float vv = waterTime + pos.x / 6010;
+        pos.x += sin(vv);
+        pos.y += cos(vv);
+    }
+    */
+    /*
+    if (c1 != c2) {
+        float vv = waterTime + pos.y;
+        //vv = pos.y;
+        pos.x += sin(vv);
+    }
+    else if (c1 != c5 || c1 != c6) {
+        float vv = waterTime + pos.x;
+       //vv = pos.x;
+        pos.y += cos(vv);
+    }
+*/
+    //
+    tes_out.x = pos.x;
+    tes_out.y = pos.y;
+
+    gl_Position = matrix * pos;
+
+    float tcOff = 0.001, tcOffY = 0.002;
+    float right = (texture(tex[3], vec2(tc.x + tcOff, tc.y +0.0)).r);
+    float bottom = (texture(tex[3], vec2(tc.x + 0.0, tc.y - tcOffY)).r);
+    float top = (texture(tex[3], vec2(tc.x + 0.0, tc.y + tcOffY)).r);
+    float left = (texture(tex[3], vec2(tc.x - tcOff, tc.y + 0.0)).r);
+    vec2 normal = vec2(left - right, bottom - top) * 5.0;
+    tes_out.normal = normal;// * 1.0 * sin(waterTime / 2);
+    tes_out.h = pos.z;
+}
