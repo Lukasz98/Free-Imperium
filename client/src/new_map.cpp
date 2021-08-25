@@ -15,6 +15,7 @@
 #include "map_batch.h"
 #include "save_data.h"
 
+    std::map<unsigned int, int> colorToId;
 // int nodeHash(unsigned short x, unsigned short y)
 int nodeHash(int x, int y)
 {
@@ -34,7 +35,8 @@ struct Line {
 };
 
 std::map<int, Node> nodes;
-void saveBorders(const unsigned char* pix, int ww, int hh, std::vector<ProvData> provD);
+void saveBorders(const unsigned char* pix, int ww, int hh, std::vector<ProvData> & provD);
+void saveSeaBorders(const unsigned char* pix, int ww, int hh, std::vector<ProvData> & provD);
 std::vector<BorderVertex> loadBorders();
 
 void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
@@ -46,6 +48,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                   "src/graphics/shaders/tes_new_map/tes_ster.ts", "src/graphics/shaders/tes_new_map/tes_w.tw");
     Shader borderShader{"src/graphics/shaders/borders/vert.v", "src/graphics/shaders/borders/frag.f", "", "",
                         "src/graphics/shaders/borders/geom.g"};
+    Shader seaBorderShader{"src/graphics/shaders/sea_borders/vert.v", "src/graphics/shaders/sea_borders/frag.f", "", "",
+                        "src/graphics/shaders/sea_borders/geom.g"};
     Shader waterShader("src/graphics/shaders/water/vert.v", "src/graphics/shaders/water/frag.f",
                        "src/graphics/shaders/water/tes_ster.ts", "src/graphics/shaders/water/tes_w.tw");
     Shader colorMapShader("src/graphics/shaders/map_pick/vert.v", "src/graphics/shaders/map_pick/frag.f",
@@ -74,12 +78,12 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
 
     // saveProvinceFromImg(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
     std::vector<ProvData> provinces;
-    std::map<unsigned int, int> colorToId;
     std::vector<CountryData> ctrsData;
     loadProvData(provinces, colorToId);
     loadCountriesData(ctrsData);
     //// saveBorders(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
     // saveBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces);
+    // saveSeaBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces);
     // return;
     err = glGetError();
     if (err)
@@ -210,6 +214,50 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     file.close();
     Log("nodes.size: " << nodes.size());
     Log("borVerts.size: " << borVerts.size());
+
+    std::vector<BorderVertex> seaVerts;
+    file.open("SeaBordersData.txt", std::fstream::in);
+    while (file >> ss) {
+        int x1 = std::atoi(ss.data());
+        file >> ss;
+        int y1 = std::atoi(ss.data());
+        file >> ss;
+        int x2 = std::atoi(ss.data());
+        file >> ss;
+        int y2 = std::atoi(ss.data());
+        // file >> ss;
+        int i1 = x1 * 3 + y1 * mapWidth * 3;
+        if (i1 > mapHeight * mapWidth * 3 - 3)
+            i1 = mapHeight * mapWidth * 3 - 3;
+        int i2 = x2 * 3 + y2 * mapWidth * 3;
+        if (i2 > mapHeight * mapWidth * 3 - 3)
+            i2 = mapHeight * mapWidth * 3 - 3;
+        seaVerts.push_back(
+            BorderVertex{.pos = Vec3{((float)x1) * scale, ((float)y1) * scale, h[i1]},
+                         .tc = Vec2{(float)x1 / mapWidth, (float)y1 / mapHeight}});
+        seaVerts.push_back(
+            BorderVertex{.pos = Vec3{((float)x2) * scale, ((float)y2) * scale, h[i2]},
+                         .tc = Vec2{(float)x2 / mapWidth, (float)y2 / mapHeight}});
+    }
+    file.close();
+    GLuint seaVao, seaVbo;
+    {  // sea map
+        glCreateVertexArrays(1, &seaVao);
+        glBindVertexArray(seaVao);
+        glCreateBuffers(1, &seaVbo);
+
+        glBindBuffer(GL_ARRAY_BUFFER, seaVbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(BorderVertex) * seaVerts.size(), seaVerts.data(),
+                     GL_STATIC_DRAW);
+        glEnableVertexArrayAttrib(seaVao, 0);
+        glEnableVertexArrayAttrib(seaVao, 1);
+        GLuint err = glGetError();
+        if (err)
+            Log("Opengl error: " << err);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(BorderVertex), NULL);  //(const GLvoid*)0);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(BorderVertex),
+                              (const GLvoid*)(offsetof(BorderVertex, BorderVertex::tc)));
+    }
 
     struct PolyVert {
         float x, y, z;
@@ -358,6 +406,9 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             colorMapShader =
                 Shader("src/graphics/shaders/map_pick/vert.v", "src/graphics/shaders/map_pick/frag.f",
                        "src/graphics/shaders/map_pick/tes_ster.ts", "src/graphics/shaders/map_pick/tes_w.tw");
+            
+            seaBorderShader = Shader{"src/graphics/shaders/sea_borders/vert.v", "src/graphics/shaders/sea_borders/frag.f", "", "",
+                        "src/graphics/shaders/sea_borders/geom.g"};
         }
 
         if (window.scrollOffset) {
@@ -553,6 +604,15 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                     borderBatch.Push(&borVerts[i]);
             }
             borderBatch.Flush();
+                
+        glUseProgram(seaBorderShader.GetProgram());
+        glUniformMatrix4fv(glGetUniformLocation(seaBorderShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                           glm::value_ptr(matrix));
+            glUniform1iv(glGetUniformLocation(seaBorderShader.GetProgram(), "tex"), 32, texID);
+                glBindVertexArray(seaVao);
+                glBindBuffer(GL_ARRAY_BUFFER, seaVbo);
+                glDrawArrays(GL_LINES, 0, seaVerts.size());
+            
             // Log("push" << borderBatch.pushtime);
             // Log("flush: " << borderBatch.flushtime);
             // Log(glfwGetTime() - dxd);
@@ -584,7 +644,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         window.Update();
         waterTime += dt;
         dt = glfwGetTime() - time;
-        // Log(dt);
+        //Log(dt);
         time = glfwGetTime();
     }
 }
@@ -769,17 +829,9 @@ int step(int x1, int y1, int x2, int y2, int x3, int y3)
     return 0;
 }
 
-void saveBorders(const unsigned char* ppix, int ww, int hh, std::vector<ProvData> provD)
+void saveBorders(const unsigned char* ppix, int ww, int hh, std::vector<ProvData> & provD)
 {
-    // unsigned char * ppp = new unsigned char[ww * hh * 3];
-    // for (int i = 0; i < ww * hh * 3; ++i) {
-    //    ppp[i] = ppix[i];
-    //}
-    // bord2(ppp, ww, hh);
-    // delete ppp[];
-    // return;
     pix = ppix;
-    // Log((long)ppix);
     wW = ww;
     hH = hh;
     Log("HH = " << hh);
@@ -788,19 +840,12 @@ void saveBorders(const unsigned char* ppix, int ww, int hh, std::vector<ProvData
         if (pd.water)
             continue;
         provId = pd.id;
-        //++ii;
-        // if (ii == 1)
-        //    Log(pd.r << ", " << pd.g << ", " << pd.b);
         currCol = Color{pd.r, pd.g, pd.b};
         left.clear();
         right.clear();
-        // borRec(pd.x, pd.y, 1);
         Log(pd.id);
         bord2(pix, pd.x, pd.y, ww, hh);
-        // break;
-        // borRec(pd.x, pd.y, -1);
         Log(pd.id);
-        // std::cout << std::endl;
     }
     Log("nodes: " << nodes.size());
 
@@ -1130,3 +1175,314 @@ label:
     f2.close();
 }
 
+// sea
+
+void bord3(const unsigned char* pix, int x, int y, int w, int h, std::vector<ProvData> & provinces)
+{
+    std::map<int, int> tmp;
+    std::queue<int> que;
+    // int initx = x, inity = y;
+    que.push(x | (y << 16));
+    while (que.size()) {
+        int key = que.front();
+        que.pop();
+        y = key >> 16;
+        x = key ^ (y << 16);
+        int nh = nodeHash(x, y);
+        if (tmp.find(nh) != tmp.end())
+            continue;
+        tmp[nh] = nh;
+        int lx = x - 1, ly1 = y, ly2 = y + 1;
+        int tx1 = x, tx2 = x + 1, ty = y + 1;
+        int rx = x + 1, ry1 = y + 1, ry2 = y;
+        int bx1 = x + 1, bx2 = x, by = y - 1;
+
+        int currI = x * 3 + y * w * 3;
+
+        int nextI = lx * 3 + y * w * 3;
+        if (lx < 0)
+            nextI = (w - 1) * 3 + ly1 * w * 3;
+
+        Color nc{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
+        bool goL = (currCol == nc);
+        //    unsigned int phash = getHash(pixel[0], pixel[1], pixel[2]);
+        bool isWater = provinces[colorToId[getHash(nc.r, nc.g, nc.b)]].water;
+        if (goL == false && isWater) {
+            int thash = nodeHash(lx + 1, ly1);
+            if (nodes.find(thash) == nodes.end()) {
+                nodes[thash] = Node{.x = lx + 1, .y = ly1};
+            }
+            int thash2 = nodeHash(lx + 1, ly2);
+            if (nodes.find(thash2) == nodes.end()) {
+                nodes[thash2] = Node{.x = lx + 1, .y = ly2};
+            }
+            nodes[thash].provId.push_back(provId);
+            nodes[thash2].provId.push_back(provId);
+            nodes[thash].next.push_back(thash2);
+            nodes[thash2].next.push_back(thash);
+        }
+        else if (isWater) {
+            que.push(lx | (ly1 << 16));
+        }
+
+        bool goT = false;
+        if (ty < h)  // {
+            nextI = tx1 * 3 + ty * w * 3;
+
+        nc = Color{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
+        goT = (currCol == nc);
+        isWater = provinces[colorToId[getHash(nc.r, nc.g, nc.b)]].water;
+        if ((goT == false || ty >= h) && isWater) {
+            int thash = nodeHash(tx1, ty);
+            if (nodes.find(thash) == nodes.end()) {
+                nodes[thash] = Node{.x = tx1, .y = ty};
+            }
+            int thash2 = nodeHash(tx2, ty);
+            if (nodes.find(thash2) == nodes.end()) {
+                nodes[thash2] = Node{.x = tx2, .y = ty};
+            }
+            nodes[thash].next.push_back(thash2);
+            nodes[thash2].next.push_back(thash);
+            nodes[thash].provId.push_back(provId);
+            nodes[thash2].provId.push_back(provId);
+            // if (goL == false) {
+            //    nodes[nodeHash(lx, ly2)].next.push_back(thash);
+            //}
+        }
+        else if (isWater) {
+            que.push(tx1 | (ty << 16));
+        }
+        //}
+
+        bool goR = false;
+        if (rx < w) {
+            nextI = rx * 3 + ry2 * w * 3;
+            nc = Color{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
+            goR = (currCol == nc);
+            isWater = provinces[colorToId[getHash(nc.r, nc.g, nc.b)]].water;
+            if (goR == false && isWater) {
+                int thash = nodeHash(rx, ry2);
+                if (nodes.find(thash) == nodes.end()) {
+                    nodes[thash] = Node{.x = rx, .y = ry2};
+                }
+                int thash2 = nodeHash(rx, ry1);
+                if (nodes.find(thash2) == nodes.end()) {
+                    nodes[thash2] = Node{.x = rx, .y = ry1};
+                }
+                nodes[thash].provId.push_back(provId);
+                nodes[thash2].provId.push_back(provId);
+                nodes[thash].next.push_back(thash2);
+                nodes[thash2].next.push_back(thash);
+                // if (goT == false) {
+                //    nodes[nodeHash(tx2, ty)].next.push_back(thash2);
+                //}
+            }
+            else if (isWater) {
+                que.push(rx | (ry2 << 16));
+            }
+        }
+
+        bool goB = false;
+        if (by > 0) {
+            nextI = bx2 * 3 + by * w * 3;
+            nc = Color{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
+            goB = (currCol == nc);
+            isWater = provinces[colorToId[getHash(nc.r, nc.g, nc.b)]].water;
+            if (goB == false && isWater) {
+                int thash = nodeHash(bx2, by + 1);
+                if (nodes.find(thash) == nodes.end())
+                    nodes[thash] = Node{.x = bx2, .y = by + 1};
+                int thash2 = nodeHash(bx1, by + 1);
+                if (nodes.find(thash2) == nodes.end())
+                    nodes[thash2] = Node{.x = bx1, .y = by + 1};
+                nodes[thash].next.push_back(thash2);
+                nodes[thash2].next.push_back(thash);
+                nodes[thash].provId.push_back(provId);
+                nodes[thash2].provId.push_back(provId);
+                // if (goR == false) {
+                //    nodes[nodeHash(rx, ry2)].next.push_back(thash2);
+                //}
+                // if (goL == false) {
+                //    nodes[nodeHash(lx, ly1)].next.push_back(thash);
+                //}
+            }
+            else if (isWater){
+                que.push(bx2 | (by << 16));
+            }
+        }
+    }
+}
+
+
+
+void saveSeaBorders(const unsigned char* ppix, int ww, int hh, std::vector<ProvData> & provD)
+{
+    pix = ppix;
+    wW = ww;
+    hH = hh;
+    Log("HH = " << hh);
+    int ii = 0;
+    for (auto& pd : provD) {
+        if (!pd.water)
+            continue;
+        provId = pd.id;
+        currCol = Color{pd.r, pd.g, pd.b};
+        Log(pd.id);
+        bord3(pix, pd.x, pd.y, ww, hh, provD);
+    }
+    Log("nodes: " << nodes.size());
+
+    std::vector<int> toDelete;
+    std::size_t initialSize = nodes.size();
+    for (auto& alele : nodes) {
+        auto& it = alele.second;
+        for (int i = 0; i < it.next.size(); ++i) {
+            for (int j = i + 1; j < it.next.size(); ++j) {
+                if (it.next[i] == it.next[j]) {
+                    it.next.erase(it.next.begin() + j);
+                    --j;
+                }
+            }
+        }
+    }
+    bool deleted = false;
+    int deletedLines = 0;
+    int endedat = deletedLines;
+    bool onlyStep = 1;
+label:
+    do {
+        endedat = deletedLines;
+        deleted = 0;
+        for (auto& alele : nodes) {
+            auto& it = alele.second;
+            for (auto n : it.next) {
+                if (n == nodeHash(it.x, it.y))
+                    continue;
+                if (nodes[n].next.size() > 2)
+                    continue;
+                int kind = dirKind(it.x, it.y, nodes[n].x, nodes[n].y);
+                if (kind == -1)
+                    continue;
+                int kind2 = -1;
+                for (auto nn : nodes[n].next) {
+                    if (n == nn || nn == nodeHash(it.x, it.y))
+                        continue;
+                    // if (nodes[nn].next.size() > 2)
+                    //    continue;
+                    if (onlyStep) {
+                        if (step(it.x, it.y, nodes[n].x, nodes[n].y, nodes[nn].x, nodes[nn].y) == 0) {
+                            continue;
+                            kind2 = kind;
+                        }
+                    }
+                    else {
+                        kind2 = dirKind(nodes[n].x, nodes[n].y, nodes[nn].x, nodes[nn].y);
+                        if (kind != kind2) {
+                            continue;
+                        }
+                    }
+                    ++deletedLines;
+                    it.next.push_back(nn);
+                    nodes[nn].next.push_back(nodeHash(it.x, it.y));
+                    for (int j = 0; j < nodes[nn].next.size(); ++j) {
+                        if (nodes[nn].next[j] == n) {
+                            nodes[nn].next.erase(nodes[nn].next.begin() + j);
+                            --j;
+                        }
+                    }
+                    for (int j = 0; j < nodes[n].next.size(); ++j) {
+                        if (nodes[n].next[j] == nn) {
+                            nodes[n].next.erase(nodes[n].next.begin() + j);
+                            --j;
+                        }
+                    }
+                    for (int j = 0; j < nodes[n].next.size(); ++j) {
+                        if (nodes[n].next[j] == nodeHash(it.x, it.y)) {
+                            nodes[n].next.erase(nodes[n].next.begin() + j);
+                            --j;
+                        }
+                    }
+                    for (int j = 0; j < it.next.size(); ++j) {
+                        if (it.next[j] == n) {
+                            it.next.erase(it.next.begin() + j);
+                            --j;
+                        }
+                    }
+                    deleted = true;
+                    break;
+                }
+                if ((kind2 != -1 && kind2 == kind))
+                    break;
+            }
+        }
+        Log("deleted lines: " << deletedLines << ", endedat: " << endedat);
+    } while ((deleted && deletedLines < 2000000) || deletedLines == endedat - 1);
+    if (onlyStep) {
+        onlyStep = false;
+        goto label;
+    }
+    deleted = false;
+    int deletedDuplicats = 0;
+    do {
+        deleted = false;
+        for (auto& alele : nodes) {
+            auto& it = alele.second;
+            for (int i = 0; i < it.next.size(); ++i) {
+                if (it.next[i] == nodeHash(it.x, it.y)) {
+                    deletedDuplicats++;
+                    deleted = true;
+                    it.next.erase(it.next.begin() + i);
+                    --i;
+                }
+            }
+        }
+        Log("deleted duplicats: " << deletedDuplicats);
+    } while (deleted && 0);
+
+    int deletedEmpty = 0;
+    for (auto it = nodes.begin(); it != nodes.end();) {
+        if (it->second.next.size() == 0) {
+            it = nodes.erase(it);
+            deletedEmpty++;
+        }
+        else {
+            ++it;
+        }
+    }
+
+    Log("deleted empty: " << deletedEmpty);
+    Log("nodes size: " << nodes.size());
+    std::fstream f;
+    f.open("SeaBordersData.txt", std::fstream::out);
+    int dell = 0;
+    for (auto& alel : nodes) {
+        auto& it = alel.second;
+        for (int i = 0; i < it.next.size(); ++i) {
+            int n = it.next[i];
+            f << it.x << " " << it.y << " " << nodes[n].x << " " << nodes[n].y << '\n';
+
+            for (int j = 0; j < nodes[n].next.size(); ++j) {
+                if (nodes[n].next[j] == nodeHash(it.x, it.y)) {
+                    nodes[n].next.erase(nodes[n].next.begin() + j);
+                    dell++;
+                    --j;
+                }
+            }
+        }
+    }
+    f.close();
+    Log("dell = " << dell);
+    
+
+    /*
+    for (auto& nk : nodes) {
+        auto node = nk.second;
+        f << node.x << " " << node.y << " | next : ";
+        for (auto next : node.next) {
+            f << nodes[next].x << " " << nodes[next].y << ", ";
+        }
+        f << '\n';
+    }
+    */
+
+}

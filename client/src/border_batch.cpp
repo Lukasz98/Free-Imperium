@@ -90,7 +90,7 @@ void BorderBatch::Push(const BorderVertex* verts)  // takes array of 4
     vertCount += 2;
     //indicesCount += 6;
     for (int i = 0; i < 2; ++i, vertexData++) {
-        *vertexData = verts[i];
+        //*vertexData = verts[i];
         vertexData->pos = verts[i].pos;
         //vertexData->color = verts[i].color;
         vertexData->tc = verts[i].tc;
