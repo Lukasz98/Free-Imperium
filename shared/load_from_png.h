@@ -124,18 +124,16 @@ static unsigned char *  loadTexture(const std::string filename, int & width, int
    unsigned char * result = new unsigned char[rowbytes * height];
    for (int i = 0; i < rowbytes * height; i++)
        result[i] = (unsigned char)image_data[i];
-   /*
-   //Now generate the OpenGL texture object
-   GLuint texture;
-   glGenTextures(1, &texture);
-   glBindTexture(GL_TEXTURE_2D, texture);
-   glTexImage2D(GL_TEXTURE_2D,0, GL_RGBA, width, height, 0,
-       GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) image_data);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-   glBindTexture(GL_TEXTURE_2D, 0);
+   ////Now generate the OpenGL texture object
+   //GLuint texture;
+   //glGenTextures(1, &texture);
+   //glBindTexture(GL_TEXTURE_2D, texture);
+   //glTexImage2D(GL_TEXTURE_2D,0, GL_RGBA, width, height, 0,
+   //    GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) image_data);
+   //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+   //glBindTexture(GL_TEXTURE_2D, 0);
  
    //clean up memory and close stuff
-   */
    png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
    delete[] image_data;
    delete[] row_pointers;
@@ -145,3 +143,4 @@ static unsigned char *  loadTexture(const std::string filename, int & width, int
 
    //   return texture;
 }
+

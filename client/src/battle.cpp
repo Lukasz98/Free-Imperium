@@ -142,7 +142,7 @@ void Battle::AddUnit(std::shared_ptr<Unit> p)
 
 void Battle::Erase(int id)
 {
-    for (int i = 0; i < attackers.size(); i++)
+    for (std::size_t i = 0; i < attackers.size(); i++)
         if (attackers[i]->GetId() == id) {
             attackers[i]->Battle(false);
             attackers.erase(attackers.begin() + i);
@@ -151,7 +151,7 @@ void Battle::Erase(int id)
             return;
         }
         
-    for (int i = 0; i < defenders.size(); i++)
+    for (std::size_t i = 0; i < defenders.size(); i++)
         if (defenders[i]->GetId() == id) {
             defenders[i]->Battle(false);
             defenders.erase(defenders.begin() + i);

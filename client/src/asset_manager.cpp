@@ -82,7 +82,7 @@ void AM::Dispose()
 std::unique_ptr<Texture> loadFontAtlas(int fSize, enum AM::FontSize fontSizeEnum)
 {
     FT_Set_Char_Size(AM::face, 0, fSize*64, 0, 0); //face, width,height in 1/64pixel, hor dpi, vert dpi
-    int maxRows = 0, widthSum = 0;
+    unsigned int maxRows = 0, widthSum = 0;
     for (char c = '!'; c <= '~'; ++c) {
         FT_UInt glyph_index = FT_Get_Char_Index(AM::face, c);
         if (glyph_index == 0)
@@ -114,18 +114,18 @@ std::unique_ptr<Texture> loadFontAtlas(int fSize, enum AM::FontSize fontSizeEnum
         FT_GlyphSlot gs = AM::face->glyph;
     
     
-        AM::atlasInfo[fontSizeEnum][c].set = true;
-        AM::atlasInfo[fontSizeEnum][c].tcX = (float)lastX / widthSum;
-        AM::atlasInfo[fontSizeEnum][c].tcY = 0.0f;
-        AM::atlasInfo[fontSizeEnum][c].tcWidth = (float)gs->bitmap.width / widthSum;
-        AM::atlasInfo[fontSizeEnum][c].tcHeight = (float)gs->bitmap.rows / maxRows;
-        AM::atlasInfo[fontSizeEnum][c].width = gs->bitmap.width;
-        AM::atlasInfo[fontSizeEnum][c].height = gs->bitmap.rows;
-        AM::atlasInfo[fontSizeEnum][c].advanceX = ((float)gs->advance.x) * 26.6 - gs->bitmap_left + 0.5; //26.6i is fractional pixel format. no idea what it means
-        AM::atlasInfo[fontSizeEnum][c].yPos = gs->bitmap_top - gs->bitmap.rows;//this should be negative // - gs->bitmap_top;
+        AM::atlasInfo[fontSizeEnum][(unsigned int)c].set = true;
+        AM::atlasInfo[fontSizeEnum][(unsigned int)c].tcX = (float)lastX / widthSum;
+        AM::atlasInfo[fontSizeEnum][(unsigned int)c].tcY = 0.0f;
+        AM::atlasInfo[fontSizeEnum][(unsigned int)c].tcWidth = (float)gs->bitmap.width / widthSum;
+        AM::atlasInfo[fontSizeEnum][(unsigned int)c].tcHeight = (float)gs->bitmap.rows / maxRows;
+        AM::atlasInfo[fontSizeEnum][(unsigned int)c].width = gs->bitmap.width;
+        AM::atlasInfo[fontSizeEnum][(unsigned int)c].height = gs->bitmap.rows;
+        AM::atlasInfo[fontSizeEnum][(unsigned int)c].advanceX = ((float)gs->advance.x) * 26.6 - gs->bitmap_left + 0.5; //26.6i is fractional pixel format. no idea what it means
+        AM::atlasInfo[fontSizeEnum][(unsigned int)c].yPos = gs->bitmap_top - gs->bitmap.rows;//this should be negative // - gs->bitmap_top;
 
-        for (int y = 0; y < gs->bitmap.rows; ++y) {
-            for (int x = 0; x < gs->bitmap.width; ++x) {
+        for (unsigned int y = 0; y < gs->bitmap.rows; ++y) {
+            for (unsigned int x = 0; x < gs->bitmap.width; ++x) {
                 unsigned char glyphColor = gs->bitmap.buffer[x + gs->bitmap.width * y];
                 int atlasIndex = ((gs->bitmap.rows - (y + 1)) * widthSum + lastX + x)*4;
                 atlas[atlasIndex + 0] = 200;
@@ -156,7 +156,8 @@ std::unique_ptr<Texture> loadFontAtlas(int fSize, enum AM::FontSize fontSizeEnum
     }
     auto atlasT = std::make_unique<Texture>(atlas, widthSum, maxRows);
     free(atlas);
-    return std::move(atlasT);
+    //return std::move(atlasT);
+    return (atlasT);
 }
 
 

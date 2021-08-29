@@ -1,4 +1,5 @@
 #include "load_data.h"
+#include <cassert>
 
 unsigned int getHash(unsigned char r, unsigned char g, unsigned char b)
 {
@@ -8,7 +9,7 @@ unsigned int getHash(unsigned char r, unsigned char g, unsigned char b)
     return res;
 }
 
-void loadProvData(std::vector<ProvData> & provinces, std::map<unsigned int, int> & colorToId)
+void loadProvData(std::vector<ProvData>& provinces, std::map<unsigned int, int>& colorToId)
 {
     unsigned int lineCount = 0;
     lineCount = 0;
@@ -76,9 +77,7 @@ void loadProvData(std::vector<ProvData> & provinces, std::map<unsigned int, int>
     std::sort(provinces.begin(), provinces.end(), [](ProvData a, ProvData b) { return a.id < b.id; });
 }
 
-
-
-void loadCountriesData(std::vector<CountryData> & ctrsData)
+void loadCountriesData(std::vector<CountryData>& ctrsData)
 {
     unsigned int lineCount = 0;
     lineCount = 0;
@@ -119,3 +118,45 @@ void loadCountriesData(std::vector<CountryData> & ctrsData)
     f.close();
 }
 
+void loadProvPointsData(std::vector<std::pair<int, int>>* points, int size)
+{
+    unsigned int lineCount = 0;
+    lineCount = 0;
+    std::string fname{"ProvPointsData.txt"};
+    std::fstream f;
+    f.open(fname, std::fstream::in);
+    std::string line;
+    while (getline(f, line)) {
+        ++lineCount;
+        char* ptr = strtok(line.data(), " ");
+        if (strcmp(ptr, "id:") != 0) {
+            Log("ERROR -> fname: " << fname << ", line: " << lineCount);
+            break;
+        }
+        int id = -1;
+        ptr = strtok(NULL, " ");
+        if (ptr == NULL) {
+            Log("cos tu nie gra: file: " << fname << ", line: " << lineCount);
+            break;
+        }
+        id = atoi(ptr);
+        assert(id >= 0 && id < size);
+        
+        getline(f, line);
+        ptr = strtok(line.data(), " ");
+
+        while (ptr != NULL) {
+        //while ((ptr = strtok(NULL, " ")) != NULL) {
+            int x = atoi(ptr);
+            ptr = strtok(NULL, " ");
+            if (ptr == NULL) {
+                Log("cos tu nie gra: file: " << fname << ", line: " << lineCount);
+                break;
+            }
+            int y = atoi(ptr);
+            points[id].push_back(std::make_pair(x, y)); 
+            ptr = strtok(NULL, " ");
+        }
+    }
+    f.close();
+}

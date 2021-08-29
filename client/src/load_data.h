@@ -15,3 +15,8 @@ void loadProvData(std::vector<ProvData> & provinces, std::map<unsigned int, int>
 
 
 void loadCountriesData(std::vector<CountryData> & ctrsData);
+
+
+
+
+void loadProvPointsData(std::vector<std::pair<int, int>>* points, int size);

@@ -43,7 +43,7 @@ public:
     virtual const unsigned char * GetPixels() { return pixelsOrigin; }
     //virtual const unsigned char * GetPixels() { return pixelsOrigin; }
     const unsigned char * GetOriginPixels() { return pixelsOrigin; }
-    virtual void SwapColors(Color bef, Color aft) {}//= 0;
-    virtual void BrightenProvince(Color bef, int increase) {}
+    //virtual void SwapColors(Color bef, Color aft) {}//= 0;
+    //virtual void BrightenProvince(Color bef, int increase) {}
 
 };
