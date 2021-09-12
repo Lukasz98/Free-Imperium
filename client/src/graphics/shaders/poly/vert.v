@@ -20,6 +20,7 @@ col = Color;
 vec2 Tc = vec2(Pos.x / (mapWidth * scale), Pos.y / (mapHeight * scale));
 float z = texture(tex[3], Tc).r * 4.0 * 2.0 * 30.0 + 0.0f;
 tc = Tc;
+z = Pos.z;
 gl_Position = matrix * vec4(Pos.xy, z, 1.0f);
     //gl_Position = matrix * vec4(Pos.xy, Pos.z - 5.0f, 1.0f);
 }

@@ -9,6 +9,7 @@ struct Vec2 {
 struct Vec3 {
     float x, y, z;
     void add(Vec3 v) { x += v.x; y += v.y; z += v.z; }    
+    bool operator==(const Vec3 & v) { return x == v.x && y == v.y && z == v.z; }
 };
 
 struct Vec4 {

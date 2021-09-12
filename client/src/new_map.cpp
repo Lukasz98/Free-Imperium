@@ -13,14 +13,14 @@
 #include "graphics/texture.h"
 #include "load_data.h"
 #include "map_batch.h"
-#include "save_data.h"
 #include "save_borders.h"
+#include "save_borders_triangles.h"
+#include "save_data.h"
 
 // int nodeHash(unsigned short x, unsigned short y)
 struct Line {
     int x, y;
 };
-
 
 void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
 {
@@ -29,16 +29,19 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         Log("Opengl error: " << err);
     Shader shader("src/graphics/shaders/tes_new_map/vert.v", "src/graphics/shaders/tes_new_map/frag.f",
                   "src/graphics/shaders/tes_new_map/tes_ster.ts", "src/graphics/shaders/tes_new_map/tes_w.tw");
+    Shader borderShader2{"src/graphics/shaders/borders2/vert.v", "src/graphics/shaders/borders2/frag.f", "", ""};
     Shader borderShader{"src/graphics/shaders/borders/vert.v", "src/graphics/shaders/borders/frag.f", "", "",
                         "src/graphics/shaders/borders/geom.g"};
-    Shader seaBorderShader{"src/graphics/shaders/sea_borders/vert.v", "src/graphics/shaders/sea_borders/frag.f", "", "",
-                        "src/graphics/shaders/sea_borders/geom.g"};
+    Shader seaBorderShader{"src/graphics/shaders/sea_borders/vert.v", "src/graphics/shaders/sea_borders/frag.f",
+                           "", "", "src/graphics/shaders/sea_borders/geom.g"};
     Shader waterShader("src/graphics/shaders/water/vert.v", "src/graphics/shaders/water/frag.f",
                        "src/graphics/shaders/water/tes_ster.ts", "src/graphics/shaders/water/tes_w.tw");
     Shader colorMapShader("src/graphics/shaders/map_pick/vert.v", "src/graphics/shaders/map_pick/frag.f",
                           "src/graphics/shaders/map_pick/tes_ster.ts", "src/graphics/shaders/map_pick/tes_w.tw");
     Shader polyShader{"src/graphics/shaders/poly/vert.v", "src/graphics/shaders/poly/frag.f", "", ""};
     Shader polyProvShader{"src/graphics/shaders/polyProv/vert.v", "src/graphics/shaders/polyProv/frag.f", "", ""};
+    Shader waterColorShader{"src/graphics/shaders/water_color/vert.v", "src/graphics/shaders/water_color/frag.f",
+                            "", ""};
     Camera camera{window.GetSize()};
     glUseProgram(shader.GetProgram());
     glPatchParameteri(GL_PATCH_VERTICES, 3);
@@ -67,11 +70,12 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     loadProvData(provinces, colorToId);
     loadCountriesData(ctrsData);
     //// saveBorders(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
-    //saveBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces, nodes);
+    // saveBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces, nodes);
     // saveSeaBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces, nodes, colorToId);
-    //createSaveProvPoints(provTexture.GetPixels(), mapWidth, mapHeight, provinces, colorToId);
-
-// return;
+    // createSaveProvPoints(provTexture.GetPixels(), mapWidth, mapHeight, provinces, colorToId);
+    float scale = 4.0f;
+    // saveBordersTriangles(mapWidth, mapHeight, scale, heightMap.GetPixels());
+    // return;
     err = glGetError();
     if (err)
         Log("Opengl error: " << err);
@@ -123,7 +127,6 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     std::vector<MapVertex> vertexes;
     float tid = 0.0f;
     Vec4 color{1.0f, 0.0f, 0.0f, 1.0f};
-    float scale = 4.0f;
     float w = 64.0f;  // * scale;
     float ww = w * scale;
     float x = 0.0f, y = 0.0f, z = 0.0f;
@@ -165,9 +168,9 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         Log("Opengl error: " << err);
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     bool chunkVisible[chunkCount] = {false};
-    std::vector<BorderVertex> borVerts;
     std::vector<int> bordChunkId;
     std::fstream file;
+    /*
     file.open("BordersData.txt", std::fstream::in);
     std::string ss;
     while (file >> ss) {
@@ -199,6 +202,40 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         bordChunkId.push_back(chunkId);
     }
     file.close();
+    */
+    file.open("BordersData2.txt", std::fstream::in);
+    std::string ss;
+    std::vector<Vec3> borVerts;
+    // std::vector<BorderVertex> borVerts;
+    {
+        float x1;
+        while (file >> x1) {
+            float y1, z1;
+            file >> y1 >> z1;
+            borVerts.push_back(Vec3{x1, y1, z1});
+            file >> x1 >> y1 >> z1;
+            borVerts.push_back(Vec3{x1, y1, z1});
+            file >> x1 >> y1 >> z1;
+            borVerts.push_back(Vec3{x1, y1, z1});
+            // file >> x1 >> y1 >> z1;
+            // borVerts.push_back(Vec3{x1, y1, z1});
+            // borVerts.push_back(borVerts[borVerts.size() - 2]);
+            // borVerts.push_back(borVerts[borVerts.size() - 4]);
+        }
+    }
+    file.close();
+    GLuint borVao, borVbo;
+    glCreateVertexArrays(1, &borVao);
+    glBindVertexArray(borVao);
+    glCreateBuffers(1, &borVbo);
+
+    glBindBuffer(GL_ARRAY_BUFFER, borVbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vec3) * borVerts.size(), borVerts.data(), GL_STATIC_DRAW);
+    glEnableVertexArrayAttrib(borVao, 0);
+    err = glGetError();
+    if (err)
+        Log("Opengl error: " << err);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vec3), NULL);  //(const GLvoid*)0);
     Log("nodes.size: " << nodes.size());
     Log("borVerts.size: " << borVerts.size());
 
@@ -219,13 +256,12 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         int i2 = x2 * 3 + y2 * mapWidth * 3;
         if (i2 > mapHeight * mapWidth * 3 - 3)
             i2 = mapHeight * mapWidth * 3 - 3;
-        seaVerts.push_back(
-            BorderVertex{.pos = Vec3{((float)x1) * scale, ((float)y1) * scale, h[i1]},
-                         .tc = Vec2{(float)x1 / mapWidth, (float)y1 / mapHeight}});
-        seaVerts.push_back(
-            BorderVertex{.pos = Vec3{((float)x2) * scale, ((float)y2) * scale, h[i2]},
-                         .tc = Vec2{(float)x2 / mapWidth, (float)y2 / mapHeight}});
+        seaVerts.push_back(BorderVertex{.pos = Vec3{((float)x1) * scale, ((float)y1) * scale, h[i1]},
+                                        .tc = Vec2{(float)x1 / mapWidth, (float)y1 / mapHeight}});
+        seaVerts.push_back(BorderVertex{.pos = Vec3{((float)x2) * scale, ((float)y2) * scale, h[i2]},
+                                        .tc = Vec2{(float)x2 / mapWidth, (float)y2 / mapHeight}});
     }
+    Log("Sea bor verts count: " << seaVerts.size());
     file.close();
     GLuint seaVao, seaVbo;
     {  // sea map
@@ -234,11 +270,38 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         glCreateBuffers(1, &seaVbo);
 
         glBindBuffer(GL_ARRAY_BUFFER, seaVbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(BorderVertex) * seaVerts.size(), seaVerts.data(),
-                     GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(BorderVertex) * seaVerts.size(), seaVerts.data(), GL_STATIC_DRAW);
         glEnableVertexArrayAttrib(seaVao, 0);
         glEnableVertexArrayAttrib(seaVao, 1);
         GLuint err = glGetError();
+        if (err)
+            Log("Opengl error: " << err);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(BorderVertex), NULL);  //(const GLvoid*)0);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(BorderVertex),
+                              (const GLvoid*)(offsetof(BorderVertex, BorderVertex::tc)));
+    }
+
+    std::vector<BorderVertex> waterColorVerts;
+    waterColorVerts.push_back(BorderVertex{.pos = Vec3{0.0, 0.0, 0.0}, .tc = Vec2{0.0, 0.0}});
+    waterColorVerts.push_back(BorderVertex{.pos = Vec3{0.0, mapHeight * scale, 0.0}, .tc = Vec2{0.0, 1.0}});
+    waterColorVerts.push_back(
+        BorderVertex{.pos = Vec3{mapWidth * scale, mapHeight * scale, 0.0}, .tc = Vec2{1.0, 1.0}});
+    waterColorVerts.push_back(
+        BorderVertex{.pos = Vec3{mapWidth * scale, mapHeight * scale, 0.0}, .tc = Vec2{1.0, 1.0}});
+    waterColorVerts.push_back(BorderVertex{.pos = Vec3{mapWidth * scale, 0.0, 0.0}, .tc = Vec2{1.0, 0.0}});
+    waterColorVerts.push_back(BorderVertex{.pos = Vec3{0.0, 0.0, 0.0}, .tc = Vec2{0.0, 0.0}});
+    GLuint waterColorVao, waterColorVbo;
+    {  // sea color map
+        glCreateVertexArrays(1, &waterColorVao);
+        glBindVertexArray(waterColorVao);
+        glCreateBuffers(1, &waterColorVbo);
+
+        glBindBuffer(GL_ARRAY_BUFFER, waterColorVbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(BorderVertex) * waterColorVerts.size(), waterColorVerts.data(),
+                     GL_STATIC_DRAW);
+        glEnableVertexArrayAttrib(waterColorVao, 0);
+        glEnableVertexArrayAttrib(waterColorVao, 1);
+        err = glGetError();
         if (err)
             Log("Opengl error: " << err);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(BorderVertex), NULL);  //(const GLvoid*)0);
@@ -289,8 +352,24 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             glm::vec3 col{(float)provinces[provId].r / 255.0f, (float)provinces[provId].g / 255.0f,
                           (float)provinces[provId].b / 255.0f};
             float tx = (float)provId + 0.5f;
+            int index;
+
+            index = x1 * 3 + y1 * mapWidth * 3;
+            if (y1 >= mapHeight)
+                index = x1 * 3 + (mapHeight - 1) * mapWidth * 3;
+            z = h[index];
             initMap.pverts.push_back(PolyVert{.x = x1 * scale, .y = y1 * scale, .z = z, .col = col, .tx = tx});
+
+            index = x2 * 3 + y2 * mapWidth * 3;
+            if (y2 >= mapHeight)
+                index = x2 * 3 + (mapHeight - 1) * mapWidth * 3;
+            z = h[index];
             initMap.pverts.push_back(PolyVert{.x = x2 * scale, .y = y2 * scale, .z = z, .col = col, .tx = tx});
+
+            index = x3 * 3 + y3 * mapWidth * 3;
+            if (y3 >= mapHeight)
+                index = x3 * 3 + (mapHeight - 1) * mapWidth * 3;
+            z = h[index];
             initMap.pverts.push_back(PolyVert{.x = x3 * scale, .y = y3 * scale, .z = z, .col = col, .tx = tx});
             vertCount += 3;
             // if (pverts.size() > 1500) break;
@@ -324,7 +403,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                 continue;
 
             glm::vec3 col{(float)ctrsData[prov.ctrId].r / 255.0f, (float)ctrsData[prov.ctrId].g / 255.0f,
-                         (float)ctrsData[prov.ctrId].b / 255.0f};
+                          (float)ctrsData[prov.ctrId].b / 255.0f};
             for (int i = prov.firstVertId; i < prov.firstVertId + prov.vertCount; ++i) {
                 if (i < countryMap.pverts.size())
                     countryMap.pverts[i].col = col;
@@ -382,20 +461,26 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             camera.Rotate(-1, dt);
         if (window.keys['M']) {
             polyShader = Shader{"src/graphics/shaders/poly/vert.v", "src/graphics/shaders/poly/frag.f", "", ""};
-            polyProvShader = Shader{"src/graphics/shaders/polyProv/vert.v", "src/graphics/shaders/polyProv/frag.f", "", ""};
+            polyProvShader =
+                Shader{"src/graphics/shaders/polyProv/vert.v", "src/graphics/shaders/polyProv/frag.f", "", ""};
             shader = Shader("src/graphics/shaders/tes_new_map/vert.v", "src/graphics/shaders/tes_new_map/frag.f",
                             "src/graphics/shaders/tes_new_map/tes_ster.ts",
                             "src/graphics/shaders/tes_new_map/tes_w.tw");
-            borderShader = Shader{"src/graphics/shaders/borders/vert.v", "src/graphics/shaders/borders/frag.f", "", "",
-                        "src/graphics/shaders/borders/geom.g"};
+            borderShader = Shader{"src/graphics/shaders/borders/vert.v", "src/graphics/shaders/borders/frag.f", "",
+                                  "", "src/graphics/shaders/borders/geom.g"};
             waterShader = Shader("src/graphics/shaders/water/vert.v", "src/graphics/shaders/water/frag.f",
                                  "src/graphics/shaders/water/tes_ster.ts", "src/graphics/shaders/water/tes_w.tw");
             colorMapShader =
                 Shader("src/graphics/shaders/map_pick/vert.v", "src/graphics/shaders/map_pick/frag.f",
                        "src/graphics/shaders/map_pick/tes_ster.ts", "src/graphics/shaders/map_pick/tes_w.tw");
-            
-            seaBorderShader = Shader{"src/graphics/shaders/sea_borders/vert.v", "src/graphics/shaders/sea_borders/frag.f", "", "",
-                        "src/graphics/shaders/sea_borders/geom.g"};
+
+            seaBorderShader =
+                Shader{"src/graphics/shaders/sea_borders/vert.v", "src/graphics/shaders/sea_borders/frag.f", "",
+                       "", "src/graphics/shaders/sea_borders/geom.g"};
+            borderShader2 =
+                Shader{"src/graphics/shaders/borders2/vert.v", "src/graphics/shaders/borders2/frag.f", "", ""};
+            waterColorShader = Shader{"src/graphics/shaders/water_color/vert.v",
+                                      "src/graphics/shaders/water_color/frag.f", "", ""};
         }
 
         if (window.scrollOffset) {
@@ -431,19 +516,14 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         }
 
         if (window.keys['I']) {
-            // glUseProgram(colorMapShader.GetProgram());
-            // glUniformMatrix4fv(glGetUniformLocation(colorMapShader.GetProgram(), "pr_matrix"), 1, GL_FALSE,
-            //                   glm::value_ptr(matrix));
-            // glUniformMatrix4fv(glGetUniformLocation(colorMapShader.GetProgram(), "matrix"), 1, GL_FALSE,
-            //                   glm::value_ptr(matrix));
-            /*
-            batch.Begin();
-            for (int i = 0, c = 0; i < vertexes.size(); i += 4, ++c) {
-                if (chunkVisible[c])
-                    batch.Push(&vertexes[i]);
-            }
-            batch.Flush();
-            */
+            glUseProgram(waterColorShader.GetProgram());
+            glUniformMatrix4fv(glGetUniformLocation(waterColorShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                               glm::value_ptr(matrix));
+            glUniform1iv(glGetUniformLocation(waterColorShader.GetProgram(), "tex"), 32, texID);
+            glBindVertexArray(waterColorVao);
+            glBindBuffer(GL_ARRAY_BUFFER, waterColorVbo);
+            glDrawArrays(GL_TRIANGLES, 0, waterColorVerts.size());
+
             glUseProgram(polyProvShader.GetProgram());
             glUniformMatrix4fv(glGetUniformLocation(polyProvShader.GetProgram(), "matrix"), 1, GL_FALSE,
                                glm::value_ptr(matrix));
@@ -463,22 +543,22 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             if (colorToId.find(phash) != colorToId.end()) {
                 int pid = colorToId[phash];
                 markedProvId = (float)pid + 0.5f;
-                //Log(provinces[pid].id << ", water: " << provinces[pid].water << ", " << provinces[pid].name
+                // Log(provinces[pid].id << ", water: " << provinces[pid].water << ", " << provinces[pid].name
                 //                      << ", col: " << provinces[pid].r << ", " << provinces[pid].g << ", "
                 //                      << provinces[pid].b);
-                //std::cout << "Neighb: ";
-                //for (auto i : provinces[pid].neighb) std::cout << i << " ";
-                //std::cout << "\n";
-                //std::cout << "NeighbSea: ";
-                //for (auto i : provinces[pid].neighbSea) std::cout << i << " ";
-                //std::cout << "\n";
+                // std::cout << "Neighb: ";
+                // for (auto i : provinces[pid].neighb) std::cout << i << " ";
+                // std::cout << "\n";
+                // std::cout << "NeighbSea: ";
+                // for (auto i : provinces[pid].neighbSea) std::cout << i << " ";
+                // std::cout << "\n";
                 unitPos.x = provinces[pid].x * scale;
                 unitPos.y = provinces[pid].y * scale;
                 unitPos.z = heightMap.GetPixels()[(int)(provinces[pid].x * 3 + provinces[pid].y * mapWidth * 3)];
             }
-            //std::cout << "R: " << (double)pixel[0] << "< ";
-            //std::cout << "G: " << (int)pixel[0] << "< ";
-            //std::cout << "B: " << (int)pixel[2] << "< \n";
+            std::cout << "R: " << (double)pixel[0] << "< ";
+            std::cout << "G: " << (int)pixel[0] << "< ";
+            std::cout << "B: " << (int)pixel[2] << "< \n";
         }
 
         glUseProgram(shader.GetProgram());
@@ -525,33 +605,35 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         */
         batch.Flush();
 
-        glUseProgram(waterShader.GetProgram());
-        glUniform1f(glGetUniformLocation(waterShader.GetProgram(), "level"), 32);
-        glUniform1iv(glGetUniformLocation(waterShader.GetProgram(), "tex"), 32, texID);
-        glUniformMatrix4fv(glGetUniformLocation(waterShader.GetProgram(), "pr_matrix"), 1, GL_FALSE,
-                           glm::value_ptr(matrix));
+        if (!window.keys['P']) {
+            glUseProgram(waterShader.GetProgram());
+            glUniform1f(glGetUniformLocation(waterShader.GetProgram(), "level"), 32);
+            glUniform1iv(glGetUniformLocation(waterShader.GetProgram(), "tex"), 32, texID);
+            glUniformMatrix4fv(glGetUniformLocation(waterShader.GetProgram(), "pr_matrix"), 1, GL_FALSE,
+                               glm::value_ptr(matrix));
 
-        glUniformMatrix4fv(glGetUniformLocation(waterShader.GetProgram(), "matrix"), 1, GL_FALSE,
-                           glm::value_ptr(matrix));
-        glUniform1f(glGetUniformLocation(waterShader.GetProgram(), "waterTime"), waterTime);
+            glUniformMatrix4fv(glGetUniformLocation(waterShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                               glm::value_ptr(matrix));
+            glUniform1f(glGetUniformLocation(waterShader.GetProgram(), "waterTime"), waterTime);
 
-        batch.Begin();
-        MapVertex vertsWater[8];
-        vertsWater[0] = MapVertex{.pos = Vec3{0.0, 0.0, 0.0}, .tc = Vec2{0.0, 0.0}};
-        vertsWater[1] = MapVertex{.pos = Vec3{mapWidth * scale * 0.5, 0.0, 0.0}, .tc = Vec2{0.5, 0.0}};
-        vertsWater[2] =
-            MapVertex{.pos = Vec3{mapWidth * scale * 0.5, mapHeight * scale, 0.0}, .tc = Vec2{.5, 1.0}};
-        vertsWater[3] = MapVertex{.pos = Vec3{0.0, mapHeight * scale, 0.0}, .tc = Vec2{0.0, 1.0}};
+            batch.Begin();
+            MapVertex vertsWater[8];
+            vertsWater[0] = MapVertex{.pos = Vec3{0.0, 0.0, 0.0}, .tc = Vec2{0.0, 0.0}};
+            vertsWater[1] = MapVertex{.pos = Vec3{mapWidth * scale * 0.5, 0.0, 0.0}, .tc = Vec2{0.5, 0.0}};
+            vertsWater[2] =
+                MapVertex{.pos = Vec3{mapWidth * scale * 0.5, mapHeight * scale, 0.0}, .tc = Vec2{.5, 1.0}};
+            vertsWater[3] = MapVertex{.pos = Vec3{0.0, mapHeight * scale, 0.0}, .tc = Vec2{0.0, 1.0}};
 
-        vertsWater[4] = MapVertex{.pos = Vec3{mapWidth * scale * 0.5, 0.0, 0.0}, .tc = Vec2{0.5, 0.0}};
-        vertsWater[5] = MapVertex{.pos = Vec3{mapWidth * scale, 0.0, 0.0}, .tc = Vec2{1.0, 0.0}};
-        vertsWater[6] = MapVertex{.pos = Vec3{mapWidth * scale, mapHeight * scale, 0.0}, .tc = Vec2{1.0, 1.0}};
-        vertsWater[7] =
-            MapVertex{.pos = Vec3{mapWidth * scale * 0.5, mapHeight * scale, 0.0}, .tc = Vec2{0.5, 1.0}};
+            vertsWater[4] = MapVertex{.pos = Vec3{mapWidth * scale * 0.5, 0.0, 0.0}, .tc = Vec2{0.5, 0.0}};
+            vertsWater[5] = MapVertex{.pos = Vec3{mapWidth * scale, 0.0, 0.0}, .tc = Vec2{1.0, 0.0}};
+            vertsWater[6] = MapVertex{.pos = Vec3{mapWidth * scale, mapHeight * scale, 0.0}, .tc = Vec2{1.0, 1.0}};
+            vertsWater[7] =
+                MapVertex{.pos = Vec3{mapWidth * scale * 0.5, mapHeight * scale, 0.0}, .tc = Vec2{0.5, 1.0}};
 
-        batch.Push(vertsWater);
-        batch.Push(&vertsWater[4]);
-        batch.Flush();
+            batch.Push(vertsWater);
+            batch.Push(&vertsWater[4]);
+            batch.Flush();
+        }
 
         {  // poly
             glUseProgram(polyShader.GetProgram());
@@ -560,12 +642,19 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             glUniform1iv(glGetUniformLocation(polyShader.GetProgram(), "tex"), 32, texID);
             glUniform3fv(glGetUniformLocation(polyShader.GetProgram(), "provColor"), 1, glm::value_ptr(provColor));
             glUniform1f(glGetUniformLocation(polyShader.GetProgram(), "provId"), markedProvId);
-            
 
             if (window.keys['P']) {
                 glBindVertexArray(initMap.polyVao);
                 glBindBuffer(GL_ARRAY_BUFFER, initMap.polyVbo);
                 glDrawArrays(GL_TRIANGLES, 0, polyCount);
+
+                glUseProgram(waterColorShader.GetProgram());
+                glUniformMatrix4fv(glGetUniformLocation(waterColorShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                                   glm::value_ptr(matrix));
+                glUniform1iv(glGetUniformLocation(waterColorShader.GetProgram(), "tex"), 32, texID);
+                glBindVertexArray(waterColorVao);
+                glBindBuffer(GL_ARRAY_BUFFER, waterColorVbo);
+                glDrawArrays(GL_TRIANGLES, 0, waterColorVerts.size());
             }
             else {
                 glBindVertexArray(countryMap.polyVao);
@@ -574,32 +663,35 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             }
         }
 
-        glUseProgram(borderShader.GetProgram());
-        glUniformMatrix4fv(glGetUniformLocation(borderShader.GetProgram(), "matrix"), 1, GL_FALSE,
+        glUseProgram(borderShader2.GetProgram());
+        glUniformMatrix4fv(glGetUniformLocation(borderShader2.GetProgram(), "matrix"), 1, GL_FALSE,
                            glm::value_ptr(matrix));
         if (drawBorders) {
             // glDisable(GL_DEPTH_TEST);   // Enable depth testing for z-culling
             // glDepthFunc(GL_GEQUAL);//QUAL);
-            glUseProgram(borderShader.GetProgram());
-            glUniform1iv(glGetUniformLocation(borderShader.GetProgram(), "tex"), 32, texID);
-            borderBatch.Begin();
+            // glUseProgram(borderShader2.GetProgram());
+            glBindVertexArray(borVao);
+            glBindBuffer(GL_ARRAY_BUFFER, borVbo);
+            glDrawArrays(GL_TRIANGLES, 0, borVerts.size());
+            // glUniform1iv(glGetUniformLocation(borderShader.GetProgram(), "tex"), 32, texID);
+            // borderBatch.Begin();
             double dxd = glfwGetTime();
             borderBatch.flushtime = 0.0;
             borderBatch.pushtime = 0.0;
-            for (std::size_t i = 0, c = 0; i < borVerts.size(); i += 2, ++c) {
-                if (chunkVisible[bordChunkId[c]])
-                    borderBatch.Push(&borVerts[i]);
-            }
-            borderBatch.Flush();
-                
-        glUseProgram(seaBorderShader.GetProgram());
-        glUniformMatrix4fv(glGetUniformLocation(seaBorderShader.GetProgram(), "matrix"), 1, GL_FALSE,
-                           glm::value_ptr(matrix));
+            // for (std::size_t i = 0, c = 0; i < borVerts.size(); i += 2, ++c) {
+            //    //if (chunkVisible[bordChunkId[c]])
+            //        borderBatch.Push(&borVerts[i]);
+            //}
+            // borderBatch.Flush();
+
+            glUseProgram(seaBorderShader.GetProgram());
+            glUniformMatrix4fv(glGetUniformLocation(seaBorderShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                               glm::value_ptr(matrix));
             glUniform1iv(glGetUniformLocation(seaBorderShader.GetProgram(), "tex"), 32, texID);
-                glBindVertexArray(seaVao);
-                glBindBuffer(GL_ARRAY_BUFFER, seaVbo);
-                glDrawArrays(GL_LINES, 0, seaVerts.size());
-            
+            glBindVertexArray(seaVao);
+            glBindBuffer(GL_ARRAY_BUFFER, seaVbo);
+            glDrawArrays(GL_LINES, 0, seaVerts.size());
+
             // Log("push" << borderBatch.pushtime);
             // Log("flush: " << borderBatch.flushtime);
             // Log(glfwGetTime() - dxd);
@@ -631,7 +723,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         window.Update();
         waterTime += dt;
         dt = glfwGetTime() - time;
-        //Log(dt);
+        // Log(dt);
         time = glfwGetTime();
     }
 }
@@ -647,11 +739,6 @@ int wW, hH;
 std::vector<int> left, right;
 bool ok = false;
 */
-
-
-
-
-
 
 /*
 provs error on map
