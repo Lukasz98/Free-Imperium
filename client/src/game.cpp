@@ -64,7 +64,7 @@ void Game::setCountryMap()
     
     for (auto & prov : provinces) {
         if (prov->GetSieged() == 100) {
-            assert(prov->GetSiegeCountryId() >= 0 && prov->GetSiegeCountryId() < countries.size());
+            assert(prov->GetSiegeCountryId() >= 0 && prov->GetSiegeCountryId() < (int)countries.size());
             auto siegeCountry = countries.at(prov->GetSiegeCountryId());
             map.DrawSieged(prov->GetColor(), siegeCountry->GetColor());
         }
@@ -74,7 +74,8 @@ void Game::setCountryMap()
 
 void Game::Play()
 {
-    float lastTime = glfwGetTime(), currTime = 0.0f;
+    //float lastTime = glfwGetTime();
+    float currTime = 0.0f;
     float  displayTime = 0.0f; 
     float framesTime = 0.0f;
     bool display = true;
@@ -222,7 +223,7 @@ void Game::processPacket(sf::Packet packet)
         map.Unbright();
         setCountryMap();
         if (openedProvId >= 0) {
-            assert(openedProvId < provinces.size());
+            assert(openedProvId < (int)provinces.size());
             map.BrightenProv(provinces[openedProvId]->GetColor());
         }
         Gui::SideBar::DeleteWarIcon(warId);
@@ -338,7 +339,7 @@ Log("uClick");
         }
         else if (cType == ClickEventType::OPEN_COUNTRY) {
             int ctrId = Gui::Base::GetHiddenValue();
-            assert(ctrId >= 0 && ctrId < countries.size());
+            assert(ctrId >= 0 && ctrId < (int)countries.size());
             if (ctrId != myCountry->GetId()) {
                 bool atWarWith = false;
                 for (auto & war : wars) {
@@ -393,7 +394,7 @@ Log("uClick");
                 }
                 offerPeaceData.recipantId = rivalId;
                 if (ok) {
-                    assert(rivalId >= 0 && rivalId < countries.size());
+                    assert(rivalId >= 0 && rivalId < (int)countries.size());
                     if (rivalIsDefender)
                         Gui::OfferPeace::Open(resolution, countries[rivalId]->GetName(), myCountry->GetName(), offerPeaceData.warId, warscore, myId, rivalId);
                     else
@@ -447,7 +448,7 @@ Log("uClick");
             Log("send peace offer");
             Log("war id="<<offerPeaceData.warId);
             for (auto pair : offerPeaceData.provs) {
-                if (pair.provId >= 0 && pair.provId < provinces.size())
+                if (pair.provId >= 0 && pair.provId < (int)provinces.size())
                     Log(provinces[pair.provId]->GetName());
             }
             sf::Packet packet;
@@ -467,7 +468,7 @@ Log("uClick");
         else if (cType == ClickEventType::DELETE_PROV_FROM_PEACE) {
             int provId = Gui::Base::GetHiddenValue();
             Log("delete prov from peace " << provId);
-            if (provId >= 0 && provId < provinces.size()) {
+            if (provId >= 0 && provId < (int)provinces.size()) {
                 Log(provinces[provId]->GetName());
                 for (auto it = offerPeaceData.provs.begin(); it != offerPeaceData.provs.end(); ++it) {
                     if (provId == it->provId) {
@@ -487,22 +488,22 @@ Log("uClick");
             for (auto it = peaceOffers.begin(); it != peaceOffers.end(); ++it ) {
                 if (it->peaceId == peaceId) {
                     it->recipant = myCountry->GetId(); //it->recipant nie jest nigdzie indziej ustawiane xd; ale jest oczywiste
-                    assert(it->recipant >= 0 && it->recipant < countries.size());
-                    assert(it->offeredBy >= 0 && it->offeredBy < countries.size());
+                    assert(it->recipant >= 0 && it->recipant < (int)countries.size());
+                    assert(it->offeredBy >= 0 && it->offeredBy < (int)countries.size());
                     Gui::PeaceOffert::Open(resolution, it->peaceId, countries[it->recipant]->GetName(), 
                                             countries[it->offeredBy]->GetName(), it->offeredBy, it->recipant);
                     for (auto & prov : it->lostProv) {
                         int provId = std::get<0>(prov);
                         int ctrId = std::get<1>(prov);
-                        assert(provId  >= 0 && provId < provinces.size());
-                        assert(ctrId >= 0 && ctrId < countries.size());
+                        assert(provId  >= 0 && provId < (int)provinces.size());
+                        assert(ctrId >= 0 && ctrId < (int)countries.size());
                         Gui::PeaceOffert::AddProv(provinces[provId]->GetName(), countries[ctrId]->GetName());
                     }
                     for (auto & prov : it->gainProv) {
                         int provId = std::get<0>(prov);
                         int ctrId = std::get<1>(prov);
-                        assert(provId  >= 0 && provId < provinces.size());
-                        assert(ctrId >= 0 && ctrId < countries.size());
+                        assert(provId  >= 0 && provId < (int)provinces.size());
+                        assert(ctrId >= 0 && ctrId < (int)countries.size());
                         Gui::PeaceOffert::AddProv(provinces[provId]->GetName(), countries[ctrId]->GetName());
                     }
                     break;

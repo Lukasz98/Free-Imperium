@@ -1,7 +1,7 @@
 #include "battle.h"
     
 Battle::Battle(int id, int warId, glm::vec3 pos, std::string prov, int provId)
-   : id(id), warId(warId), position(pos), provName(prov), provId(provId)
+   : id(id), warId(warId), provId(provId), position(pos), provName(prov)
 {
 }
 

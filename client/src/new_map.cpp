@@ -67,7 +67,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     loadProvData(provinces, colorToId);
     loadCountriesData(ctrsData);
     //// saveBorders(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
-    saveBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces, nodes);
+    //saveBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces, nodes);
     // saveSeaBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces, nodes, colorToId);
     //createSaveProvPoints(provTexture.GetPixels(), mapWidth, mapHeight, provinces, colorToId);
 
@@ -652,3 +652,9 @@ bool ok = false;
 
 
 
+
+/*
+provs error on map
+id:
+430, 710, 825, 1120, 1892, 2445, 2994, 3020, 3321, 3554, 3590, 3663 3723, 3764, 3765
+*/
