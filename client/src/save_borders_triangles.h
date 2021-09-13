@@ -1,9 +1,32 @@
 #pragma once
-#include "map_batch.h"
 #include <glm/glm.hpp>
+#include <map>
 
+#include "map_batch.h"
+
+int hashI(int x, int y)
+{
+    int h = x | (y << 16);
+    return h;
+}
+struct FPair {
+    float x, y;
+};
+struct Point {
+    int x, y;
+    std::vector<FPair> pairs;
+};
+void addToPoint(float x, float y, Point& p)
+{
+    for (std::size_t i = 0; i < p.pairs.size(); ++i) {
+        if (p.pairs[i].x == x && p.pairs[i].y == y)
+            return;
+    }
+    p.pairs.push_back(FPair{x, y});
+}
 std::vector<BorderVertex> saveBordersTriangles(int mapWidth, int mapHeight, int scale, const unsigned char* h)
 {
+    std::map<int, Point> points;
     std::vector<BorderVertex> borVerts;
     std::fstream file;
     file.open("BordersData.txt", std::fstream::in);
@@ -16,27 +39,22 @@ std::vector<BorderVertex> saveBordersTriangles(int mapWidth, int mapHeight, int 
         int x2 = std::atoi(ss.data());
         file >> ss;
         int y2 = std::atoi(ss.data());
-        // file >> ss;
-        //int chunkX = x1 / (int)w;
-        //int chunkY = y1 / (int)w;
-        //int chunkId = chunkX + chunkY * (mapWidth / w);
         int i1 = x1 * 3 + y1 * mapWidth * 3;
         if (i1 > mapHeight * mapWidth * 3 - 3)
             i1 = mapHeight * mapWidth * 3 - 3;
         int i2 = x2 * 3 + y2 * mapWidth * 3;
         if (i2 > mapHeight * mapWidth * 3 - 3)
             i2 = mapHeight * mapWidth * 3 - 3;
-        borVerts.push_back(
-            // BorderVertex{.pos = Vec3{((float)node.x + 0.5f) * scale, ((float)node.y + 0.5f) * scale, 200.0},
-            BorderVertex{.pos = Vec3{((float)x1) * scale, ((float)y1) * scale, h[i1]},
-                         .tc = Vec2{(float)x1 / mapWidth, (float)y1 / mapHeight}});
-        borVerts.push_back(
-            BorderVertex{.pos = Vec3{((float)x2) * scale, ((float)y2) * scale, h[i2]},
-                         //.pos = Vec3{((float)x2 + 0.5f) * scale, ((float)y2 + 0.5f) * scale, 200.0},
-                         .tc = Vec2{(float)x2 / mapWidth, (float)y2 / mapHeight}});
-        //bordChunkId.push_back(chunkId);
+        points[hashI(x1, y1)] = Point{};
+        points[hashI(x2, y2)] = Point{};
+        borVerts.push_back(BorderVertex{.pos = Vec3{((float)x1), ((float)y1), h[i1]},
+                                        .tc = Vec2{(float)x1 / mapWidth, (float)y1 / mapHeight}});
+        borVerts.push_back(BorderVertex{.pos = Vec3{((float)x2), ((float)y2), h[i2]},
+                                        .tc = Vec2{(float)x2 / mapWidth, (float)y2 / mapHeight}});
     }
     file.close();
+    float W = 0.2f;
+    float w = 0.2f; 
     std::vector<BorderVertex> allVerts;
     bool visited[borVerts.size() / 2] = {0};
     for (std::size_t i = 0; i < borVerts.size(); i += 2) {
@@ -48,7 +66,6 @@ std::vector<BorderVertex> saveBordersTriangles(int mapWidth, int mapHeight, int 
         auto p2 = borVerts[i + 1].pos;
         Vec3 last1, last2;
         if (abs(p1.x - p2.x) == 0.0f) {
-            float w = 0.5f;
             Vec3 pp1{p1.x - w, p1.y, p1.z};
             Vec3 pp2{p1.x + w, p1.y, p1.z};
             Vec3 pp3{p2.x - w, p2.y, p2.z};
@@ -61,9 +78,12 @@ std::vector<BorderVertex> saveBordersTriangles(int mapWidth, int mapHeight, int 
             allVerts.push_back(BorderVertex{.pos = pp2});
             last1 = pp3;
             last2 = pp4;
+            addToPoint(pp1.x, pp1.y, points[hashI(p1.x, p1.y)]);
+            addToPoint(pp2.x, pp2.y, points[hashI(p1.x, p1.y)]);
+            addToPoint(pp3.x, pp3.y, points[hashI(p2.x, p2.y)]);
+            addToPoint(pp4.x, pp4.y, points[hashI(p2.x, p2.y)]);
         }
         else if (abs(p1.y - p2.y) == 0.0f) {
-            float w = 0.5f;
             Vec3 pp1{p1.x, p1.y - w, p1.z};
             Vec3 pp2{p1.x, p1.y + w, p1.z};
             Vec3 pp3{p2.x, p2.y - w, p2.z};
@@ -76,9 +96,12 @@ std::vector<BorderVertex> saveBordersTriangles(int mapWidth, int mapHeight, int 
             allVerts.push_back(BorderVertex{.pos = pp2});
             last1 = pp3;
             last2 = pp4;
+            addToPoint(pp1.x, pp1.y, points[hashI(p1.x, p1.y)]);
+            addToPoint(pp2.x, pp2.y, points[hashI(p1.x, p1.y)]);
+            addToPoint(pp3.x, pp3.y, points[hashI(p2.x, p2.y)]);
+            addToPoint(pp4.x, pp4.y, points[hashI(p2.x, p2.y)]);
         }
         else {
-            float W = 0.5f;
             float width;
 
             float a = (p2.y - p1.y) / (p2.x - p1.x);
@@ -115,6 +138,10 @@ std::vector<BorderVertex> saveBordersTriangles(int mapWidth, int mapHeight, int 
             allVerts.push_back(BorderVertex{.pos = pp2});
             last1 = pp3;
             last2 = pp4;
+            addToPoint(pp1.x, pp1.y, points[hashI(p1.x, p1.y)]);
+            addToPoint(pp2.x, pp2.y, points[hashI(p1.x, p1.y)]);
+            addToPoint(pp3.x, pp3.y, points[hashI(p2.x, p2.y)]);
+            addToPoint(pp4.x, pp4.y, points[hashI(p2.x, p2.y)]);
         }
 
         bool found = false;
@@ -140,9 +167,8 @@ std::vector<BorderVertex> saveBordersTriangles(int mapWidth, int mapHeight, int 
                 found = true;
 
                 if (abs(p1.x - p2.x) == 0.0f) {
-                    float w = 0.5f;
-                    //Vec3 pp1 = last1;
-                    //Vec3 pp2 = last2;
+                    // Vec3 pp1 = last1;
+                    // Vec3 pp2 = last2;
                     Vec3 pp1{p1.x - w, p1.y, p1.z};
                     Vec3 pp2{p1.x + w, p1.y, p1.z};
                     Vec3 pp3{p2.x - w, p2.y, p2.z};
@@ -153,21 +179,24 @@ std::vector<BorderVertex> saveBordersTriangles(int mapWidth, int mapHeight, int 
                     allVerts.push_back(BorderVertex{.pos = pp4});
                     allVerts.push_back(BorderVertex{.pos = pp3});
                     allVerts.push_back(BorderVertex{.pos = pp2});
-                    
-                    allVerts.push_back(BorderVertex{.pos = pp1});
-                    allVerts.push_back(BorderVertex{.pos = last1});
-                    allVerts.push_back(BorderVertex{.pos = last2});
-                    
-                    allVerts.push_back(BorderVertex{.pos = pp2});
-                    allVerts.push_back(BorderVertex{.pos = last1});
-                    allVerts.push_back(BorderVertex{.pos = last2});
+
+                    // allVerts.push_back(BorderVertex{.pos = pp1});
+                    // allVerts.push_back(BorderVertex{.pos = last1});
+                    // allVerts.push_back(BorderVertex{.pos = last2});
+
+                    // allVerts.push_back(BorderVertex{.pos = pp2});
+                    // allVerts.push_back(BorderVertex{.pos = last1});
+                    // allVerts.push_back(BorderVertex{.pos = last2});
+                    addToPoint(pp1.x, pp1.y, points[hashI(p1.x, p1.y)]);
+                    addToPoint(pp2.x, pp2.y, points[hashI(p1.x, p1.y)]);
+                    addToPoint(pp3.x, pp3.y, points[hashI(p2.x, p2.y)]);
+                    addToPoint(pp4.x, pp4.y, points[hashI(p2.x, p2.y)]);
                     last1 = pp3;
                     last2 = pp4;
                 }
                 else if (abs(p1.y - p2.y) == 0.0f) {
-                    float w = 0.5f;
-                    //Vec3 pp1 = last2;
-                    //Vec3 pp2 = last1;
+                    // Vec3 pp1 = last2;
+                    // Vec3 pp2 = last1;
                     Vec3 pp1{p1.x, p1.y - w, p1.z};
                     Vec3 pp2{p1.x, p1.y + w, p1.z};
                     Vec3 pp3{p2.x, p2.y - w, p2.z};
@@ -178,20 +207,23 @@ std::vector<BorderVertex> saveBordersTriangles(int mapWidth, int mapHeight, int 
                     allVerts.push_back(BorderVertex{.pos = pp4});
                     allVerts.push_back(BorderVertex{.pos = pp3});
                     allVerts.push_back(BorderVertex{.pos = pp2});
-                    
-                    allVerts.push_back(BorderVertex{.pos = pp1});
-                    allVerts.push_back(BorderVertex{.pos = last1});
-                    allVerts.push_back(BorderVertex{.pos = last2});
-                    
-                    allVerts.push_back(BorderVertex{.pos = pp2});
-                    allVerts.push_back(BorderVertex{.pos = last1});
-                    allVerts.push_back(BorderVertex{.pos = last2});
-                    
+
+                    // allVerts.push_back(BorderVertex{.pos = pp1});
+                    // allVerts.push_back(BorderVertex{.pos = last1});
+                    // allVerts.push_back(BorderVertex{.pos = last2});
+                    //
+                    // allVerts.push_back(BorderVertex{.pos = pp2});
+                    // allVerts.push_back(BorderVertex{.pos = last1});
+                    // allVerts.push_back(BorderVertex{.pos = last2});
+                    addToPoint(pp1.x, pp1.y, points[hashI(p1.x, p1.y)]);
+                    addToPoint(pp2.x, pp2.y, points[hashI(p1.x, p1.y)]);
+                    addToPoint(pp3.x, pp3.y, points[hashI(p2.x, p2.y)]);
+                    addToPoint(pp4.x, pp4.y, points[hashI(p2.x, p2.y)]);
+
                     last1 = pp3;
                     last2 = pp4;
                 }
                 else {
-                    float W = 0.5f;
                     float width;
 
                     float a = (p2.y - p1.y) / (p2.x - p1.x);
@@ -220,8 +252,8 @@ std::vector<BorderVertex> saveBordersTriangles(int mapWidth, int mapHeight, int 
                     y1 = a1 * x1 + b1;
                     Vec3 pp2{x1, y1, p1.z};
 
-                    //pp1 = last1;
-                    //pp2 = last2;
+                    // pp1 = last1;
+                    // pp2 = last2;
                     allVerts.push_back(BorderVertex{.pos = pp1});
                     allVerts.push_back(BorderVertex{.pos = pp2});
                     allVerts.push_back(BorderVertex{.pos = pp3});
@@ -229,13 +261,17 @@ std::vector<BorderVertex> saveBordersTriangles(int mapWidth, int mapHeight, int 
                     allVerts.push_back(BorderVertex{.pos = pp3});
                     allVerts.push_back(BorderVertex{.pos = pp2});
 
-                    allVerts.push_back(BorderVertex{.pos = pp1});
-                    allVerts.push_back(BorderVertex{.pos = last1});
-                    allVerts.push_back(BorderVertex{.pos = last2});
-                    allVerts.push_back(BorderVertex{.pos = pp2});
-                    allVerts.push_back(BorderVertex{.pos = last1});
-                    allVerts.push_back(BorderVertex{.pos = last2});
+                    // allVerts.push_back(BorderVertex{.pos = pp1});
+                    // allVerts.push_back(BorderVertex{.pos = last1});
+                    // allVerts.push_back(BorderVertex{.pos = last2});
+                    // allVerts.push_back(BorderVertex{.pos = pp2});
+                    // allVerts.push_back(BorderVertex{.pos = last1});
+                    // allVerts.push_back(BorderVertex{.pos = last2});
 
+                    addToPoint(pp1.x, pp1.y, points[hashI(p1.x, p1.y)]);
+                    addToPoint(pp2.x, pp2.y, points[hashI(p1.x, p1.y)]);
+                    addToPoint(pp3.x, pp3.y, points[hashI(p2.x, p2.y)]);
+                    addToPoint(pp4.x, pp4.y, points[hashI(p2.x, p2.y)]);
                     last1 = pp3;
                     last2 = pp4;
                 }
@@ -247,10 +283,36 @@ std::vector<BorderVertex> saveBordersTriangles(int mapWidth, int mapHeight, int 
             std::cout << i << "\n";
     }
 
-   
+    for (auto& pm : points) {
+        auto& p = pm.second;
+        for (std::size_t i = 0; i < p.pairs.size() && i + 3 < p.pairs.size(); i += 4) {
+            allVerts.push_back(BorderVertex{.pos = Vec3{p.pairs[i].x, p.pairs[i].y, 0.0f}});
+            allVerts.push_back(BorderVertex{.pos = Vec3{p.pairs[i + 2].x, p.pairs[i + 2].y, 0.0f}});
+            allVerts.push_back(BorderVertex{.pos = Vec3{p.pairs[i + 1].x, p.pairs[i + 1].y, 0.0f}});
+
+            allVerts.push_back(BorderVertex{.pos = Vec3{p.pairs[i + 1].x, p.pairs[i + 1].y, 0.0f}});
+            allVerts.push_back(BorderVertex{.pos = Vec3{p.pairs[i + 3].x, p.pairs[i + 3].y, 0.0f}});
+            allVerts.push_back(BorderVertex{.pos = Vec3{p.pairs[i].x, p.pairs[i].y, 0.0f}});
+            
+/*
+            float d1 = pow(p.pairs[i].x - p.pairs[i + 2].x, 2) + pow(p.pairs[i].y - p.pairs[i + 2].y, 2); 
+            float d2 = pow(p.pairs[i].x - p.pairs[i + 1].x, 2) + pow(p.pairs[i].y - p.pairs[i + 1].y, 2); 
+            float d3 = pow(p.pairs[i + 2].x - p.pairs[i + 1].x, 2) + pow(p.pairs[i + 2].y - p.pairs[i + 1].y, 2); 
+
+            if (d1 >= d2 + d3)
+                allVerts.push_back(BorderVertex{.pos = Vec3{p.pairs[i + 0].x, p.pairs[i + 0].y, 0.0f}});
+            else
+                allVerts.push_back(BorderVertex{.pos = Vec3{p.pairs[i + 1].x, p.pairs[i + 1].y, 0.0f}});
+*/
+
+
+
+        }
+    }
+
     file.open("BordersData2.txt", std::fstream::out);
     for (std::size_t i = 0; i < allVerts.size(); ++i) {
-        file << allVerts[i + 0].pos.x << " " <<  allVerts[i + 0].pos.y << " " <<  allVerts[i + 0].pos.z << '\n'; 
+        file << allVerts[i + 0].pos.x << " " << allVerts[i + 0].pos.y << " " << allVerts[i + 0].pos.z << '\n';
     }
     return allVerts;
 }

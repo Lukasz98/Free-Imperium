@@ -74,7 +74,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     // saveSeaBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces, nodes, colorToId);
     // createSaveProvPoints(provTexture.GetPixels(), mapWidth, mapHeight, provinces, colorToId);
     float scale = 4.0f;
-    // saveBordersTriangles(mapWidth, mapHeight, scale, heightMap.GetPixels());
+    saveBordersTriangles(mapWidth, mapHeight, scale, heightMap.GetPixels());
     // return;
     err = glGetError();
     if (err)
@@ -170,39 +170,6 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     bool chunkVisible[chunkCount] = {false};
     std::vector<int> bordChunkId;
     std::fstream file;
-    /*
-    file.open("BordersData.txt", std::fstream::in);
-    std::string ss;
-    while (file >> ss) {
-        int x1 = std::atoi(ss.data());
-        file >> ss;
-        int y1 = std::atoi(ss.data());
-        file >> ss;
-        int x2 = std::atoi(ss.data());
-        file >> ss;
-        int y2 = std::atoi(ss.data());
-        // file >> ss;
-        int chunkX = x1 / (int)w;
-        int chunkY = y1 / (int)w;
-        int chunkId = chunkX + chunkY * (mapWidth / w);
-        int i1 = x1 * 3 + y1 * mapWidth * 3;
-        if (i1 > mapHeight * mapWidth * 3 - 3)
-            i1 = mapHeight * mapWidth * 3 - 3;
-        int i2 = x2 * 3 + y2 * mapWidth * 3;
-        if (i2 > mapHeight * mapWidth * 3 - 3)
-            i2 = mapHeight * mapWidth * 3 - 3;
-        borVerts.push_back(
-            // BorderVertex{.pos = Vec3{((float)node.x + 0.5f) * scale, ((float)node.y + 0.5f) * scale, 200.0},
-            BorderVertex{.pos = Vec3{((float)x1) * scale, ((float)y1) * scale, h[i1]},
-                         .tc = Vec2{(float)x1 / mapWidth, (float)y1 / mapHeight}});
-        borVerts.push_back(
-            BorderVertex{.pos = Vec3{((float)x2) * scale, ((float)y2) * scale, h[i2]},
-                         //.pos = Vec3{((float)x2 + 0.5f) * scale, ((float)y2 + 0.5f) * scale, 200.0},
-                         .tc = Vec2{(float)x2 / mapWidth, (float)y2 / mapHeight}});
-        bordChunkId.push_back(chunkId);
-    }
-    file.close();
-    */
     file.open("BordersData2.txt", std::fstream::in);
     std::string ss;
     std::vector<Vec3> borVerts;
@@ -212,15 +179,26 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         while (file >> x1) {
             float y1, z1;
             file >> y1 >> z1;
-            borVerts.push_back(Vec3{x1, y1, z1});
+            int index;
+            index = (int)x1 * 3 + (int)y1 * mapWidth * 3;
+            if (y1 >= mapHeight)
+                index = (int)x1 * 3 + (int)(mapHeight - 1) * mapWidth * 3;
+            x1 *= scale; y1 *= scale;
+            borVerts.push_back(Vec3{x1, y1, h[index]});
+            
             file >> x1 >> y1 >> z1;
-            borVerts.push_back(Vec3{x1, y1, z1});
+            index = (int)x1 * 3 + (int)y1 * mapWidth * 3;
+            if (y1 >= mapHeight)
+                index = (int)x1 * 3 + (int)(mapHeight - 1) * mapWidth * 3;
+            x1 *= scale; y1 *= scale;
+            borVerts.push_back(Vec3{x1, y1, h[index]});
+            
             file >> x1 >> y1 >> z1;
-            borVerts.push_back(Vec3{x1, y1, z1});
-            // file >> x1 >> y1 >> z1;
-            // borVerts.push_back(Vec3{x1, y1, z1});
-            // borVerts.push_back(borVerts[borVerts.size() - 2]);
-            // borVerts.push_back(borVerts[borVerts.size() - 4]);
+            index = (int)x1 * 3 + (int)y1 * mapWidth * 3;
+            if (y1 >= mapHeight)
+                index = (int)x1 * 3 + (int)(mapHeight - 1) * mapWidth * 3;
+            x1 *= scale; y1 *= scale;
+            borVerts.push_back(Vec3{x1, y1, h[index]});
         }
     }
     file.close();
