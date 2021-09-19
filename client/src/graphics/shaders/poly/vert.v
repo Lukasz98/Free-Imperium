@@ -18,9 +18,9 @@ col = Color;
 //Col = vec4(1.0, 0.0, 0.0, 1.0);
     float mapWidth = 5632.0f, mapHeight = 2048.0f, scale = 4.0f;
 vec2 Tc = vec2(Pos.x / (mapWidth * scale), Pos.y / (mapHeight * scale));
-float z = texture(tex[3], Tc).r * 4.0 * 2.0 * 30.0 + 0.0f;
+float z = texture(tex[3], Tc).r * 255.0f;//4.0 * 2.0 * 30.0 + 0.0f;
 tc = Tc;
-z = Pos.z;
+z = Pos.z + .0f;
 gl_Position = matrix * vec4(Pos.xy, z, 1.0f);
     //gl_Position = matrix * vec4(Pos.xy, Pos.z - 5.0f, 1.0f);
 }

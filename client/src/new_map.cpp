@@ -10,6 +10,7 @@
 #include "asset_manager.h"
 #include "border_batch.h"
 #include "color.h"
+#include "font_batch.h"
 #include "graphics/texture.h"
 #include "load_data.h"
 #include "map_batch.h"
@@ -42,6 +43,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     Shader polyProvShader{"src/graphics/shaders/polyProv/vert.v", "src/graphics/shaders/polyProv/frag.f", "", ""};
     Shader waterColorShader{"src/graphics/shaders/water_color/vert.v", "src/graphics/shaders/water_color/frag.f",
                             "", ""};
+    Shader fontShader{"src/graphics/shaders/fonts.vert", "src/graphics/shaders/fonts.frag", "", ""};
     Camera camera{window.GetSize()};
     glUseProgram(shader.GetProgram());
     glPatchParameteri(GL_PATCH_VERTICES, 3);
@@ -62,6 +64,11 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     Texture sandT{"src/img/Sand_1.png", 32, 32, GL_REPEAT};
     Texture ctrsText{"src/img/countries_map.png", mapWidth, mapHeight};
 
+    GLint  tex[32];
+    for (int i = 0; i < 32; ++i) {
+        tex[i] = i;
+    }
+
     // saveProvinceFromImg(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
     std::vector<ProvData> provinces;
     std::vector<CountryData> ctrsData;
@@ -69,12 +76,11 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     std::map<int, Node> nodes;
     loadProvData(provinces, colorToId);
     loadCountriesData(ctrsData);
-    //// saveBorders(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
     // saveBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces, nodes);
     // saveSeaBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces, nodes, colorToId);
     // createSaveProvPoints(provTexture.GetPixels(), mapWidth, mapHeight, provinces, colorToId);
     float scale = 4.0f;
-    saveBordersTriangles(mapWidth, mapHeight, scale, heightMap.GetPixels());
+    // saveBordersTriangles(mapWidth, mapHeight, scale, heightMap.GetPixels());
     // return;
     err = glGetError();
     if (err)
@@ -101,24 +107,18 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     if (err)
         Log("Opengl error: " << err);
 
-    for (int i = 0; i < 9; ++i) {
-        // glActiveTexture((GLuint)texID[i]);
-        // glActiveTexture(GL_TEXTURE0 + i);
-        glActiveTexture(GL_TEXTURE0 + texID[i]);
-        glBindTexture(GL_TEXTURE_2D, (GLuint)texID[i]);
-        err = glGetError();
-        if (err)
-            Log("Opengl error: " << err << " " << i);
-        Log("Opengl error: " << err << " " << (GLuint)texID[i]);
+    int fontTexID[32];
+    for (int i = 0; i <= (int)AM::FontSize::PX128; ++i) {
+        fontTexID[i] = AM::atlasTexture[i]->GetId();
     }
 
     glUseProgram(waterShader.GetProgram());
     glUniform1f(glGetUniformLocation(waterShader.GetProgram(), "level"), 32);
-    glUniform1iv(glGetUniformLocation(waterShader.GetProgram(), "tex"), 32, texID);
+    glUniform1iv(glGetUniformLocation(waterShader.GetProgram(), "tex"), 32, tex);
 
     glUseProgram(colorMapShader.GetProgram());
     glUniform1f(glGetUniformLocation(colorMapShader.GetProgram(), "level"), 32);
-    glUniform1iv(glGetUniformLocation(colorMapShader.GetProgram(), "tex"), 32, texID);
+    glUniform1iv(glGetUniformLocation(colorMapShader.GetProgram(), "tex"), 32, tex);
 
     const unsigned char* pix = provTexture.GetPixels();
     const unsigned char* h = heightMap.GetPixels();
@@ -127,7 +127,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     std::vector<MapVertex> vertexes;
     float tid = 0.0f;
     Vec4 color{1.0f, 0.0f, 0.0f, 1.0f};
-    float w = 64.0f;  // * scale;
+    // float w = 64.0f;  // * scale;
+    float w = mapHeight * 0.25f;
     float ww = w * scale;
     float x = 0.0f, y = 0.0f, z = 0.0f;
     glm::vec2 tCL{w / mapWidth, w / mapHeight};
@@ -183,22 +184,37 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             index = (int)x1 * 3 + (int)y1 * mapWidth * 3;
             if (y1 >= mapHeight)
                 index = (int)x1 * 3 + (int)(mapHeight - 1) * mapWidth * 3;
-            x1 *= scale; y1 *= scale;
+            x1 *= scale;
+            y1 *= scale;
+            int h1 = h[index];
             borVerts.push_back(Vec3{x1, y1, h[index]});
-            
+
             file >> x1 >> y1 >> z1;
             index = (int)x1 * 3 + (int)y1 * mapWidth * 3;
             if (y1 >= mapHeight)
                 index = (int)x1 * 3 + (int)(mapHeight - 1) * mapWidth * 3;
-            x1 *= scale; y1 *= scale;
+            x1 *= scale;
+            y1 *= scale;
+            int h2 = h[index];
             borVerts.push_back(Vec3{x1, y1, h[index]});
-            
+
             file >> x1 >> y1 >> z1;
             index = (int)x1 * 3 + (int)y1 * mapWidth * 3;
             if (y1 >= mapHeight)
                 index = (int)x1 * 3 + (int)(mapHeight - 1) * mapWidth * 3;
-            x1 *= scale; y1 *= scale;
+            x1 *= scale;
+            y1 *= scale;
+            int h3 = h[index];
             borVerts.push_back(Vec3{x1, y1, h[index]});
+            if (0) {
+                if (h2 > h1 && h2 >= h3)
+                    h1 = h2;
+                else if (h3 > h1 && h3 >= h2)
+                    h1 = h3;
+            }
+            // borVerts[borVerts.size() - 1].z = h1;
+            // borVerts[borVerts.size() - 2].z = h1;
+            // borVerts[borVerts.size() - 3].z = h1;
         }
     }
     file.close();
@@ -293,6 +309,10 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         glm::vec3 col{1.0f, 0.0f, 0.0f};
         float tx;
     };
+    // int chunk_x_count = 4, chunk_y_count = 2;
+    // float chunk_w = (float)(mapWidth * scale) / chunk_x_count;
+    // float chunk_h = (float)(mapHeight * scale) / chunk_y_count;
+    // std::vector<PolyVert> detailVerts[(int)(chunk_x_count * chunk_y_count)];
     int polyCount = 0;
     struct Map {
         std::vector<PolyVert> pverts;
@@ -332,23 +352,39 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             float tx = (float)provId + 0.5f;
             int index;
 
+            // int chunk_id;
+            //{
+            //    float xxx = x1 * scale, yyy = y1 * scale;
+            //    int ch_x = xxx / (chunk_w + 2.0f);
+            //    int ch_y = yyy / (chunk_h + 2.0f);
+            //    chunk_id = ch_x + ch_y * chunk_x_count;
+            //    assert(chunk_id < chunk_x_count * chunk_y_count);
+            //}
+
             index = x1 * 3 + y1 * mapWidth * 3;
             if (y1 >= mapHeight)
                 index = x1 * 3 + (mapHeight - 1) * mapWidth * 3;
             z = h[index];
             initMap.pverts.push_back(PolyVert{.x = x1 * scale, .y = y1 * scale, .z = z, .col = col, .tx = tx});
+            // detailVerts[chunk_id].push_back(
+            //    PolyVert{.x = x1 * scale, .y = y1 * scale, .z = z, .col = col, .tx = tx});
 
             index = x2 * 3 + y2 * mapWidth * 3;
             if (y2 >= mapHeight)
                 index = x2 * 3 + (mapHeight - 1) * mapWidth * 3;
             z = h[index];
             initMap.pverts.push_back(PolyVert{.x = x2 * scale, .y = y2 * scale, .z = z, .col = col, .tx = tx});
+            // detailVerts[chunk_id].push_back(
+            //    PolyVert{.x = x2 * scale, .y = y2 * scale, .z = z, .col = col, .tx = tx});
 
             index = x3 * 3 + y3 * mapWidth * 3;
             if (y3 >= mapHeight)
                 index = x3 * 3 + (mapHeight - 1) * mapWidth * 3;
             z = h[index];
             initMap.pverts.push_back(PolyVert{.x = x3 * scale, .y = y3 * scale, .z = z, .col = col, .tx = tx});
+            // detailVerts[chunk_id].push_back(
+            //    PolyVert{.x = x3 * scale, .y = y3 * scale, .z = z, .col = col, .tx = tx});
+
             vertCount += 3;
             // if (pverts.size() > 1500) break;
         }
@@ -373,6 +409,31 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                               (const GLvoid*)(offsetof(PolyVert, PolyVert::tx)));
         Log(polyCount * sizeof(PolyVert));
     }
+    //    int chunk_count = chunk_x_count * chunk_y_count;
+    // GLuint detailPolyVao[chunk_count];
+    //{  // detailed map
+    //    for (int i = 0; i < chunk_count; ++i) {
+    //        glCreateVertexArrays(1, &detailPolyVao[i]);
+    //        glBindVertexArray(detailPolyVao[i]);
+    //        GLuint pvbo;
+    //        glCreateBuffers(1, &pvbo);
+
+    //        glBindBuffer(GL_ARRAY_BUFFER, pvbo);
+    //        glBufferData(GL_ARRAY_BUFFER, sizeof(PolyVert) * detailVerts[i].size(), detailVerts[i].data(),
+    //                     GL_STATIC_DRAW);
+    //        glEnableVertexArrayAttrib(detailPolyVao[i], 0);
+    //        glEnableVertexArrayAttrib(detailPolyVao[i], 1);
+    //        glEnableVertexArrayAttrib(detailPolyVao[i], 2);
+    //        GLuint err = glGetError();
+    //        if (err)
+    //            Log("Opengl error: " << err);
+    //        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(PolyVert), NULL);  //(const GLvoid*)0);
+    //        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(PolyVert),
+    //                              (const GLvoid*)(offsetof(PolyVert, PolyVert::col)));
+    //        glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(PolyVert),
+    //                              (const GLvoid*)(offsetof(PolyVert, PolyVert::tx)));
+    //    }
+    //}
     float mapCreateTime = glfwGetTime();
     {  // copy to country map
         countryMap.pverts = std::vector<PolyVert>{initMap.pverts};
@@ -412,6 +473,9 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     }
     Log("mapTime: " << glfwGetTime() - mapCreateTime);
 
+    FontBatch fontBatch;
+    fontBatch.Init();
+
     glUseProgram(borderShader.GetProgram());
     glUniform1iv(glGetUniformLocation(borderShader.GetProgram(), "tex"), 32, texID);
     bool drawBorders = true;
@@ -421,7 +485,18 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     glm::vec3 unitPos;
     float dt = 0.0f, waterTime = 0.0f;
     float time = glfwGetTime();
+    float rotateText;
     while (!window.ShouldClose()) {
+        for (int i = 0; i < 9; ++i) {
+            // glActiveTexture((GLuint)texID[i]);
+            glActiveTexture(GL_TEXTURE0 + i);
+            //glActiveTexture(GL_TEXTURE0 + texID[i]);
+            glBindTexture(GL_TEXTURE_2D, (GLuint)texID[i]);
+            err = glGetError();
+            // if (err)
+            //    Log("Opengl error: " << err << " " << i);
+            // Log("Opengl error: " << err << " " << (GLuint)texID[i]);
+        }
         // glEnable(GL_DEPTH_TEST);   // Enable depth testing for z-culling
         // glDepthFunc(GL_LESS);
         window.Refresh();
@@ -459,6 +534,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                 Shader{"src/graphics/shaders/borders2/vert.v", "src/graphics/shaders/borders2/frag.f", "", ""};
             waterColorShader = Shader{"src/graphics/shaders/water_color/vert.v",
                                       "src/graphics/shaders/water_color/frag.f", "", ""};
+            fontShader = Shader{"src/graphics/shaders/fonts.vert", "src/graphics/shaders/fonts.frag", "", ""};
         }
 
         if (window.scrollOffset) {
@@ -497,7 +573,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             glUseProgram(waterColorShader.GetProgram());
             glUniformMatrix4fv(glGetUniformLocation(waterColorShader.GetProgram(), "matrix"), 1, GL_FALSE,
                                glm::value_ptr(matrix));
-            glUniform1iv(glGetUniformLocation(waterColorShader.GetProgram(), "tex"), 32, texID);
+            glUniform1iv(glGetUniformLocation(waterColorShader.GetProgram(), "tex"), 32, tex);
             glBindVertexArray(waterColorVao);
             glBindBuffer(GL_ARRAY_BUFFER, waterColorVbo);
             glDrawArrays(GL_TRIANGLES, 0, waterColorVerts.size());
@@ -505,7 +581,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             glUseProgram(polyProvShader.GetProgram());
             glUniformMatrix4fv(glGetUniformLocation(polyProvShader.GetProgram(), "matrix"), 1, GL_FALSE,
                                glm::value_ptr(matrix));
-            glUniform1iv(glGetUniformLocation(polyProvShader.GetProgram(), "tex"), 32, texID);
+            glUniform1iv(glGetUniformLocation(polyProvShader.GetProgram(), "tex"), 32, tex);
 
             glBindVertexArray(initMap.polyVao);
             glBindBuffer(GL_ARRAY_BUFFER, initMap.polyVbo);
@@ -534,8 +610,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                 unitPos.y = provinces[pid].y * scale;
                 unitPos.z = heightMap.GetPixels()[(int)(provinces[pid].x * 3 + provinces[pid].y * mapWidth * 3)];
             }
-            std::cout << "R: " << (double)pixel[0] << "< ";
-            std::cout << "G: " << (int)pixel[0] << "< ";
+            std::cout << "R: " << (int)pixel[0] << "< ";
+            std::cout << "G: " << (int)pixel[1] << "< ";
             std::cout << "B: " << (int)pixel[2] << "< \n";
         }
 
@@ -560,7 +636,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         //    glUniform1f(glGetUniformLocation(shader.GetProgram(), "waterTime"), waterTime);
 
         glUniform1f(glGetUniformLocation(shader.GetProgram(), "borderTime"), waterTime);
-        glUniform1iv(glGetUniformLocation(shader.GetProgram(), "tex"), 32, texID);
+        glUniform1iv(glGetUniformLocation(shader.GetProgram(), "tex"), 32, tex);
 
         batch.Begin();
         // for (int i = 0, c = 0; i < vertexes.size(); i += 4, ++c) {
@@ -586,7 +662,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         if (!window.keys['P']) {
             glUseProgram(waterShader.GetProgram());
             glUniform1f(glGetUniformLocation(waterShader.GetProgram(), "level"), 32);
-            glUniform1iv(glGetUniformLocation(waterShader.GetProgram(), "tex"), 32, texID);
+            glUniform1iv(glGetUniformLocation(waterShader.GetProgram(), "tex"), 32, tex);
             glUniformMatrix4fv(glGetUniformLocation(waterShader.GetProgram(), "pr_matrix"), 1, GL_FALSE,
                                glm::value_ptr(matrix));
 
@@ -617,7 +693,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             glUseProgram(polyShader.GetProgram());
             glUniformMatrix4fv(glGetUniformLocation(polyShader.GetProgram(), "matrix"), 1, GL_FALSE,
                                glm::value_ptr(matrix));
-            glUniform1iv(glGetUniformLocation(polyShader.GetProgram(), "tex"), 32, texID);
+            glUniform1iv(glGetUniformLocation(polyShader.GetProgram(), "tex"), 32, tex);
             glUniform3fv(glGetUniformLocation(polyShader.GetProgram(), "provColor"), 1, glm::value_ptr(provColor));
             glUniform1f(glGetUniformLocation(polyShader.GetProgram(), "provId"), markedProvId);
 
@@ -629,12 +705,21 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                 glUseProgram(waterColorShader.GetProgram());
                 glUniformMatrix4fv(glGetUniformLocation(waterColorShader.GetProgram(), "matrix"), 1, GL_FALSE,
                                    glm::value_ptr(matrix));
-                glUniform1iv(glGetUniformLocation(waterColorShader.GetProgram(), "tex"), 32, texID);
+                glUniform1iv(glGetUniformLocation(waterColorShader.GetProgram(), "tex"), 32, tex);
                 glBindVertexArray(waterColorVao);
                 glBindBuffer(GL_ARRAY_BUFFER, waterColorVbo);
                 glDrawArrays(GL_TRIANGLES, 0, waterColorVerts.size());
             }
             else {
+                // float eye_x = camera.eye.x, eye_y = camera.eye.y;
+                // for (int i = 0; i < chunk_count; ++i) {
+                // int chx = i % chunk_x_count;
+                // if (chunk_w * (chx) >= eye_x && chunk_w * (chx) <= eye_x + chunk_w)
+                //    continue;
+                // glBindVertexArray(detailPolyVao[i]);
+                ////glBindBuffer(GL_ARRAY_BUFFER, countryMap.polyVbo);
+                // glDrawArrays(GL_TRIANGLES, 0, detailVerts[i].size());
+                //}
                 glBindVertexArray(countryMap.polyVao);
                 glBindBuffer(GL_ARRAY_BUFFER, countryMap.polyVbo);
                 glDrawArrays(GL_TRIANGLES, 0, polyCount);
@@ -651,29 +736,17 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             glBindVertexArray(borVao);
             glBindBuffer(GL_ARRAY_BUFFER, borVbo);
             glDrawArrays(GL_TRIANGLES, 0, borVerts.size());
-            // glUniform1iv(glGetUniformLocation(borderShader.GetProgram(), "tex"), 32, texID);
-            // borderBatch.Begin();
             double dxd = glfwGetTime();
             borderBatch.flushtime = 0.0;
             borderBatch.pushtime = 0.0;
-            // for (std::size_t i = 0, c = 0; i < borVerts.size(); i += 2, ++c) {
-            //    //if (chunkVisible[bordChunkId[c]])
-            //        borderBatch.Push(&borVerts[i]);
-            //}
-            // borderBatch.Flush();
 
             glUseProgram(seaBorderShader.GetProgram());
             glUniformMatrix4fv(glGetUniformLocation(seaBorderShader.GetProgram(), "matrix"), 1, GL_FALSE,
                                glm::value_ptr(matrix));
-            glUniform1iv(glGetUniformLocation(seaBorderShader.GetProgram(), "tex"), 32, texID);
+            glUniform1iv(glGetUniformLocation(seaBorderShader.GetProgram(), "tex"), 32, tex);
             glBindVertexArray(seaVao);
             glBindBuffer(GL_ARRAY_BUFFER, seaVbo);
             glDrawArrays(GL_LINES, 0, seaVerts.size());
-
-            // Log("push" << borderBatch.pushtime);
-            // Log("flush: " << borderBatch.flushtime);
-            // Log(glfwGetTime() - dxd);
-            // bordChunkId.push_back(chunkId);
         }
 
         {
@@ -691,11 +764,92 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                                glm::value_ptr(matrix));
             glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE,
                                glm::value_ptr(unitModel));
-            glUniform1iv(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"), 32, texID);
+            glUniform1iv(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"), 32, tex);
 
             // AM::am.model->DrawRect(model);
             AM::am.model->Draw();
         }
+
+        for (int i = 0; i <= (int)AM::FontSize::PX128; ++i) {
+            //glActiveTexture(GL_TEXTURE0 + fontTexID[i]);
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, (GLuint)fontTexID[i]);
+            err = glGetError();
+            // if (err)
+            //    Log("Opengl error: " << err << " " << i);
+            // Log("Opengl error: " << err << " " << (GLuint)fontTexID[i]);
+        }
+        glUseProgram(fontShader.GetProgram());
+        glUniformMatrix4fv(glGetUniformLocation(fontShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                           glm::value_ptr(matrix));
+        glUniform1iv(glGetUniformLocation(fontShader.GetProgram(), "tex"), 32, tex);
+        fontBatch.Begin();
+        {  // chars
+            unsigned int phash = getHash(119, 212, 150);
+            if (colorToId.find(phash) != colorToId.end()) {
+                int pid = colorToId[phash];
+                float px = provinces[pid].x, py = provinces[pid].y;
+                AM::FontSize fontSize = AM::FontSize::PX128;
+                std::string text = "prov " + std::to_string(pid);
+                int len = 0, hei = 0;
+                for (auto c : text) {
+                    glm::vec3 rPos;
+                    glm::vec2 rSize, rLBTC, tcLen;
+                    if (AM::atlasInfo[fontSize][c].set) {
+                        len += AM::atlasInfo[fontSize][c].width;
+                        hei += AM::atlasInfo[fontSize][c].height;
+                    }
+                    else {
+                        len += 10;
+                        hei += 10;
+                    }
+                }
+                hei = hei / text.size();
+                //int cx = px * scale, cy = py * scale, cz = 300.0f;
+                int cx = -len / 2, cy = -hei / 2, cz = 300.0f;
+                glm::mat4 textml{1.0f};
+                //textml = glm::rotate(textml, abs(sin(waterTime)) * 90.0f, glm::vec3{0.0f, 1.0f, 0.0f});
+                textml = glm::translate(textml, glm::vec3{px * scale, py * scale, 0.0f});
+                if (window.keys['Y'])
+                    rotateText = sin(waterTime) * 90.0f;
+                textml = glm::rotate(textml, rotateText, glm::vec3{0.0f, 0.0f, 1.0f});
+                glUniformMatrix4fv(glGetUniformLocation(fontShader.GetProgram(), "ml"), 1, GL_FALSE,
+                                   glm::value_ptr(textml));
+                int off = 0.0f;
+                for (auto c : text) {
+                    glm::vec3 rPos;
+                    glm::vec2 rSize, rLBTC, tcLen;
+                    if (AM::atlasInfo[fontSize][c].set) {
+                        rPos = {cx + off, cy + AM::atlasInfo[fontSize][c].yPos, cz};//sin(waterTime) * 300.0f};//cz};
+                        //rPos = textml * glm::vec4{rPos, 1.0f};
+                        rSize = {(float)AM::atlasInfo[fontSize][c].width,
+                                 (float)AM::atlasInfo[fontSize][c].height};
+                        rLBTC = {AM::atlasInfo[fontSize][c].tcX, AM::atlasInfo[fontSize][c].tcY};
+                        tcLen = {AM::atlasInfo[fontSize][c].tcWidth, AM::atlasInfo[fontSize][c].tcHeight};
+                        off += rSize.x + 1;
+
+                        fontBatch.Push(rPos.x, rPos.y, rPos.z, rSize.x, rSize.y, rLBTC.x, rLBTC.y, tcLen.x,
+                                       tcLen.y, (float)fontSize);//(float)AM::atlasTexture[fontSize]->GetId());
+                        // void push(float x, float y, float z, float w, float h, float tcx, float tcy, float
+                        // tcxlen, float tcylen); text.rects.push_back(std::make_unique<Rectangle>(rPos, rSize,
+                        // rLBTC, tcLen)); if (content == "Quit game") { rSize.s += 0.1f;
+                        //  Log("tu:"<<text.rects.back()->GetPosition().x <<", "<<text.rects.back()->GetSize().x
+                        //         << ":: "<<text.rects.back()->GetPosition().x + text.rects.back()->GetSize().x );
+                        // Log("tu2"<<":"<<AM::atlasInfo[this->text->fontSize][c].width);
+                        //}
+                    }
+                    else {
+                        rPos = {cx + off, cy, cz};
+                        rSize = {10.0, 10.0};
+                        rLBTC = {0, 0};
+                        tcLen = {0, 0};
+                        off += rSize.x;
+                    }
+                    //  Log(rPos.x << " " << rPos.y << " "<<rPos.z);
+                }
+            }
+        }
+        fontBatch.Flush();
         float tt2 = glfwGetTime();
 
         window.Update();

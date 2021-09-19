@@ -26,11 +26,12 @@ struct AM
     enum FontSize {
         PX16 = 0,
         PX32 = 1,
-        PX64 = 2
+        PX64 = 2,
+        PX128 = 3
     };
 
-    static AtlasInfo atlasInfo[3][128];
-    static std::unique_ptr<Texture> atlasTexture[3];
+    static AtlasInfo atlasInfo[4][128];
+    static std::unique_ptr<Texture> atlasTexture[4];
     //static int maxRows, widthSum;
 
 

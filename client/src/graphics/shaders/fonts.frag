@@ -1,19 +1,27 @@
 #version 330 core
 
 in vec2 texCoord;
+in float tid;
 in vec4 col;
 
-uniform sampler2D texID;
 
 out vec4 color;
 
+uniform sampler2D tex[32];
 
 
 void main()
 {
-    //color = texture(texID, texCoord);
-    //if (color == vec4(0.0, 0.0, 0.0, 1.0))
-      color = col;
+    if (tid == 0.0f)
+        color = texture(tex[0], texCoord);
+    else if (tid == 1.0f)
+        color = texture(tex[1], texCoord);
+    else if (tid == 2.0f)
+        color = texture(tex[2], texCoord);
+    else if (tid == 3.0f)
+        color = texture(tex[3], texCoord);
+    //if (color.w > 0.0f) // == vec4(0.0, 0.0, 0.0, 1.0))
+      //color = col;
       
 }
 

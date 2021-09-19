@@ -422,6 +422,7 @@ label:
             // Log("");
 
             // erase from list
+            /*
             for (int j = 0; j < verts.size(); ++j) {
                 int next = j + 1;
                 if (next >= verts.size())
@@ -453,6 +454,7 @@ label:
                     }
                 }
             }
+            */
             /*
             //Log("row2");
             //        for (auto i : verts) {

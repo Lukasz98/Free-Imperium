@@ -15,6 +15,7 @@ void main()
 //gl_FragColor = color;
 color = vec4(col, 1.0f);
 color = mix(color, texture(tex[0],  tc* 1000.0), 0.4);
+//color = texture(tex[0],  tc * 1000.0);
 //if (provColor == vec3(col.xyz))
 
 if (ProvId == provId)

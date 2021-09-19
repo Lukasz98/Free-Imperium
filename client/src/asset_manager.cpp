@@ -3,8 +3,8 @@
 FT_Library AM::ft;
 FT_Face AM::face;
 AM AM::am;
-std::unique_ptr<Texture> AM::atlasTexture[3];
-AM::AtlasInfo AM::atlasInfo[3][128];
+std::unique_ptr<Texture> AM::atlasTexture[4];
+AM::AtlasInfo AM::atlasInfo[4][128];
 
 std::unique_ptr<Texture> loadFontAtlas(int fSize, enum AM::FontSize fontSizeEnum);
 
@@ -66,6 +66,9 @@ void AM::Init()
         Log("Font atlas creation error");
     }
 
+    if (!(atlasTexture[FontSize::PX128] = loadFontAtlas(128, FontSize::PX128))) {
+        Log("Font atlas creation error");
+    }
 
 
 
