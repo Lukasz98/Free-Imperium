@@ -8,7 +8,6 @@ layout (location = 4) in mat4 Ml;
 
 uniform mat4 matrix;
 //uniform mat4 ml;
-
 out vec2 texCoord;
 out vec4 col;
 out float tid;

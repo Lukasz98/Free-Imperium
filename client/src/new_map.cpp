@@ -23,9 +23,9 @@ struct Line {
     int x, y;
 };
 
-
 void f(std::vector<FontVertex>& vec, int ctrId, const std::vector<ProvData>& provinces,
-       const std::vector<std::vector<int>>& ctrProvs, int mapWidth, int mapHeight, int scale, const unsigned char * h)
+       const std::vector<std::vector<int>>& ctrProvs, int mapWidth, int mapHeight, int scale,
+       const unsigned char* h)
 {
     int maxxid, minxid, maxyid, minyid;
     glm::vec2 maxx{-1.0f, 0.0f}, minx{10000.0f, 0.0f};
@@ -67,7 +67,7 @@ void f(std::vector<FontVertex>& vec, int ctrId, const std::vector<ProvData>& pro
     }
 
     glm::mat4 textml{1.0f};
-    //Mat4 textml;
+    // Mat4 textml;
     glm::vec2 center{(maxx.x + minx.x) * 0.5f, (maxx.y + minx.y) * 0.5f};
     textml = glm::translate(textml, glm::vec3{center.x * scale, center.y * scale, 0.0f});
     float rotateText = atan((maxx.y - minx.y) / abs(maxx.x - minx.x));  // * 180.0f * 3.1456f;
@@ -96,7 +96,7 @@ void f(std::vector<FontVertex>& vec, int ctrId, const std::vector<ProvData>& pro
         }
         fontSize = (AM::FontSize)(fontSize + 1);
     }
-    //Log("fontSize=" << (int)fontSize);
+    // Log("fontSize=" << (int)fontSize);
     if (fontSize > AM::FontSize::PX160)
         fontSize = AM::FontSize::PX160;
     if (len > dist * scale * 0.75f && fontSize > 0)
@@ -115,7 +115,7 @@ void f(std::vector<FontVertex>& vec, int ctrId, const std::vector<ProvData>& pro
             hei += 10;
         }
     }
-    //Log("fontSize=" << (int)fontSize);
+    // Log("fontSize=" << (int)fontSize);
     hei = hei / text.size();
     int cx = -len / 2, cy = -hei / 2;
     // textml = glm::rotate(textml, abs(sin(waterTime)) * 90.0f, glm::vec3{0.0f, 1.0f, 0.0f});
@@ -126,20 +126,21 @@ void f(std::vector<FontVertex>& vec, int ctrId, const std::vector<ProvData>& pro
         cz = h[ind];
         // Log("cz="<<cz);
     }
-    //textml.translate(Vec3{center.x * scale, center.y * scale, 0.0f});
+    // textml.translate(Vec3{center.x * scale, center.y * scale, 0.0f});
 
     // if (window.keys['Y'])
     //    rotateText = sin(waterTime) * 90.0f;
     textml = glm::rotate(textml, rotateText, glm::vec3{0.0f, 0.0f, 1.0f});
-    //const float pi = 3.14159f;
-    //rotateText = 0.5f * pi;
-    //rotateText = pi;
-    //textml.rotate(Vec3{0.0f, 0.0f, 1.0f}, rotateText);
-    //glUniformMatrix4fv(glGetUniformLocation(fontShader.GetProgram(), "ml"), 1, GL_FALSE, glm::value_ptr(textml));
+    // const float pi = 3.14159f;
+    // rotateText = 0.5f * pi;
+    // rotateText = pi;
+    // textml.rotate(Vec3{0.0f, 0.0f, 1.0f}, rotateText);
+    // glUniformMatrix4fv(glGetUniformLocation(fontShader.GetProgram(), "ml"), 1, GL_FALSE,
+    // glm::value_ptr(textml));
     int off = 0.0f;
     Vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
     float ml[16];
-    auto * mlptr = glm::value_ptr(textml);
+    auto* mlptr = glm::value_ptr(textml);
     for (int i = 0; i < 16; ++i) {
         ml[i] = *(mlptr + i);
     }
@@ -154,28 +155,33 @@ void f(std::vector<FontVertex>& vec, int ctrId, const std::vector<ProvData>& pro
             tcLen = {AM::atlasInfo[fontSize][c].tcWidth, AM::atlasInfo[fontSize][c].tcHeight};
             off += rSize.x + 1;
 
-            FontVertex fv{.pos = Vec3{rPos.x, rPos.y, rPos.z}, .tc = Vec2{rLBTC.x, rLBTC.y}, .color = color, .tid = (int)fontSize, };
-            
+            FontVertex fv{
+                .pos = Vec3{rPos.x, rPos.y, rPos.z},
+                .tc = Vec2{rLBTC.x, rLBTC.y},
+                .color = color,
+                .tid = (int)fontSize,
+            };
+
             for (int i = 0; i < 16; ++i) {
                 fv.ml[i] = ml[i];
             }
-            //FontVertex fvv = fv;
+            // FontVertex fvv = fv;
             vec.push_back(fv);
 
             fv.pos.y += rSize.y;
             fv.tc.y += tcLen.y;
             vec.push_back(fv);
-            
+
             fv.pos.x += rSize.x;
             fv.tc.x += tcLen.x;
             vec.push_back(fv);
-            
+
             vec.push_back(fv);
-            
+
             fv.pos.y -= rSize.y;
             fv.tc.y -= tcLen.y;
             vec.push_back(fv);
-            
+
             fv.pos.x -= rSize.x;
             fv.tc.x -= tcLen.x;
             vec.push_back(fv);
@@ -330,8 +336,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     tid = 5.0f;
     color = {10.0f, 20.0f, 30.0f, 1.0f};
 
-
-        std::vector<FontVertex> fontVerts;
+    std::vector<FontVertex> fontVerts;
     GLuint fontCtrVao, fontCtrVbo;
     {
         for (std::size_t i = 0; i < ctrsData.size(); ++i) ctrProvs.push_back(std::vector<int>{});
@@ -371,13 +376,13 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
                               (const GLvoid*)(offsetof(FontVertex, FontVertex::ml)));
         glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                              (const GLvoid*)(offsetof(FontVertex, FontVertex::ml) + 4*4));
+                              (const GLvoid*)(offsetof(FontVertex, FontVertex::ml) + 4 * 4));
         glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                              (const GLvoid*)(offsetof(FontVertex, FontVertex::ml) + 8*4));
+                              (const GLvoid*)(offsetof(FontVertex, FontVertex::ml) + 8 * 4));
         glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                              (const GLvoid*)(offsetof(FontVertex, FontVertex::ml) + 12*4));
+                              (const GLvoid*)(offsetof(FontVertex, FontVertex::ml) + 12 * 4));
     }
-    
+
     MapBatch batch;
     batch.Init();
 
@@ -693,8 +698,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     }
     Log("mapTime: " << glfwGetTime() - mapCreateTime);
 
-    //FontBatch fontBatch;
-    //fontBatch.Init();
+    // FontBatch fontBatch;
+    // fontBatch.Init();
 
     glUseProgram(borderShader.GetProgram());
     glUniform1iv(glGetUniformLocation(borderShader.GetProgram(), "tex"), 32, texID);
@@ -704,6 +709,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     float tesLevel = 32.0f;
     glm::vec3 unitPos;
     float dt = 0.0f, waterTime = 0.0f;
+    float ctrNamesFade = 0.0f, ctrNamesFadeIn = 0.0f;
     float time = glfwGetTime();
     float rotateText;
     unsigned int clickedProviPhash;
@@ -1001,24 +1007,39 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             // Log("Opengl error: " << err << " " << (GLuint)fontTexID[i]);
         }
 
-        glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
-        // glDepthFunc(GL_LESS);
-
-        glUseProgram(fontShader.GetProgram());
-        glUniformMatrix4fv(glGetUniformLocation(fontShader.GetProgram(), "matrix"), 1, GL_FALSE,
-                           glm::value_ptr(matrix));
-        glUniform1iv(glGetUniformLocation(fontShader.GetProgram(), "tex"), 32, tex);
-        //fontBatch.Begin();
-        {  // chars
-        glBindVertexArray(fontCtrVao);
-        glDrawArrays(GL_TRIANGLES, 0, fontVerts.size());
+        if (camera.eye.z > 1000.0f) {
+            ctrNamesFade = 0.0f;
         }
-        //fontBatch.Flush();
+        else {
+            ctrNamesFadeIn = 0.0f;
+        }
+        Log(ctrNamesFadeIn << ", fade: " << ctrNamesFade);
+        if ((camera.eye.z > 1000.0f) || ctrNamesFade < 1.0f) {
+            glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
+
+            glUseProgram(fontShader.GetProgram());
+            glUniformMatrix4fv(glGetUniformLocation(fontShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                               glm::value_ptr(matrix));
+            glUniform1iv(glGetUniformLocation(fontShader.GetProgram(), "tex"), 32, tex);
+            glUniform1f(glGetUniformLocation(fontShader.GetProgram(), "fade"), ctrNamesFade);
+            glUniform1f(glGetUniformLocation(fontShader.GetProgram(), "fadein"), ctrNamesFadeIn);
+
+            {  // chars
+                glBindVertexArray(fontCtrVao);
+                glDrawArrays(GL_TRIANGLES, 0, fontVerts.size());
+            }
+        }
         float tt2 = glfwGetTime();
 
         window.Update();
         waterTime += dt;
         dt = glfwGetTime() - time;
+        ctrNamesFade += dt;
+        if (ctrNamesFade < 0.0f)
+            ctrNamesFade = 10.0f;
+        ctrNamesFadeIn -= dt;
+        if (ctrNamesFadeIn > 0.0f)
+            ctrNamesFadeIn = -10.0f;
         // Log(dt);
         time = glfwGetTime();
     }
