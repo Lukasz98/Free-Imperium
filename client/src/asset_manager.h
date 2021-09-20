@@ -27,11 +27,13 @@ struct AM
         PX16 = 0,
         PX32 = 1,
         PX64 = 2,
-        PX128 = 3
+        PX80 = 3,
+        PX128 = 4,
+        PX160 = 5
     };
 
-    static AtlasInfo atlasInfo[4][128];
-    static std::unique_ptr<Texture> atlasTexture[4];
+    static AtlasInfo atlasInfo[6][128];
+    static std::unique_ptr<Texture> atlasTexture[6];
     //static int maxRows, widthSum;
 
 
