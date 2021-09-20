@@ -24,8 +24,12 @@ void main()
         color = texture(tex[4], texCoord);
     else if (tid == 5.0f)
         color = texture(tex[5], texCoord);
-    //if (color.w > 0.0f) // == vec4(0.0, 0.0, 0.0, 1.0))
-      //color = col;
+    if (color.w > 0.0f) {
+      color.x = col.x;
+      color.y = col.y;
+      color.z = col.z;
+    }
+     
       
 }
 

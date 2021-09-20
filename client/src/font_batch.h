@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GL/glew.h>
+#include <glm/mat4x4.hpp>
 #include "vec.h"
 #include "log.h"
 
@@ -9,6 +10,8 @@ struct FontVertex {
     Vec2 tc;
     Vec4 color{1.0f, 0.0f, 0.0f, 1.0f};
     float tid;
+    float ml[16];
+    //glm::mat4 ml;
 };
 
 struct FontBatch {

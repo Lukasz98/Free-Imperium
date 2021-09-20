@@ -23,6 +23,175 @@ struct Line {
     int x, y;
 };
 
+
+void f(std::vector<FontVertex>& vec, int ctrId, const std::vector<ProvData>& provinces,
+       const std::vector<std::vector<int>>& ctrProvs, int mapWidth, int mapHeight, int scale, const unsigned char * h)
+{
+    int maxxid, minxid, maxyid, minyid;
+    glm::vec2 maxx{-1.0f, 0.0f}, minx{10000.0f, 0.0f};
+    glm::vec2 maxy{0.0f, -1.0f}, miny{0.0f, 10000.0f};
+    {
+        // float minx 10000.0f, maxx = -1.0f, miny = 10000.0f, maxy = -1.0f;
+        for (int i = 0; i < ctrProvs[ctrId].size(); ++i) {
+            float x = provinces[ctrProvs[ctrId][i]].x;
+            float y = provinces[ctrProvs[ctrId][i]].y;
+            if (x > maxx.x) {
+                maxx = {x, y};
+                maxxid = provinces[ctrProvs[ctrId][i]].id;
+            }
+            if (x < minx.x) {
+                minx = {x, y};
+                minxid = provinces[ctrProvs[ctrId][i]].id;
+            }
+            if (y > maxy.y) {
+                maxy = {x, y};
+                maxyid = provinces[ctrProvs[ctrId][i]].id;
+            }
+            if (y < miny.y) {
+                miny = {x, y};
+                minyid = provinces[ctrProvs[ctrId][i]].id;
+            }
+        }
+    }
+
+    float distX = (maxx.x - minx.x);
+    float distY = (maxy.y - miny.y);
+
+    float dist = distX;
+    if (distX <= distY) {
+        maxx.x = maxy.x;
+        maxx.y = maxy.y;
+        minx.x = miny.x;
+        minx.y = miny.y;
+        dist = distY;
+    }
+
+    glm::mat4 textml{1.0f};
+    //Mat4 textml;
+    glm::vec2 center{(maxx.x + minx.x) * 0.5f, (maxx.y + minx.y) * 0.5f};
+    textml = glm::translate(textml, glm::vec3{center.x * scale, center.y * scale, 0.0f});
+    float rotateText = atan((maxx.y - minx.y) / abs(maxx.x - minx.x));  // * 180.0f * 3.1456f;
+    if (minx.x - maxx.x >= 0.0f) {
+        rotateText *= -1.0f;
+    }
+
+    std::string text = "ctr " + std::to_string(ctrId);
+    AM::FontSize fontSize = AM::FontSize::PX16;
+
+    int len = 0, hei = 0;
+    while (len < dist * scale * 0.75f && (fontSize) <= AM::FontSize::PX160) {
+        len = 0;
+        hei = 0;
+        for (auto c : text) {
+            glm::vec3 rPos;
+            glm::vec2 rSize, rLBTC, tcLen;
+            if (AM::atlasInfo[fontSize][c].set) {
+                len += AM::atlasInfo[fontSize][c].width;
+                hei += AM::atlasInfo[fontSize][c].height;
+            }
+            else {
+                len += 10;
+                hei += 10;
+            }
+        }
+        fontSize = (AM::FontSize)(fontSize + 1);
+    }
+    //Log("fontSize=" << (int)fontSize);
+    if (fontSize > AM::FontSize::PX160)
+        fontSize = AM::FontSize::PX160;
+    if (len > dist * scale * 0.75f && fontSize > 0)
+        fontSize = (AM::FontSize)(fontSize - 1);
+    len = 0;
+    hei = 0;
+    for (auto c : text) {
+        glm::vec3 rPos;
+        glm::vec2 rSize, rLBTC, tcLen;
+        if (AM::atlasInfo[fontSize][c].set) {
+            len += AM::atlasInfo[fontSize][c].width;
+            hei += AM::atlasInfo[fontSize][c].height;
+        }
+        else {
+            len += 10;
+            hei += 10;
+        }
+    }
+    //Log("fontSize=" << (int)fontSize);
+    hei = hei / text.size();
+    int cx = -len / 2, cy = -hei / 2;
+    // textml = glm::rotate(textml, abs(sin(waterTime)) * 90.0f, glm::vec3{0.0f, 1.0f, 0.0f});
+    int cz = 80.0f;
+    {
+        int ind = (cx + maxx.x) * 3 + (cy + maxx.y) * mapWidth * 3;
+        assert(ind >= 0 && ind < mapWidth * mapHeight * 3);
+        cz = h[ind];
+        // Log("cz="<<cz);
+    }
+    //textml.translate(Vec3{center.x * scale, center.y * scale, 0.0f});
+
+    // if (window.keys['Y'])
+    //    rotateText = sin(waterTime) * 90.0f;
+    textml = glm::rotate(textml, rotateText, glm::vec3{0.0f, 0.0f, 1.0f});
+    //const float pi = 3.14159f;
+    //rotateText = 0.5f * pi;
+    //rotateText = pi;
+    //textml.rotate(Vec3{0.0f, 0.0f, 1.0f}, rotateText);
+    //glUniformMatrix4fv(glGetUniformLocation(fontShader.GetProgram(), "ml"), 1, GL_FALSE, glm::value_ptr(textml));
+    int off = 0.0f;
+    Vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
+    float ml[16];
+    auto * mlptr = glm::value_ptr(textml);
+    for (int i = 0; i < 16; ++i) {
+        ml[i] = *(mlptr + i);
+    }
+    for (auto c : text) {
+        glm::vec3 rPos;
+        glm::vec2 rSize, rLBTC, tcLen;
+        if (AM::atlasInfo[fontSize][c].set) {
+            rPos = {cx + off, cy + AM::atlasInfo[fontSize][c].yPos, cz};
+            // rPos = textml * glm::vec4{rPos, 1.0f};
+            rSize = {(float)AM::atlasInfo[fontSize][c].width, (float)AM::atlasInfo[fontSize][c].height};
+            rLBTC = {AM::atlasInfo[fontSize][c].tcX, AM::atlasInfo[fontSize][c].tcY};
+            tcLen = {AM::atlasInfo[fontSize][c].tcWidth, AM::atlasInfo[fontSize][c].tcHeight};
+            off += rSize.x + 1;
+
+            FontVertex fv{.pos = Vec3{rPos.x, rPos.y, rPos.z}, .tc = Vec2{rLBTC.x, rLBTC.y}, .color = color, .tid = (int)fontSize, };
+            
+            for (int i = 0; i < 16; ++i) {
+                fv.ml[i] = ml[i];
+            }
+            //FontVertex fvv = fv;
+            vec.push_back(fv);
+
+            fv.pos.y += rSize.y;
+            fv.tc.y += tcLen.y;
+            vec.push_back(fv);
+            
+            fv.pos.x += rSize.x;
+            fv.tc.x += tcLen.x;
+            vec.push_back(fv);
+            
+            vec.push_back(fv);
+            
+            fv.pos.y -= rSize.y;
+            fv.tc.y -= tcLen.y;
+            vec.push_back(fv);
+            
+            fv.pos.x -= rSize.x;
+            fv.tc.x -= tcLen.x;
+            vec.push_back(fv);
+        }
+        else {
+            rPos = {cx + off, cy, cz};
+            rSize = {10.0, 10.0};
+            rLBTC = {0, 0};
+            tcLen = {0, 0};
+            off += rSize.x;
+        }
+        //  Log(rPos.x << " " << rPos.y << " "<<rPos.z);
+    }
+    //}
+}
+
 void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
 {
     GLuint err = glGetError();
@@ -78,14 +247,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     loadProvData(provinces, colorToId);
     loadCountriesData(ctrsData);
     ctrProvs.reserve(ctrsData.size());
-    {
-        for (std::size_t i = 0; i < ctrsData.size(); ++i) ctrProvs.push_back(std::vector<int>{});
-        for (auto& pd : provinces) {
-            if (pd.ctrId == -1)
-                continue;
-            ctrProvs[pd.ctrId].push_back(pd.id);
-        }
-    }
+
     // saveBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces, nodes);
     // saveSeaBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces, nodes, colorToId);
     // createSaveProvPoints(provTexture.GetPixels(), mapWidth, mapHeight, provinces, colorToId);
@@ -168,6 +330,54 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     tid = 5.0f;
     color = {10.0f, 20.0f, 30.0f, 1.0f};
 
+
+        std::vector<FontVertex> fontVerts;
+    GLuint fontCtrVao, fontCtrVbo;
+    {
+        for (std::size_t i = 0; i < ctrsData.size(); ++i) ctrProvs.push_back(std::vector<int>{});
+        for (auto& pd : provinces) {
+            if (pd.ctrId == -1)
+                continue;
+            ctrProvs[pd.ctrId].push_back(pd.id);
+        }
+        for (std::size_t i = 0; i < ctrsData.size(); ++i) {
+            f(fontVerts, ctrsData[i].id, provinces, ctrProvs, mapWidth, mapHeight, scale, h);
+        }
+        Log("fontVerts.size = " << fontVerts.size());
+        glCreateVertexArrays(1, &fontCtrVao);
+        glBindVertexArray(fontCtrVao);
+        glCreateBuffers(1, &fontCtrVbo);
+
+        glBindBuffer(GL_ARRAY_BUFFER, fontCtrVbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(FontVertex) * fontVerts.size(), fontVerts.data(), GL_STATIC_DRAW);
+        glEnableVertexArrayAttrib(fontCtrVao, 0);
+        glEnableVertexArrayAttrib(fontCtrVao, 1);
+        glEnableVertexArrayAttrib(fontCtrVao, 2);
+        glEnableVertexArrayAttrib(fontCtrVao, 3);
+        glEnableVertexArrayAttrib(fontCtrVao, 4);
+        glEnableVertexArrayAttrib(fontCtrVao, 5);
+        glEnableVertexArrayAttrib(fontCtrVao, 6);
+        glEnableVertexArrayAttrib(fontCtrVao, 7);
+        GLuint err = glGetError();
+        if (err)
+            Log("Opengl error: " << err);
+        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex), NULL);  //(const GLvoid*)0);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                              (const GLvoid*)(offsetof(FontVertex, FontVertex::tc)));
+        glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                              (const GLvoid*)(offsetof(FontVertex, FontVertex::color)));
+        glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                              (const GLvoid*)(offsetof(FontVertex, FontVertex::tid)));
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                              (const GLvoid*)(offsetof(FontVertex, FontVertex::ml)));
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                              (const GLvoid*)(offsetof(FontVertex, FontVertex::ml) + 4*4));
+        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                              (const GLvoid*)(offsetof(FontVertex, FontVertex::ml) + 8*4));
+        glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                              (const GLvoid*)(offsetof(FontVertex, FontVertex::ml) + 12*4));
+    }
+    
     MapBatch batch;
     batch.Init();
 
@@ -483,8 +693,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     }
     Log("mapTime: " << glfwGetTime() - mapCreateTime);
 
-    FontBatch fontBatch;
-    fontBatch.Init();
+    //FontBatch fontBatch;
+    //fontBatch.Init();
 
     glUseProgram(borderShader.GetProgram());
     glUniform1iv(glGetUniformLocation(borderShader.GetProgram(), "tex"), 32, texID);
@@ -798,155 +1008,12 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         glUniformMatrix4fv(glGetUniformLocation(fontShader.GetProgram(), "matrix"), 1, GL_FALSE,
                            glm::value_ptr(matrix));
         glUniform1iv(glGetUniformLocation(fontShader.GetProgram(), "tex"), 32, tex);
-        fontBatch.Begin();
+        //fontBatch.Begin();
         {  // chars
-            // unsigned int phash = getHash(119, 212, 150);
-            unsigned int phash = clickedProviPhash;
-            int pid;
-            if ((colorToId.find(phash) != colorToId.end()) &&
-                ((pid = colorToId[phash]) && provinces[pid].ctrId != -1)) {
-                int maxxid, minxid, maxyid, minyid;
-                glm::vec2 maxx{-1.0f, 0.0f}, minx{10000.0f, 0.0f};
-                glm::vec2 maxy{0.0f, -1.0f}, miny{0.0f, 10000.0f};
-                int ctrId = provinces[pid].ctrId;
-                {
-                    // float minx 10000.0f, maxx = -1.0f, miny = 10000.0f, maxy = -1.0f;
-                    for (int i = 0; i < ctrProvs[ctrId].size(); ++i) {
-                        float x = provinces[ctrProvs[ctrId][i]].x;
-                        float y = provinces[ctrProvs[ctrId][i]].y;
-                        if (x > maxx.x) {
-                            maxx = {x, y};
-                            maxxid = provinces[ctrProvs[ctrId][i]].id;
-                        }
-                        if (x < minx.x) {
-                            minx = {x, y};
-                            minxid = provinces[ctrProvs[ctrId][i]].id;
-                        }
-                        if (y > maxy.y) {
-                            maxy = {x, y};
-                            maxyid = provinces[ctrProvs[ctrId][i]].id;
-                        }
-                        if (y < miny.y) {
-                            miny = {x, y};
-                            minyid = provinces[ctrProvs[ctrId][i]].id;
-                        }
-                    }
-                }
-
-                // float distX = pow(maxx.x - minx.x, 2) + pow(maxx.y - minx.y, 2);
-                // float distY = pow(maxy.x - miny.x, 2) + pow(maxy.y - miny.y, 2);
-                float distX = (maxx.x - minx.x);
-                float distY = (maxy.y - miny.y);
-
-                float dist = distX;
-                if (distX <= distY) {
-                    maxx.x = maxy.x;
-                    maxx.y = maxy.y;
-                    minx.x = miny.x;
-                    minx.y = miny.y;
-                    dist = distY;
-                }
-
-                glm::mat4 textml{1.0f};
-                glm::vec2 center{(maxx.x + minx.x) * 0.5f, (maxx.y + minx.y) * 0.5f};
-                textml = glm::translate(textml, glm::vec3{center.x * scale, center.y * scale, 0.0f});
-                rotateText = atan((maxx.y - minx.y) / abs(maxx.x - minx.x));  // * 180.0f * 3.1456f;
-                if (minx.x - maxx.x >= 0.0f) {
-                    rotateText *= -1.0f;
-                }
-
-                std::string text = "ctr " + std::to_string(ctrId);
-                float px = provinces[pid].x, py = provinces[pid].y;
-                AM::FontSize fontSize = AM::FontSize::PX16;
-
-                int len = 0, hei = 0;
-                while (len < dist * scale && (fontSize) <= AM::FontSize::PX160) {
-                    len = 0; hei = 0;
-                    for (auto c : text) {
-                        glm::vec3 rPos;
-                        glm::vec2 rSize, rLBTC, tcLen;
-                        if (AM::atlasInfo[fontSize][c].set) {
-                            len += AM::atlasInfo[fontSize][c].width;
-                            hei += AM::atlasInfo[fontSize][c].height;
-                        }
-                        else {
-                            len += 10;
-                            hei += 10;
-                        }
-                    }
-                    fontSize = (AM::FontSize)(fontSize + 1);
-                }
-               Log("fontSize="<<(int)fontSize);
-                if (fontSize > AM::FontSize::PX160)
-                    fontSize = AM::FontSize::PX160;
-                if (len > dist * scale && fontSize > 0)
-                    fontSize = (AM::FontSize)(fontSize - 1);
-                    len = 0; hei = 0;
-                    for (auto c : text) {
-                        glm::vec3 rPos;
-                        glm::vec2 rSize, rLBTC, tcLen;
-                        if (AM::atlasInfo[fontSize][c].set) {
-                            len += AM::atlasInfo[fontSize][c].width;
-                            hei += AM::atlasInfo[fontSize][c].height;
-                        }
-                        else {
-                            len += 10;
-                            hei += 10;
-                        }
-                    }
-               Log("fontSize="<<(int)fontSize);
-                hei = hei / text.size();
-                // int cx = px * scale, cy = py * scale, cz = 300.0f;
-                int cx = -len / 2, cy = -hei / 2;
-                // textml = glm::rotate(textml, abs(sin(waterTime)) * 90.0f, glm::vec3{0.0f, 1.0f, 0.0f});
-                int cz = 80.0f;
-                {
-                    int ind = (cx + maxx.x) * 3 + (cy + maxx.y) * mapWidth * 3;
-                    assert(ind >= 0 && ind < mapWidth * mapHeight * 3);
-                    cz = h[ind];
-                    // Log("cz="<<cz);
-                }
-
-                // if (window.keys['Y'])
-                //    rotateText = sin(waterTime) * 90.0f;
-                textml = glm::rotate(textml, rotateText, glm::vec3{0.0f, 0.0f, 1.0f});
-                glUniformMatrix4fv(glGetUniformLocation(fontShader.GetProgram(), "ml"), 1, GL_FALSE,
-                                   glm::value_ptr(textml));
-                int off = 0.0f;
-                for (auto c : text) {
-                    glm::vec3 rPos;
-                    glm::vec2 rSize, rLBTC, tcLen;
-                    if (AM::atlasInfo[fontSize][c].set) {
-                        rPos = {cx + off, cy + AM::atlasInfo[fontSize][c].yPos, cz};
-                        // rPos = textml * glm::vec4{rPos, 1.0f};
-                        rSize = {(float)AM::atlasInfo[fontSize][c].width,
-                                 (float)AM::atlasInfo[fontSize][c].height};
-                        rLBTC = {AM::atlasInfo[fontSize][c].tcX, AM::atlasInfo[fontSize][c].tcY};
-                        tcLen = {AM::atlasInfo[fontSize][c].tcWidth, AM::atlasInfo[fontSize][c].tcHeight};
-                        off += rSize.x + 1;
-
-                        fontBatch.Push(rPos.x, rPos.y, rPos.z, rSize.x, rSize.y, rLBTC.x, rLBTC.y, tcLen.x,
-                                       tcLen.y, (float)fontSize);  //(float)AM::atlasTexture[fontSize]->GetId());
-                        // void push(float x, float y, float z, float w, float h, float tcx, float tcy, float
-                        // tcxlen, float tcylen); text.rects.push_back(std::make_unique<Rectangle>(rPos, rSize,
-                        // rLBTC, tcLen)); if (content == "Quit game") { rSize.s += 0.1f;
-                        //  Log("tu:"<<text.rects.back()->GetPosition().x <<", "<<text.rects.back()->GetSize().x
-                        //         << ":: "<<text.rects.back()->GetPosition().x + text.rects.back()->GetSize().x );
-                        // Log("tu2"<<":"<<AM::atlasInfo[this->text->fontSize][c].width);
-                        //}
-                    }
-                    else {
-                        rPos = {cx + off, cy, cz};
-                        rSize = {10.0, 10.0};
-                        rLBTC = {0, 0};
-                        tcLen = {0, 0};
-                        off += rSize.x;
-                    }
-                    //  Log(rPos.x << " " << rPos.y << " "<<rPos.z);
-                }
-            }
+        glBindVertexArray(fontCtrVao);
+        glDrawArrays(GL_TRIANGLES, 0, fontVerts.size());
         }
-        fontBatch.Flush();
+        //fontBatch.Flush();
         float tt2 = glfwGetTime();
 
         window.Update();
