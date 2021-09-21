@@ -529,10 +529,12 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     }
 
     struct PolyVert {
-        float x, y, z;
+        glm::vec3 pos;
+        //float x, y, z;
         // float r = 1.0f, g = 0, b = 0, a = 1.0;
         glm::vec3 col{1.0f, 0.0f, 0.0f};
         float tx;
+        glm::vec3 normal;
     };
     // int chunk_x_count = 4, chunk_y_count = 2;
     // float chunk_w = (float)(mapWidth * scale) / chunk_x_count;
@@ -590,7 +592,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             if (y1 >= mapHeight)
                 index = x1 * 3 + (mapHeight - 1) * mapWidth * 3;
             z = h[index];
-            initMap.pverts.push_back(PolyVert{.x = x1 * scale, .y = y1 * scale, .z = z, .col = col, .tx = tx});
+            initMap.pverts.push_back(PolyVert{.pos = glm::vec3{x1 * scale, y1 * scale, z}, .col = col, .tx = tx});
+            //initMap.pverts.push_back(PolyVert{.x = x1 * scale, .y = y1 * scale, .z = z, .col = col, .tx = tx});
             // detailVerts[chunk_id].push_back(
             //    PolyVert{.x = x1 * scale, .y = y1 * scale, .z = z, .col = col, .tx = tx});
 
@@ -598,7 +601,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             if (y2 >= mapHeight)
                 index = x2 * 3 + (mapHeight - 1) * mapWidth * 3;
             z = h[index];
-            initMap.pverts.push_back(PolyVert{.x = x2 * scale, .y = y2 * scale, .z = z, .col = col, .tx = tx});
+            initMap.pverts.push_back(PolyVert{.pos = glm::vec3{x2 * scale, y2 * scale, z}, .col = col, .tx = tx});
+            //initMap.pverts.push_back(PolyVert{.x = x2 * scale, .y = y2 * scale, .z = z, .col = col, .tx = tx});
             // detailVerts[chunk_id].push_back(
             //    PolyVert{.x = x2 * scale, .y = y2 * scale, .z = z, .col = col, .tx = tx});
 
@@ -606,10 +610,23 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             if (y3 >= mapHeight)
                 index = x3 * 3 + (mapHeight - 1) * mapWidth * 3;
             z = h[index];
-            initMap.pverts.push_back(PolyVert{.x = x3 * scale, .y = y3 * scale, .z = z, .col = col, .tx = tx});
+            initMap.pverts.push_back(PolyVert{.pos = glm::vec3{x3 * scale, y3 * scale, z}, .col = col, .tx = tx});
+            //initMap.pverts.push_back(PolyVert{.x = x3 * scale, .y = y3 * scale, .z = z, .col = col, .tx = tx});
             // detailVerts[chunk_id].push_back(
             //    PolyVert{.x = x3 * scale, .y = y3 * scale, .z = z, .col = col, .tx = tx});
 
+            //glm::vec3 v = initMap.pverts[initMap.pverts.size() - 2].pos - initMap.pverts[initMap.pverts.size() - 3].pos;
+            //glm::vec3 w = initMap.pverts[initMap.pverts.size() - 1].pos - initMap.pverts[initMap.pverts.size() - 3].pos;
+            glm::vec3 w = initMap.pverts[initMap.pverts.size() - 2].pos - initMap.pverts[initMap.pverts.size() - 3].pos;
+            glm::vec3 v = initMap.pverts[initMap.pverts.size() - 1].pos - initMap.pverts[initMap.pverts.size() - 3].pos;
+            glm::vec3 normal;
+            normal.x = (v.y * w.z) - (v.z * w.y);
+            normal.y = (v.z * w.x) - (v.x * w.z);
+            normal.z = (v.x * w.y) - (v.y * w.x);
+            initMap.pverts[initMap.pverts.size() - 1].normal = normal;
+            initMap.pverts[initMap.pverts.size() - 2].normal = normal;
+            initMap.pverts[initMap.pverts.size() - 3].normal = normal;
+            
             vertCount += 3;
             // if (pverts.size() > 1500) break;
         }
@@ -624,6 +641,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         glEnableVertexArrayAttrib(initMap.polyVao, 0);
         glEnableVertexArrayAttrib(initMap.polyVao, 1);
         glEnableVertexArrayAttrib(initMap.polyVao, 2);
+        glEnableVertexArrayAttrib(initMap.polyVao, 3);
         GLuint err = glGetError();
         if (err)
             Log("Opengl error: " << err);
@@ -632,6 +650,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                               (const GLvoid*)(offsetof(PolyVert, PolyVert::col)));
         glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(PolyVert),
                               (const GLvoid*)(offsetof(PolyVert, PolyVert::tx)));
+        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(PolyVert),
+                              (const GLvoid*)(offsetof(PolyVert, PolyVert::normal)));
         Log(polyCount * sizeof(PolyVert));
     }
     //    int chunk_count = chunk_x_count * chunk_y_count;
@@ -659,8 +679,16 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     //                              (const GLvoid*)(offsetof(PolyVert, PolyVert::tx)));
     //    }
     //}
+   // struct PolyVert2 {
+   //     glm::vec3 pos;
+   //     //float x, y, z;
+   //     // float r = 1.0f, g = 0, b = 0, a = 1.0;
+   //     glm::vec3 col{1.0f, 0.0f, 0.0f};
+   //     float tx;
+   // };
     float mapCreateTime = glfwGetTime();
     {  // copy to country map
+        //countryMap.pverts = std::vector<PolyVert2>{initMap.pverts};
         countryMap.pverts = std::vector<PolyVert>{initMap.pverts};
         for (auto& prov : provinces) {
             if (prov.ctrId <= -1)
@@ -687,6 +715,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         glEnableVertexArrayAttrib(countryMap.polyVao, 0);
         glEnableVertexArrayAttrib(countryMap.polyVao, 1);
         glEnableVertexArrayAttrib(countryMap.polyVao, 2);
+        glEnableVertexArrayAttrib(countryMap.polyVao, 3);
         GLuint err = glGetError();
         if (err)
             Log("Opengl error: " << err);
@@ -695,6 +724,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                               (const GLvoid*)(offsetof(PolyVert, PolyVert::col)));
         glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(PolyVert),
                               (const GLvoid*)(offsetof(PolyVert, PolyVert::tx)));
+        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(PolyVert),
+                              (const GLvoid*)(offsetof(PolyVert, PolyVert::normal)));
     }
     Log("mapTime: " << glfwGetTime() - mapCreateTime);
 
@@ -890,6 +921,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             glUseProgram(waterShader.GetProgram());
             glUniform1f(glGetUniformLocation(waterShader.GetProgram(), "level"), 32);
             glUniform1iv(glGetUniformLocation(waterShader.GetProgram(), "tex"), 32, tex);
+            glUniform3fv(glGetUniformLocation(waterShader.GetProgram(), "eyeLight"), 1, glm::value_ptr(camera.eye));
             glUniformMatrix4fv(glGetUniformLocation(waterShader.GetProgram(), "pr_matrix"), 1, GL_FALSE,
                                glm::value_ptr(matrix));
 
@@ -922,8 +954,9 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                                glm::value_ptr(matrix));
             glUniform1iv(glGetUniformLocation(polyShader.GetProgram(), "tex"), 32, tex);
             glUniform3fv(glGetUniformLocation(polyShader.GetProgram(), "provColor"), 1, glm::value_ptr(provColor));
+            glUniform3fv(glGetUniformLocation(polyShader.GetProgram(), "eyeLight"), 1, glm::value_ptr(camera.eye));
             glUniform1f(glGetUniformLocation(polyShader.GetProgram(), "provId"), markedProvId);
-
+//Log("eye.z="<<camera.eye.z);
             if (window.keys['P']) {
                 glBindVertexArray(initMap.polyVao);
                 glBindBuffer(GL_ARRAY_BUFFER, initMap.polyVbo);
@@ -1013,7 +1046,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         else {
             ctrNamesFadeIn = 0.0f;
         }
-        Log(ctrNamesFadeIn << ", fade: " << ctrNamesFade);
+        //Log(ctrNamesFadeIn << ", fade: " << ctrNamesFade);
         if ((camera.eye.z > 1000.0f) || ctrNamesFade < 1.0f) {
             glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
 
@@ -1040,7 +1073,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         ctrNamesFadeIn -= dt;
         if (ctrNamesFadeIn > 0.0f)
             ctrNamesFadeIn = -10.0f;
-        // Log(dt);
+         //Log(dt);
         time = glfwGetTime();
     }
 }
