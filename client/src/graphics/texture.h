@@ -40,6 +40,7 @@ public:
     unsigned char * GetPixToEdit() { return pixelsOrigin; }
 
     GLuint GetId() { return texture; }
+    const GLuint & GetIdR() { return texture; }
     virtual const unsigned char * GetPixels() { return pixelsOrigin; }
     //virtual const unsigned char * GetPixels() { return pixelsOrigin; }
     const unsigned char * GetOriginPixels() { return pixelsOrigin; }

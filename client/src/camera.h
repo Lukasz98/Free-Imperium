@@ -13,6 +13,7 @@ public:
     glm::mat4 projection;
     glm::vec3 eye, center, up;
     glm::vec3 look;
+    const glm::vec3 look_def;
     float width, height;
     float speed;
     float baseSpeed;
@@ -40,7 +41,8 @@ public:
     glm::mat4 GetMat();
 
     void Update(double xMouse, double yMouse, const unsigned char * terrain);
-    
+    void Reset();
+
     void Scroll(int z);
 
     bool IsPointInFrustum(glm::vec3 p);

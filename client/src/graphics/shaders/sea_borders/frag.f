@@ -3,7 +3,6 @@
 in vec4 col;
 
 //layout (binding=0) uniform2D texId;
-uniform sampler2D tex[32];
 
 out vec4 color;
 

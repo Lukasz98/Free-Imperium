@@ -161,6 +161,11 @@ model = glm::scale(model, glm::vec3{20.0, yScale, 10.0});
 glUseProgram(AM::am.shader->GetProgram());
 glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
 glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE, glm::value_ptr(model));
+
+            glUniform1i(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"),
+                          AM::am.modelTexture->GetId());
+
+            glActiveTexture(GL_TEXTURE0);
 AM::am.modelTexture->Bind();
 
 //AM::am.model->DrawRect(model);

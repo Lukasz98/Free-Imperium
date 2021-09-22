@@ -5,7 +5,6 @@ layout (location = 0) in vec3 Pos;
 layout (location = 1) in vec2 Tc;
 
 uniform mat4 matrix;
-uniform sampler2D tex[32];
 
 out vec2 tc;
 

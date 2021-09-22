@@ -2,6 +2,7 @@
 
 Shader::Shader(std::string vertS, std::string fragS, std::string tesSter, std::string tesW, std::string geomstr)
 {
+    Log("Shader compiling: " << vertS);
 	bool tes = (tesSter.size() != 0 && tesW.size() != 0);
 	program = glCreateProgram();
 	GLuint vertex = glCreateShader(GL_VERTEX_SHADER);

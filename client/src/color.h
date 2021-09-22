@@ -1,6 +1,32 @@
 #pragma once
 #include <functional>
 
+struct Color3
+{
+    unsigned char r, g, b;
+
+    bool operator==(const Color3 & p) const
+    {
+        if (r == p.r && g == p.g && b == p.b)
+            return true;
+        return false;
+    }
+
+    bool operator!=(const Color3 & p) const
+    {
+        if (r == p.r && g == p.g && b == p.b)
+            return false;
+        return true;
+    }
+
+    void operator=(const Color3 & c)
+    {
+        r = c.r;
+        g = c.g;
+        b = c.b;
+    }
+};
+
 struct Color
 {
     unsigned char r, g, b, a = 255;

@@ -11,5 +11,8 @@ out vec4 color;
 
 void main()
 {
-    color = texture(tex[7], texCoord);
+    color = texture(tex[10], texCoord);
+    //color.r =1.0f;
+    //color.g =.5f;
+    //color.r =0.5f;
 }

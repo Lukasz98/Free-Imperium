@@ -1,6 +1,5 @@
 #version 450 core
 
-uniform sampler2D tex[32];
 uniform vec3 eyeLight;
 
 out vec4 color;
@@ -16,8 +15,9 @@ fs_in;
 uniform float waterTime;
 void main()
 {
-    color = vec4(145.0 / 255.0, 174.0 / 255.0, 183.0 / 255.0, abs(sin(waterTime)) + 0.2);  // 1.0);
-
+    //color = vec4(145.0 / 255.0, 174.0 / 255.0, 183.0 / 255.0, abs(sin(waterTime)) + 0.2);  // 1.0);
+    color = vec4(145.0 / 255.0, 174.0 / 255.0, 183.0 / 255.0, 1.0);
+    //color = mix(vec4(0.5f, 0.5f, 0.5f, 1.0f), color, (sin(waterTime)) + 0.8);  
     vec3 normal = vec3(0.0f, 0.0f, 1.0f);
 
     vec3 lightPos = eyeLight;
@@ -38,5 +38,5 @@ void main()
     float specular = specAmount * specularLight;
 
     color = color * lightColor * (diffuse + ambient + specular);
-    color.w = 1.0f;
+    //color.w = 1.0f;
 }
