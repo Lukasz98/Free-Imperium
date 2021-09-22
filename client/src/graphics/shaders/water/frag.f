@@ -12,7 +12,8 @@ in TES_OUT
     vec4 ccolor;
 }
 fs_in;
-uniform float waterTime;
+//uniform float waterTime;
+
 void main()
 {
     //color = vec4(145.0 / 255.0, 174.0 / 255.0, 183.0 / 255.0, abs(sin(waterTime)) + 0.2);  // 1.0);

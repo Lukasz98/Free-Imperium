@@ -6,6 +6,9 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+#include "graphics/map_texture.h"
+#include "graphics/shader.h"
+#include "graphics/texture.h"
 #include "color.h"
 #include "vec.h"
 
@@ -68,13 +71,42 @@ struct Water {
     Water(int mapWidth, int mapHeight, int scale);
 };
 
+struct MapTextures {
+    MapTexture country, province;
+};
+
 struct Map2 {
+    const float MAPID_PROV_COLOR = 20.0f;
+    const float MAPID_COUNTRY = 21.0f;
+    
     LandBorders landBorders;
     SeaBorders seaBorders;
     PolyMap polyMap;
     SeaProvColor seaProvColor;
     Water water;
 
+    //
+    Shader borderShader;
+    Shader seaBorderShader;
+    Shader waterShader;
+    Shader landShader;
+    Shader waterColorShader;
+    //
+
+    GLint tex[32];
+    GLuint texID[32];
+    MapTextures mapTextures;
+    Texture provTexture;
+    Texture grassT;
+
     Map2(const unsigned char* hpix, int mapWidth, int mapHeight, const std::vector<Color3>& provsCols, int scale);
+
+    void DrawForColorPick(glm::mat4 proj, float provCount);
+    void DrawWater(glm::mat4 proj, glm::vec3 eye);
+    void DrawLand(glm::mat4 proj, glm::vec3 eye, float provId, float provCount, int MAPID);
+    void DrawBorders(glm::mat4 proj);
+
+    void ReloadShaders();
+    void ActivateTextures();
 };
 

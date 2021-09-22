@@ -204,15 +204,6 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     GLuint err = glGetError();
     if (err)
         Log("Opengl error: " << err);
-    Shader borderShader2{"src/graphics/shaders/borders2/vert.v", "src/graphics/shaders/borders2/frag.f", "", ""};
-    Shader seaBorderShader{"src/graphics/shaders/sea_borders/vert.v", "src/graphics/shaders/sea_borders/frag.f",
-                           "", "", "src/graphics/shaders/sea_borders/geom.g"};
-    Shader waterShader("src/graphics/shaders/water/vert.v", "src/graphics/shaders/water/frag.f",
-                       "src/graphics/shaders/water/tes_ster.ts", "src/graphics/shaders/water/tes_w.tw");
-    Shader polyShader{"src/graphics/shaders/poly/vert.v", "src/graphics/shaders/poly/frag.f", "", ""};
-    Shader polyProvShader{"src/graphics/shaders/polyProv/vert.v", "src/graphics/shaders/polyProv/frag.f", "", ""};
-    Shader waterColorShader{"src/graphics/shaders/water_color/vert.v", "src/graphics/shaders/water_color/frag.f",
-                            "", ""};
     Shader fontShader{"src/graphics/shaders/fonts.vert", "src/graphics/shaders/fonts.frag", "", ""};
     Camera camera{window.GetSize()};
     glPatchParameteri(GL_PATCH_VERTICES, 3);
@@ -225,11 +216,9 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     Texture terrainTexture{"src/img/terrain_map.png", mapWidth, mapHeight};
     Texture waterMap{"src/img/Blank_map.png", mapWidth, mapHeight};
     Texture heightMap{"src/img/Heightmap.png", mapWidth, mapHeight};
-    Texture provTexture{"src/img/Provinces_org.png", mapWidth, mapHeight};
-    Texture grassT{"../shared/grass1.png", 64, 64, GL_REPEAT};
-    Texture stoneT{"../shared/smoothstone.png", 64, 64, GL_REPEAT};
-    Texture waterT{"../shared/water1.png", 64, 64, GL_REPEAT};
-    Texture sandT{"src/img/Sand_1.png", 32, 32, GL_REPEAT};
+    // Texture stoneT{"../shared/smoothstone.png", 64, 64, GL_REPEAT};
+    // Texture waterT{"../shared/water1.png", 64, 64, GL_REPEAT};
+    // Texture sandT{"src/img/Sand_1.png", 32, 32, GL_REPEAT};
     Texture ctrsText{"src/img/countries_map.png", mapWidth, mapHeight};
 
     GLint tex[32];
@@ -256,8 +245,6 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     err = glGetError();
     if (err)
         Log("Opengl error: " << err);
-    //int texID[32];
-    //for (int i = 0; i < 32; i++) texID[i] = i;
     err = glGetError();
     if (err)
         Log("Opengl error: " << err);
@@ -267,11 +254,6 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         fontTexID[i] = AM::atlasTexture[i]->GetId();
     }
 
-    glUseProgram(waterShader.GetProgram());
-    glUniform1f(glGetUniformLocation(waterShader.GetProgram(), "level"), 32);
-    // glUniform1iv(glGetUniformLocation(waterShader.GetProgram(), "tex"), 32, tex);
-
-    const unsigned char* pix = provTexture.GetPixels();
     const unsigned char* h = heightMap.GetPixels();
 
     std::vector<FontVertex> fontVerts;
@@ -330,56 +312,31 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     for (auto& p : provinces) provsCols.push_back(Color3{p.r, p.g, p.b});
 
     Map2 map2{h, mapWidth, mapHeight, provsCols, scale};
-
-    struct MapTextures {
-        MapTexture country, province;
-    } mapTextures;
-
+    map2.ReloadShaders();
     {
-        mapTextures.country.pix = new unsigned char[provinces.size() * 3];
-        mapTextures.province.pix = new unsigned char[provinces.size() * 3];
+        map2.mapTextures.country.pix = new unsigned char[provinces.size() * 3];
+        map2.mapTextures.province.pix = new unsigned char[provinces.size() * 3];
 
         for (std::size_t i = 0; i < provinces.size(); ++i) {
-            mapTextures.province.pix[i * 3 + 0] = provsCols[i].r;
-            mapTextures.province.pix[i * 3 + 1] = provsCols[i].g;
-            mapTextures.province.pix[i * 3 + 2] = provsCols[i].b;
+            map2.mapTextures.province.pix[i * 3 + 0] = provsCols[i].r;
+            map2.mapTextures.province.pix[i * 3 + 1] = provsCols[i].g;
+            map2.mapTextures.province.pix[i * 3 + 2] = provsCols[i].b;
         }
         for (std::size_t i = 0; i < provinces.size(); ++i) {
-            mapTextures.country.pix[i * 3 + 0] = ctrsData[provinces[i].ctrId].r;
-            mapTextures.country.pix[i * 3 + 1] = ctrsData[provinces[i].ctrId].g;
-            mapTextures.country.pix[i * 3 + 2] = ctrsData[provinces[i].ctrId].b;
+            map2.mapTextures.country.pix[i * 3 + 0] = ctrsData[provinces[i].ctrId].r;
+            map2.mapTextures.country.pix[i * 3 + 1] = ctrsData[provinces[i].ctrId].g;
+            map2.mapTextures.country.pix[i * 3 + 2] = ctrsData[provinces[i].ctrId].b;
         }
 
-        mapTextures.country.Update(provinces.size(), 1);
-        mapTextures.province.Update(provinces.size(), 1);
+        map2.mapTextures.country.Update(provinces.size(), 1);
+        map2.mapTextures.province.Update(provinces.size(), 1);
     }
-    GLuint texID[32];
-    for (GLint i = 0; i < 32; ++i) texID[i] = i;
-    texID[0] = grassT.GetId();
-    texID[1] = provTexture.GetId();
-    texID[10] = AM::am.modelTexture->GetId();
-    texID[20] = mapTextures.province.id;
-    texID[21] = mapTextures.country.id;
-    //mapTex[2] = sandT.GetId();
-    //Log(mapTex[0] << " llll " << mapTex[2] << " p: " << provinces.size()); 
-    const float MAPID_PROV_COLOR = 20.0f;
-    const float MAPID_COUNTRY = 21.0f;
 
-    // texID[0] = grassT.GetId();
-    // Log("grass: " << texID[0]);
-    // texID[1] = provTexture.GetId();
-    // Log("prov: " << texID[1]);
-    // texID[2] = stoneT.GetId();
-    // Log("stone: " << texID[2]);
-    // texID[3] = heightMap.GetId();
-    // Log("height: " << texID[3]);
-    // texID[4] = waterT.GetId();
-    // Log("water: " << texID[4]);
-    // texID[5] = terrainTexture.GetId();
-    // Log("terrain: " << texID[5]);
-    // texID[6] = sandT.GetId();
-    // texID[7] = AM::am.modelTexture->GetId();
-    // texID[8] = ctrsText.GetId();
+    const unsigned char* pix = map2.provTexture.GetPixels();
+
+    GLuint otherTexID[32];
+    for (GLint i = 0; i < 32; ++i) otherTexID[i] = i;
+    otherTexID[0] = AM::am.modelTexture->GetId();
 
     bool drawBorders = true;
     glm::vec3 provColor;
@@ -392,21 +349,6 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     float rotateText;
     unsigned int clickedProviPhash;
     while (!window.ShouldClose()) {
-        // for (int i = 0; i < 9; ++i) {
-        //    // glActiveTexture((GLuint)texID[i]);
-        //    glActiveTexture(GL_TEXTURE0 + i);
-        //    // glActiveTexture(GL_TEXTURE0 + texID[i]);
-        //    glBindTexture(GL_TEXTURE_2D, (GLuint)texID[i]);
-        //    err = glGetError();
-        //    // if (err)
-        //    //    Log("Opengl error: " << err << " " << i);
-        //    // Log("Opengl error: " << err << " " << (GLuint)texID[i]);
-        //}
-            for (int i = 0; i < 32; ++i) {
-                glActiveTexture(GL_TEXTURE0 + i);
-                glBindTexture(GL_TEXTURE_2D, texID[i]);
-                //Log(mapTex[i]);
-            }
         glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
         glDepthFunc(GL_LESS);
         window.Refresh();
@@ -425,20 +367,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         if (window.keys['G'])
             camera.Reset();
         if (window.keys['M']) {
-            polyShader = Shader{"src/graphics/shaders/poly/vert.v", "src/graphics/shaders/poly/frag.f", "", ""};
-            polyProvShader =
-                Shader{"src/graphics/shaders/polyProv/vert.v", "src/graphics/shaders/polyProv/frag.f", "", ""};
-            waterShader = Shader("src/graphics/shaders/water/vert.v", "src/graphics/shaders/water/frag.f",
-                                 "src/graphics/shaders/water/tes_ster.ts", "src/graphics/shaders/water/tes_w.tw");
-
-            seaBorderShader =
-                Shader{"src/graphics/shaders/sea_borders/vert.v", "src/graphics/shaders/sea_borders/frag.f", "",
-                       "", "src/graphics/shaders/sea_borders/geom.g"};
-            borderShader2 =
-                Shader{"src/graphics/shaders/borders2/vert.v", "src/graphics/shaders/borders2/frag.f", "", ""};
-            waterColorShader = Shader{"src/graphics/shaders/water_color/vert.v",
-                                      "src/graphics/shaders/water_color/frag.f", "", ""};
-            fontShader = Shader{"src/graphics/shaders/fonts.vert", "src/graphics/shaders/fonts.frag", "", ""};
+            map2.ReloadShaders();
         }
 
         if (window.scrollOffset) {
@@ -448,30 +377,10 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         camera.Update(window.xMouse, windowSize.y - window.yMouse, pix);
         glm::mat4 matrix = camera.GetMat();
 
+        map2.ActivateTextures();
+
         if (window.keys['I']) {
-            glUseProgram(waterColorShader.GetProgram());
-            glUniformMatrix4fv(glGetUniformLocation(waterColorShader.GetProgram(), "matrix"), 1, GL_FALSE,
-                               glm::value_ptr(matrix));
-
-            //glUniform1iv(glGetUniformLocation(waterColorShader.GetProgram(), "tex"), 1, (GLint*)&provTexture.GetIdR());
-            glUniform1iv(glGetUniformLocation(waterColorShader.GetProgram(), "tex"), 32, tex);
-            //glActiveTexture(GL_TEXTURE0);
-            //provTexture.Bind();
-            glBindVertexArray(map2.seaProvColor.vao);
-            glBindBuffer(GL_ARRAY_BUFFER, map2.seaProvColor.vbo);
-            glDrawArrays(GL_TRIANGLES, 0, map2.seaProvColor.verts.size());
-
-
-            glUseProgram(polyProvShader.GetProgram());
-            glUniformMatrix4fv(glGetUniformLocation(polyProvShader.GetProgram(), "matrix"), 1, GL_FALSE,
-                               glm::value_ptr(matrix));
-            glUniform1iv(glGetUniformLocation(polyProvShader.GetProgram(), "tex"), 32, tex);
-            glUniform1f(glGetUniformLocation(polyShader.GetProgram(), "mapType"), MAPID_PROV_COLOR);
-            glUniform1f(glGetUniformLocation(polyShader.GetProgram(), "provCount"), (float)provinces.size());
-
-            glBindVertexArray(map2.polyMap.vao);
-            glBindBuffer(GL_ARRAY_BUFFER, map2.polyMap.vbo);
-            glDrawArrays(GL_TRIANGLES, 0, map2.polyMap.verts.size());
+            map2.DrawForColorPick(matrix, (float)provinces.size());
 
             unsigned char pixel[4];
             int pixx = window.xMouse, pixy = windowSize.y - window.yMouse;
@@ -496,9 +405,9 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                 unitPos.y = provinces[pid].y * scale;
                 unitPos.z = heightMap.GetPixels()[(int)(provinces[pid].x * 3 + provinces[pid].y * mapWidth * 3)];
             }
-            std::cout << "R: " << (int)pixel[0] << "< ";
-            std::cout << "G: " << (int)pixel[1] << "< ";
-            std::cout << "B: " << (int)pixel[2] << "< \n";
+            //std::cout << "R: " << (int)pixel[0] << "< ";
+            //std::cout << "G: " << (int)pixel[1] << "< ";
+            //std::cout << "B: " << (int)pixel[2] << "< \n";
         }
 
         if (window.keys['L'])
@@ -510,85 +419,23 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             drawBorders = !drawBorders;
         }
 
-        if (!window.keys['P']) {
-            glUseProgram(waterShader.GetProgram());
-            glUniform1f(glGetUniformLocation(waterShader.GetProgram(), "level"), 32);
-            glUniform3fv(glGetUniformLocation(waterShader.GetProgram(), "eyeLight"), 1,
-                         glm::value_ptr(camera.eye));
-            glUniformMatrix4fv(glGetUniformLocation(waterShader.GetProgram(), "pr_matrix"), 1, GL_FALSE,
-                               glm::value_ptr(matrix));
-
-            glUniformMatrix4fv(glGetUniformLocation(waterShader.GetProgram(), "matrix"), 1, GL_FALSE,
-                               glm::value_ptr(matrix));
-            glUniform1f(glGetUniformLocation(waterShader.GetProgram(), "waterTime"), waterTime);
-
-            glBindVertexArray(map2.water.vao);
-            glBindBuffer(GL_ARRAY_BUFFER, map2.water.vbo);
-            glDrawArrays(GL_PATCHES, 0, map2.water.verts.size());
+        if (window.keys['P']) {
+            map2.DrawForColorPick(matrix, (float)provinces.size());
         }
-
-        {  // poly
-            glUseProgram(polyShader.GetProgram());
-            glUniformMatrix4fv(glGetUniformLocation(polyShader.GetProgram(), "matrix"), 1, GL_FALSE,
-                               glm::value_ptr(matrix));
-            glUniform1iv(glGetUniformLocation(polyShader.GetProgram(), "tex"), 32, tex);
-            glUniform3fv(glGetUniformLocation(polyShader.GetProgram(), "provColor"), 1, glm::value_ptr(provColor));
-            glUniform3fv(glGetUniformLocation(polyShader.GetProgram(), "eyeLight"), 1, glm::value_ptr(camera.eye));
-            glUniform1f(glGetUniformLocation(polyShader.GetProgram(), "provId"), markedProvId);
-            glUniform1f(glGetUniformLocation(polyShader.GetProgram(), "provCount"), (float)provinces.size());
-            // Log("eye.z="<<camera.eye.z);
-            if (window.keys['P']) {
-                glUniform1f(glGetUniformLocation(polyShader.GetProgram(), "mapType"), MAPID_PROV_COLOR);
-                glBindVertexArray(map2.polyMap.vao);
-                glBindBuffer(GL_ARRAY_BUFFER, map2.polyMap.vbo);
-                glDrawArrays(GL_TRIANGLES, 0, map2.polyMap.verts.size());
-
-                //GLint pds = provTexture.GetId();
-                //glActiveTexture(GL_TEXTURE0); 
-                //glBindTexture(GL_TEXTURE_2D, pds);
-                glUseProgram(waterColorShader.GetProgram());
-                glUniformMatrix4fv(glGetUniformLocation(waterColorShader.GetProgram(), "matrix"), 1, GL_FALSE,
-                                   glm::value_ptr(matrix));
-                glUniform1iv(glGetUniformLocation(waterColorShader.GetProgram(), "tex"), 32, tex);
-
-
-                //glUniform1i(glGetUniformLocation(waterColorShader.GetProgram(), "tex"), pds);
-                //glUniform1iv(glGetUniformLocation(waterColorShader.GetProgram(), "tex"), 1,
-                //              &pds);
-                              //(GLint*)&provTexture.GetIdR());
-                //provTexture.Bind();
-                glBindVertexArray(map2.seaProvColor.vao);
-                glBindBuffer(GL_ARRAY_BUFFER, map2.seaProvColor.vbo);
-                glDrawArrays(GL_TRIANGLES, 0, map2.seaProvColor.verts.size());
-            }
-            else {
-                glUniform1f(glGetUniformLocation(polyShader.GetProgram(), "mapType"), MAPID_COUNTRY);
-                glBindVertexArray(map2.polyMap.vao);
-                glBindBuffer(GL_ARRAY_BUFFER, map2.polyMap.vbo);
-                glDrawArrays(GL_TRIANGLES, 0, map2.polyMap.verts.size());
-            }
+        else {
+            map2.DrawWater(matrix, camera.eye);
+            map2.DrawLand(matrix, camera.eye, markedProvId, provinces.size(), map2.MAPID_COUNTRY);
         }
 
         if (drawBorders) {
-            // glDisable(GL_DEPTH_TEST);   // Enable depth testing for z-culling
-            // glDepthFunc(GL_GEQUAL);//QUAL);
-            // glUseProgram(borderShader2.GetProgram());
-            glUseProgram(borderShader2.GetProgram());
-            glUniformMatrix4fv(glGetUniformLocation(borderShader2.GetProgram(), "matrix"), 1, GL_FALSE,
-                               glm::value_ptr(matrix));
-            glBindVertexArray(map2.landBorders.vao);
-            glBindBuffer(GL_ARRAY_BUFFER, map2.landBorders.vbo);
-            glDrawArrays(GL_TRIANGLES, 0, map2.landBorders.verts.size());
-
-            glUseProgram(seaBorderShader.GetProgram());
-            glUniformMatrix4fv(glGetUniformLocation(seaBorderShader.GetProgram(), "matrix"), 1, GL_FALSE,
-                               glm::value_ptr(matrix));
-            glBindVertexArray(map2.seaBorders.vao);
-            glBindBuffer(GL_ARRAY_BUFFER, map2.seaBorders.vbo);
-            glDrawArrays(GL_LINES, 0, map2.seaBorders.verts.size());
+            map2.DrawBorders(matrix);
         }
 
         {
+            for (int i = 0; i < 32; ++i) {
+                glActiveTexture(GL_TEXTURE0 + i);
+                glBindTexture(GL_TEXTURE_2D, otherTexID[i]);
+            }
             glm::mat4 unitModel = glm::mat4(1.0);
             unitModel = glm::translate(unitModel, unitPos);
 
@@ -599,26 +446,12 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
 
             glUseProgram(AM::am.shader->GetProgram());
-            //GLint untid = AM::am.modelTexture->GetId();
-            //glActiveTexture(GL_TEXTURE0); 
-            //glBindTexture(GL_TEXTURE_2D, untid);
             glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "matrix"), 1, GL_FALSE,
                                glm::value_ptr(matrix));
             glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE,
                                glm::value_ptr(unitModel));
             glUniform1iv(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"), 32, tex);
-            //glBindTexture(GL_TEXTURE_2D, 0);
-            //glActiveTexture(GL_TEXTURE0);
-            //AM::am.modelTexture->Bind();
-            //glUniform1i(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"),
-            //              AM::am.modelTexture->GetId());
-            //glUniform1iv(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"), 1,
-            //              &untid);
-                          //(GLint*)&AM::am.modelTexture->GetIdR());
-
-            // AM::am.model->DrawRect(model);
             AM::am.model->Draw();
-            //AM::am.modelTexture->Unbind();
         }
 
         for (int i = 0; i <= (int)AM::FontSize::PX160; ++i) {

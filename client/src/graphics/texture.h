@@ -21,6 +21,7 @@ public:
     Texture(const Texture &) = delete;
     Texture(const Texture &&) = delete;
 
+    
     Texture(std::string path, int w = 0, int h = 0, GLint param = GL_CLAMP_TO_BORDER);
     Texture(const unsigned char * pixels, int w, int h);
     

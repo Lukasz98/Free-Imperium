@@ -1,5 +1,6 @@
 #include "map2.h"
 
+#include <glm/gtc/type_ptr.hpp>
 #include "log.h"
 
 GLuint err = 0;
@@ -83,9 +84,9 @@ SeaBorders::SeaBorders(const unsigned char* hpix, int mapWidth, int mapHeight, i
         if (i2 > mapHeight * mapWidth * 3 - 3)
             i2 = mapHeight * mapWidth * 3 - 3;
         verts.push_back(BorderVertex{.pos = Vec3{((float)x1) * scale, ((float)y1) * scale, hpix[i1]},
-                                        .tc = Vec2{(float)x1 / mapWidth, (float)y1 / mapHeight}});
+                                     .tc = Vec2{(float)x1 / mapWidth, (float)y1 / mapHeight}});
         verts.push_back(BorderVertex{.pos = Vec3{((float)x2) * scale, ((float)y2) * scale, hpix[i2]},
-                                        .tc = Vec2{(float)x2 / mapWidth, (float)y2 / mapHeight}});
+                                     .tc = Vec2{(float)x2 / mapWidth, (float)y2 / mapHeight}});
     }
     Log("Sea bor verts count: " << verts.size());
     file.close();
@@ -140,7 +141,7 @@ PolyMap::PolyMap(const unsigned char* hpix, int mapWidth, int mapHeight, const s
         //              (float)provinces[provId].b / 255.0f};
         glm::vec3 col{(float)provsCols[provId].r / 255.0f, (float)provsCols[provId].g / 255.0f,
                       (float)provsCols[provId].b / 255.0f};
-        float tx = (float)provId;// / 3773.0f;// + 0.5f;
+        float tx = (float)provId;  // / 3773.0f;// + 0.5f;
         int index;
 
         index = x1 * 3 + y1 * mapWidth * 3;
@@ -223,37 +224,47 @@ Water::Water(int mapWidth, int mapHeight, int scale)
 {
     verts.push_back(WaterVert{.pos = Vec3{0.0f, 0.0f, 0.0f}, .tc = Vec2{0.0f, 0.0f}});
     verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, 0.0f, 0.0f}, .tc = Vec2{0.5f, 0.0f}});
-    verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
-    
+    verts.push_back(
+        WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+
     verts.push_back(WaterVert{.pos = Vec3{0.0f, 0.0f, 0.0f}, .tc = Vec2{0.0f, 0.0f}});
-    verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+    verts.push_back(
+        WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
     verts.push_back(WaterVert{.pos = Vec3{0.0f, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{0.0f, 1.0f}});
-    
+
     verts.push_back(WaterVert{.pos = Vec3{0.0f, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
-    verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
-    verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
-    
+    verts.push_back(
+        WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+    verts.push_back(
+        WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+
     verts.push_back(WaterVert{.pos = Vec3{0.0f, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
     verts.push_back(WaterVert{.pos = Vec3{0.0f, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
-    verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
-    
+    verts.push_back(
+        WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
 
     verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, 0.0f, 0.0f}, .tc = Vec2{0.0f, 0.0f}});
     verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale, 0.0f, 0.0f}, .tc = Vec2{0.5f, 0.0f}});
     verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
-    
+
     verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, 0.0f, 0.0f}, .tc = Vec2{0.0f, 0.0f}});
-    verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
-    verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{0.0f, 1.0f}});
-    
-    verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
-    verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+    verts.push_back(
+        WaterVert{.pos = Vec3{mapWidth * scale, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+    verts.push_back(
+        WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{0.0f, 1.0f}});
+
+    verts.push_back(
+        WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+    verts.push_back(
+        WaterVert{.pos = Vec3{mapWidth * scale, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
     verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
-    
-    verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
-    verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+
+    verts.push_back(
+        WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+    verts.push_back(
+        WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
     verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
-    
+
     glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
     glCreateBuffers(1, &vbo);
@@ -275,7 +286,108 @@ Map2::Map2(const unsigned char* hpix, int mapWidth, int mapHeight, const std::ve
       seaBorders(hpix, mapWidth, mapHeight, scale),
       polyMap(hpix, mapWidth, mapHeight, provsCols, scale),
       seaProvColor(mapWidth, mapHeight, scale),
-      water(mapWidth, mapHeight, scale)
+      water(mapWidth, mapHeight, scale),
+      provTexture("src/img/Provinces_org.png", mapWidth, mapHeight),
+      grassT("../shared/grass1.png", 64, 64, GL_REPEAT)
+
 {
+    for (GLint i = 0; i < 32; ++i) {
+        tex[i] = i;
+    }
+    for (GLint i = 0; i < 32; ++i) {
+        texID[i] = i;
+    }
+    ReloadShaders();
+}
+
+void Map2::DrawForColorPick(glm::mat4 proj, float provCount)
+{
+    glUseProgram(waterColorShader.GetProgram());
+    glUniformMatrix4fv(glGetUniformLocation(waterColorShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                       glm::value_ptr(proj));
+
+    glUniform1iv(glGetUniformLocation(waterColorShader.GetProgram(), "tex"), 32, tex);
+    glBindVertexArray(seaProvColor.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, seaProvColor.vbo);
+    glDrawArrays(GL_TRIANGLES, 0, seaProvColor.verts.size());
+
+    glUseProgram(landShader.GetProgram());
+    glUniformMatrix4fv(glGetUniformLocation(landShader.GetProgram(), "matrix"), 1, GL_FALSE, glm::value_ptr(proj));
+    glUniform1iv(glGetUniformLocation(landShader.GetProgram(), "tex"), 32, tex);
+    glUniform1f(glGetUniformLocation(landShader.GetProgram(), "provCount"), provCount);
+    glUniform1f(glGetUniformLocation(landShader.GetProgram(), "mapType"), MAPID_PROV_COLOR);
+    glBindVertexArray(polyMap.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, polyMap.vbo);
+    glDrawArrays(GL_TRIANGLES, 0, polyMap.verts.size());
+}
+
+void Map2::DrawWater(glm::mat4 proj, glm::vec3 eye)
+{
+    glUseProgram(waterShader.GetProgram());
+    glUniform1f(glGetUniformLocation(waterShader.GetProgram(), "level"), 32);
+    glUniform3fv(glGetUniformLocation(waterShader.GetProgram(), "eyeLight"), 1, glm::value_ptr(eye));
+    glUniformMatrix4fv(glGetUniformLocation(waterShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                       glm::value_ptr(proj));
+
+    glBindVertexArray(water.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, water.vbo);
+    glDrawArrays(GL_PATCHES, 0, water.verts.size());
+}
+
+void Map2::DrawLand(glm::mat4 proj, glm::vec3 eye, float provId, float provCount, int MAPID)
+{
+    glUseProgram(landShader.GetProgram());
+    glUniformMatrix4fv(glGetUniformLocation(landShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                       glm::value_ptr(proj));
+    glUniform1iv(glGetUniformLocation(landShader.GetProgram(), "tex"), 32, tex);
+    glUniform3fv(glGetUniformLocation(landShader.GetProgram(), "eyeLight"), 1, glm::value_ptr(eye));
+    glUniform1f(glGetUniformLocation(landShader.GetProgram(), "provId"), provId);
+    glUniform1f(glGetUniformLocation(landShader.GetProgram(), "provCount"), provCount);
+    glUniform1f(glGetUniformLocation(landShader.GetProgram(), "mapType"), MAPID);
+
+    glBindVertexArray(polyMap.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, polyMap.vbo);
+    glDrawArrays(GL_TRIANGLES, 0, polyMap.verts.size());
+}
+
+void Map2::DrawBorders(glm::mat4 proj)
+{
+    glUseProgram(borderShader.GetProgram());
+    glUniformMatrix4fv(glGetUniformLocation(borderShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                       glm::value_ptr(proj));
+    glBindVertexArray(landBorders.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, landBorders.vbo);
+    glDrawArrays(GL_TRIANGLES, 0, landBorders.verts.size());
+
+    glUseProgram(seaBorderShader.GetProgram());
+    glUniformMatrix4fv(glGetUniformLocation(seaBorderShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                       glm::value_ptr(proj));
+    glBindVertexArray(seaBorders.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, seaBorders.vbo);
+    glDrawArrays(GL_LINES, 0, seaBorders.verts.size());
+}
+
+void Map2::ReloadShaders()
+{
+    borderShader = Shader{"src/graphics/shaders/borders2/vert.v", "src/graphics/shaders/borders2/frag.f", "", ""};
+    seaBorderShader = Shader{"src/graphics/shaders/sea_borders/vert.v", "src/graphics/shaders/sea_borders/frag.f",
+                             "", "", "src/graphics/shaders/sea_borders/geom.g"};
+    waterShader = Shader("src/graphics/shaders/water/vert.v", "src/graphics/shaders/water/frag.f",
+                         "src/graphics/shaders/water/tes_ster.ts", "src/graphics/shaders/water/tes_w.tw");
+    landShader = Shader{"src/graphics/shaders/poly/vert.v", "src/graphics/shaders/poly/frag.f", "", ""};
+    waterColorShader =
+        Shader{"src/graphics/shaders/water_color/vert.v", "src/graphics/shaders/water_color/frag.f", "", ""};
+}
+
+void Map2::ActivateTextures()
+{
+    texID[0] = grassT.GetId();
+    texID[1] = provTexture.GetId();
+    texID[20] = mapTextures.province.id;
+    texID[21] = mapTextures.country.id;
+    for (int i = 0; i < 32; ++i) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, texID[i]);
+    }
 }
 
