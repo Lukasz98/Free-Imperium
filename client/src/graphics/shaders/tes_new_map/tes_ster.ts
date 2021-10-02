@@ -13,9 +13,10 @@ out TCS_OUT
 } tcs_out[];
 
 uniform mat4 matrix;
-uniform float level;
+//uniform float level;
 void main()
 {
+float level = 2.0f;
     if (gl_InvocationID == 0) {
         if (1 == 1) {
             gl_TessLevelInner[0] = level;

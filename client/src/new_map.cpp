@@ -221,6 +221,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     // Texture sandT{"src/img/Sand_1.png", 32, 32, GL_REPEAT};
     Texture ctrsText{"src/img/countries_map.png", mapWidth, mapHeight};
 
+
     GLint tex[32];
     for (GLint i = 0; i < 32; ++i) {
         tex[i] = i;
@@ -311,7 +312,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     provsCols.reserve(provinces.size());
     for (auto& p : provinces) provsCols.push_back(Color3{p.r, p.g, p.b});
 
-    Map2 map2{h, mapWidth, mapHeight, provsCols, scale};
+    Map2 map2{h, mapWidth, mapHeight, provsCols, scale, heightMap.GetId()};
     map2.ReloadShaders();
     {
         map2.mapTextures.country.pix = new unsigned char[provinces.size() * 3];
@@ -492,7 +493,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         ctrNamesFadeIn -= dt;
         if (ctrNamesFadeIn > 0.0f)
             ctrNamesFadeIn = -10.0f;
-        // Log(dt);
+         Log(dt);
         time = glfwGetTime();
     }
 }
