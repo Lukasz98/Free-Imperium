@@ -221,6 +221,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     // Texture sandT{"src/img/Sand_1.png", 32, 32, GL_REPEAT};
     Texture ctrsText{"src/img/countries_map.png", mapWidth, mapHeight};
 
+
     GLint tex[32];
     for (GLint i = 0; i < 32; ++i) {
         tex[i] = i;
