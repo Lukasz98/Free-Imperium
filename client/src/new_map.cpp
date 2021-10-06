@@ -565,7 +565,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                 uData[i] = uMat[i];
             }
         
-        Log("prep="<<prep);
+        //Log("prep="<<prep);
         
 
         float dr = glfwGetTime();
@@ -579,7 +579,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             //                       uMat.size());
             glUnmapBuffer(GL_ARRAY_BUFFER);
         dr = glfwGetTime() - dr;
-        Log("draw="<<dr);
+        //Log("draw="<<dr);
             err = glGetError();
             if (err)
                 Log("Opengl error: " << err);
@@ -628,7 +628,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         ctrNamesFadeIn -= dt;
         if (ctrNamesFadeIn > 0.0f)
             ctrNamesFadeIn = -10.0f;
-        Log(dt);
+        //Log(dt);
         time = glfwGetTime();
     }
 }
