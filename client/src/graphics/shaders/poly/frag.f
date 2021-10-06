@@ -37,10 +37,13 @@ void main()
         if (lightPos.z < 400.0f)
             lightPos.z = 400.0f;
         vec3 lightDir = normalize(lightPos - pos);
-        float diffuse = max(dot(normall, lightDir), 0.0f);
+        //float diffuse = max(dot(normall, lightDir), 0.0f);
+        float diffuse = (dot(normall, lightDir));
 
         float dd = .8f;
         vec4 lightColor = vec4(dd, dd, dd, 1.0f);
+        //color = color * lightColor * (diffuse);
+        //color = vec4(normall, 1.0f);
 
         float ambient = 0.5f;
 
@@ -50,6 +53,6 @@ void main()
         float specular = specAmount * specularLight;
 
         color = color * lightColor * (diffuse + ambient + specular);
-        // color.w = 1.0f;
+        //color.w = 1.0f;
     }
 }

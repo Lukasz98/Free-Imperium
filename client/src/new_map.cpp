@@ -311,7 +311,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     provsCols.reserve(provinces.size());
     for (auto& p : provinces) provsCols.push_back(Color3{p.r, p.g, p.b});
 
-    Map2 map2{h, mapWidth, mapHeight, provsCols, scale};
+    Map2 map2{h, mapWidth, mapHeight, provsCols, scale, heightMap.GetId()};
     map2.ReloadShaders();
     {
         map2.mapTextures.country.pix = new unsigned char[provinces.size() * 3];
@@ -337,6 +337,47 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     GLuint otherTexID[32];
     for (GLint i = 0; i < 32; ++i) otherTexID[i] = i;
     otherTexID[0] = AM::am.modelTexture->GetId();
+
+    Model3D model3d{"src/img/DudeDonePosefix.obj", glm::vec3{0.0, 0.0, 0.1}};
+    struct TempUnit {
+        glm::vec3 pos;
+    };
+    std::vector<TempUnit> tempUnits;
+    for (std::size_t i = 0; i < provinces.size(); ++i) {
+        if (provinces[i].water)
+            continue;
+
+        float z = (float)heightMap.GetPixels()[(int)(provinces[i].x * 3 + provinces[i].y * mapWidth * 3)];
+        tempUnits.push_back(TempUnit{.pos = glm::vec3{provinces[i].x * scale, provinces[i].y * scale, z}});
+    }
+
+    GLuint unitBuffer;
+    {
+        int maxMats = 500;
+        int matSize = sizeof(glm::mat4);
+        int maxUMatSize = maxMats * matSize;
+        glBindVertexArray(model3d.vao);
+        glGenBuffers(1, &unitBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, unitBuffer);
+        // glBufferData(GL_ARRAY_BUFFER, amount * 1 * sizeof(glm::mat4), uMat.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, maxUMatSize, NULL, GL_DYNAMIC_DRAW);
+        // glBufferData(GL_ARRAY_BUFFER, maxUMatSize, NULL, GL_DYNAMIC_DRAW);
+
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+        glEnableVertexAttribArray(5);
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+        glEnableVertexAttribArray(6);
+        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+        glVertexAttribDivisor(3, 1);
+        glVertexAttribDivisor(4, 1);
+        glVertexAttribDivisor(5, 1);
+        glVertexAttribDivisor(6, 1);
+        glBindVertexArray(0);
+    }
+    std::vector<glm::mat4> uMat;
 
     bool drawBorders = true;
     glm::vec3 provColor;
@@ -379,7 +420,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
 
         map2.ActivateTextures();
 
-        if (window.keys['I']) {
+        if (0 && window.keys['I']) {
             map2.DrawForColorPick(matrix, (float)provinces.size());
 
             unsigned char pixel[4];
@@ -405,9 +446,9 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                 unitPos.y = provinces[pid].y * scale;
                 unitPos.z = heightMap.GetPixels()[(int)(provinces[pid].x * 3 + provinces[pid].y * mapWidth * 3)];
             }
-            //std::cout << "R: " << (int)pixel[0] << "< ";
-            //std::cout << "G: " << (int)pixel[1] << "< ";
-            //std::cout << "B: " << (int)pixel[2] << "< \n";
+            // std::cout << "R: " << (int)pixel[0] << "< ";
+            // std::cout << "G: " << (int)pixel[1] << "< ";
+            // std::cout << "B: " << (int)pixel[2] << "< \n";
         }
 
         if (window.keys['L'])
@@ -431,42 +472,136 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             map2.DrawBorders(matrix);
         }
 
+        float zPoint = 1500.0f;
+#if 0 
         {
             for (int i = 0; i < 32; ++i) {
                 glActiveTexture(GL_TEXTURE0 + i);
                 glBindTexture(GL_TEXTURE_2D, otherTexID[i]);
             }
-            glm::mat4 unitModel = glm::mat4(1.0);
-            unitModel = glm::translate(unitModel, unitPos);
-
             float rotateX = 60.0f * 3.1459265f / 180.0f, yScale = 10.0f;
             glm::mat4 rotate = glm::mat4{1.0f};
             rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
-            unitModel = unitModel * rotate;
-            unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
 
-            glUseProgram(AM::am.shader->GetProgram());
-            glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "matrix"), 1, GL_FALSE,
-                               glm::value_ptr(matrix));
-            glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE,
-                               glm::value_ptr(unitModel));
-            glUniform1iv(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"), 32, tex);
-            AM::am.model->Draw();
+            for (std::size_t i = 0; i < tempUnits.size(); ++i) {
+                if (abs(tempUnits[i].pos.x - camera.eye.x) > 400)
+                    continue;
+                if (abs(tempUnits[i].pos.y - camera.eye.y) > 200)
+                    continue;
+                glm::mat4 unitModel = glm::mat4(1.0);
+                unitModel = glm::translate(unitModel, tempUnits[i].pos);
+                // unitModel = glm::translate(unitModel, unitPos);
+
+                unitModel = unitModel * rotate;
+                unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
+
+                glUseProgram(AM::am.shader->GetProgram());
+                glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "matrix"), 1, GL_FALSE,
+                                   glm::value_ptr(matrix));
+                glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE,
+                                   glm::value_ptr(unitModel));
+                glUniform1iv(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"), 32, tex);
+                model3d.Draw();
+            }
         }
+#else
+        err = glGetError();
+        //if (err)
+            //Log("Opengl error: " << err);
+        if (camera.eye.z < zPoint) {
+            for (int i = 0; i < 32; ++i) {
+                glActiveTexture(GL_TEXTURE0 + i);
+                glBindTexture(GL_TEXTURE_2D, otherTexID[i]);
+            }
+            err = glGetError();
+            //if (err)
+                //Log("Opengl error: " << err);
+            float rotateX = 60.0f * 3.1459265f / 180.0f, yScale = 10.0f;
+            glm::mat4 rotate = glm::mat4{1.0f};
+            rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
+
+            for (std::size_t i = 0; i < tempUnits.size(); ++i) {
+                if (abs(tempUnits[i].pos.x - camera.eye.x) > 400)
+                    continue;
+                if (abs(tempUnits[i].pos.y - camera.eye.y) > 200)
+                    continue;
+                glm::mat4 unitModel = glm::mat4(1.0);
+                unitModel = glm::translate(unitModel, tempUnits[i].pos);
+
+                unitModel = unitModel * rotate;
+                unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
+                uMat.push_back(unitModel);
+            }
+            err = glGetError();
+            if (err)
+                Log("Opengl error: " << err);
+
+            glUseProgram(AM::am.modelInstancedShader->GetProgram());
+            glUniformMatrix4fv(glGetUniformLocation(AM::am.modelInstancedShader->GetProgram(), "matrix"), 1,
+                               GL_FALSE, glm::value_ptr(matrix));
+            // glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE,
+            //                   glm::value_ptr(unitModel));
+            glUniform1iv(glGetUniformLocation(AM::am.modelInstancedShader->GetProgram(), "tex"), 32, tex);
+            // Log(AM::am.model->vao);
+            err = glGetError();
+            if (err)
+                Log("Opengl error: " << err);
+            glBindVertexArray(model3d.vao);
+            //glBindBuffer(GL_ARRAY_BUFFER, model3d.vbo);
+            glBindBuffer(GL_ARRAY_BUFFER, unitBuffer);
+            //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model3d.ibo);
+            err = glGetError();
+            if (err)
+                Log("Opengl error: " << err);
+
+        float prep = glfwGetTime();
+            glm::mat4* uData = (glm::mat4*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+        prep = glfwGetTime() - prep;
+            err = glGetError();
+            if (err)
+                Log("Opengl error: " << err);
+            for (std::size_t i = 0; i < uMat.size(); ++i) {
+                uData[i] = uMat[i];
+            }
+        
+        Log("prep="<<prep);
+        
+
+        float dr = glfwGetTime();
+        Log("uMat.size = " << uMat.size());
+            // Log("ibo.size = " << AM::am.model->iboCount);
+            glDrawElementsInstanced(GL_TRIANGLES, model3d.iboCount, GL_UNSIGNED_INT, NULL, uMat.size());
+            err = glGetError();
+            if (err)
+                Log("Opengl error: " << err);
+            // glDrawElementsInstanced(GL_TRIANGLES, AM::am.model->iboCount * uMat.size(), GL_UNSIGNED_INT, NULL,
+            //                       uMat.size());
+            glUnmapBuffer(GL_ARRAY_BUFFER);
+        dr = glfwGetTime() - dr;
+        Log("draw="<<dr);
+            err = glGetError();
+            if (err)
+                Log("Opengl error: " << err);
+
+            // AM::am.model->Draw();
+
+            uMat.clear();
+        }
+#endif
 
         for (int i = 0; i <= (int)AM::FontSize::PX160; ++i) {
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, (GLuint)fontTexID[i]);
         }
-
-        if (camera.eye.z > 1000.0f) {
+        
+        if (camera.eye.z > zPoint) {
             ctrNamesFade = 0.0f;
         }
         else {
             ctrNamesFadeIn = 0.0f;
         }
         // Log(ctrNamesFadeIn << ", fade: " << ctrNamesFade);
-        if ((camera.eye.z > 1000.0f) || ctrNamesFade < 1.0f) {
+        if ((camera.eye.z > zPoint) || ctrNamesFade < 1.0f) {
             glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
 
             glUseProgram(fontShader.GetProgram());
@@ -492,7 +627,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         ctrNamesFadeIn -= dt;
         if (ctrNamesFadeIn > 0.0f)
             ctrNamesFadeIn = -10.0f;
-        // Log(dt);
+        Log(dt);
         time = glfwGetTime();
     }
 }

@@ -10,8 +10,10 @@
 
 class Model3D
 {
+public:
     glm::vec3 position;
     GLuint vao, vbo, ibo;
+    GLuint iboCount;
 
     objl::Loader Loader;
 

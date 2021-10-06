@@ -23,11 +23,15 @@ void AM::Init()
     }
 
     //Model3D model{"src/img/DudeDonePosefix.obj", glm::vec3{0.0, 0.0, 0.1}};
-    am.model = std::make_unique<Model3D>("src/img/DudeDonePosefix.obj", glm::vec3{0.0, 0.0, 0.1});
+    //am.model = std::make_unique<Model3D>("src/img/DudeDonePosefix.obj", glm::vec3{0.0, 0.0, 0.1});
     am.modelTexture = std::make_unique<Texture>("src/img/Done3.png");
     am.shader = std::make_unique<Shader>(
             "src/graphics/shaders/model_3d/vert.v",
             "src/graphics/shaders/model_3d/frag.f", "", "");
+    am.modelInstancedShader = std::make_unique<Shader>(
+            "src/graphics/shaders/instanced_model_3d/vert.v",
+            "src/graphics/shaders/instanced_model_3d/frag.f", "", "");
+
 
 
 /*

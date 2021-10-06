@@ -11,8 +11,9 @@ struct AM
     //static bool init = false;
     static FT_Library ft;
     static FT_Face face;
-    std::unique_ptr<Model3D> model;
+    //std::unique_ptr<Model3D> model;
     std::unique_ptr<Shader> shader;
+    std::unique_ptr<Shader> modelInstancedShader;
     std::unique_ptr<Texture> modelTexture;
 
     GLuint fontAtlas;

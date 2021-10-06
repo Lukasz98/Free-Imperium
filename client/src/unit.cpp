@@ -158,25 +158,25 @@ model = glm::scale(model, glm::vec3{20.0, yScale, 10.0});
 //model = glm::rotate(model, 20.0f, glm::vec3{1.0, 0.0, 0.0});
 
 
-glUseProgram(AM::am.shader->GetProgram());
-glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
-glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE, glm::value_ptr(model));
-
-            glUniform1i(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"),
-                          AM::am.modelTexture->GetId());
-
-            glActiveTexture(GL_TEXTURE0);
-AM::am.modelTexture->Bind();
-
-//AM::am.model->DrawRect(model);
-AM::am.model->Draw();
-    //Rectangle::Draw();
-    if (isSelected)
-        for (auto & m : moves) {
-            //m.arrow->Draw();
-        }
-
-    //bar->Draw();
+//glUseProgram(AM::am.shader->GetProgram());
+//glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
+//glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE, glm::value_ptr(model));
+//
+//            glUniform1i(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"),
+//                          AM::am.modelTexture->GetId());
+//
+//            glActiveTexture(GL_TEXTURE0);
+//AM::am.modelTexture->Bind();
+//
+////AM::am.model->DrawRect(model);
+//AM::am.model->Draw();
+//    //Rectangle::Draw();
+//    if (isSelected)
+//        for (auto & m : moves) {
+//            //m.arrow->Draw();
+//        }
+//
+//    //bar->Draw();
 }
 
 void Unit::DrawGuiElements(bool isSelected)
@@ -195,8 +195,8 @@ bool Unit::Click(glm::vec3 vv, glm::vec3 eye) {
 //bool Click(int x, int y) { 
     if (!visible) return false; 
     else {
-        return AM::am.model->Click(model, rotate, vv, eye, yScale, rotateX);
-        //return false;
+        //return AM::am.model->Click(model, rotate, vv, eye, yScale, rotateX);
+        return false;
     //return false;//Rectangle::Click(x, y); 
     }
 }

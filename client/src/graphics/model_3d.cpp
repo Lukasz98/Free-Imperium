@@ -83,6 +83,7 @@ plane = std::make_unique<Rectangle>(glm::vec3{minX, minY, 0}, glm::vec2{maxX - m
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float)*8, (void*)(6 * sizeof(float)));
 
 
+    iboCount = Loader.LoadedIndices.size();
 
     
 
@@ -91,8 +92,8 @@ plane = std::make_unique<Rectangle>(glm::vec3{minX, minY, 0}, glm::vec2{maxX - m
 
 Model3D::~Model3D()
 {
-    glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(1, &vbo);
+    //glDeleteVertexArrays(1, &vao);
+    //glDeleteBuffers(1, &vbo);
 }
 
 void Model3D::Draw()

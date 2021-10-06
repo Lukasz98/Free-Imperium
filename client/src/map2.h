@@ -91,6 +91,7 @@ struct Map2 {
     Shader waterShader;
     Shader landShader;
     Shader waterColorShader;
+    Shader landTesShader;
     //
 
     GLint tex[32];
@@ -98,8 +99,9 @@ struct Map2 {
     MapTextures mapTextures;
     Texture provTexture;
     Texture grassT;
+    GLuint heightMapTextureId;
 
-    Map2(const unsigned char* hpix, int mapWidth, int mapHeight, const std::vector<Color3>& provsCols, int scale);
+    Map2(const unsigned char* hpix, int mapWidth, int mapHeight, const std::vector<Color3>& provsCols, int scale, GLuint heightMapId);
 
     void DrawForColorPick(glm::mat4 proj, float provCount);
     void DrawWater(glm::mat4 proj, glm::vec3 eye);
