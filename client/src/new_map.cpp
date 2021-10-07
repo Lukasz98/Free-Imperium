@@ -205,6 +205,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     if (err)
         Log("Opengl error: " << err);
     Shader fontShader{"src/graphics/shaders/fonts.vert", "src/graphics/shaders/fonts.frag", "", ""};
+    Shader pickModelShader{"src/graphics/shaders/pick_model/vert.v", "src/graphics/shaders/pick_model/frag.f", "",
+                           ""};
     Camera camera{window.GetSize()};
     glPatchParameteri(GL_PATCH_VERTICES, 3);
     float trCount = 150;
@@ -220,7 +222,6 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     // Texture waterT{"../shared/water1.png", 64, 64, GL_REPEAT};
     // Texture sandT{"src/img/Sand_1.png", 32, 32, GL_REPEAT};
     Texture ctrsText{"src/img/countries_map.png", mapWidth, mapHeight};
-
 
     GLint tex[32];
     for (GLint i = 0; i < 32; ++i) {
@@ -342,6 +343,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
     Model3D model3d{"src/img/DudeDonePosefix.obj", glm::vec3{0.0, 0.0, 0.1}};
     struct TempUnit {
         glm::vec3 pos;
+        int provId;
     };
     std::vector<TempUnit> tempUnits;
     for (std::size_t i = 0; i < provinces.size(); ++i) {
@@ -349,7 +351,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             continue;
 
         float z = (float)heightMap.GetPixels()[(int)(provinces[i].x * 3 + provinces[i].y * mapWidth * 3)];
-        tempUnits.push_back(TempUnit{.pos = glm::vec3{provinces[i].x * scale, provinces[i].y * scale, z}});
+        tempUnits.push_back(TempUnit{.pos = glm::vec3{provinces[i].x * scale, provinces[i].y * scale, z},
+                                     .provId = provinces[i].id});
     }
 
     GLuint unitBuffer;
@@ -410,6 +413,9 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             camera.Reset();
         if (window.keys['M']) {
             map2.ReloadShaders();
+            fontShader = Shader{"src/graphics/shaders/fonts.vert", "src/graphics/shaders/fonts.frag", "", ""};
+            pickModelShader =
+                Shader{"src/graphics/shaders/pick_model/vert.v", "src/graphics/shaders/pick_model/frag.f", "", ""};
         }
 
         if (window.scrollOffset) {
@@ -421,35 +427,96 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
 
         map2.ActivateTextures();
 
-        if (0 && window.keys['I']) {
-            map2.DrawForColorPick(matrix, (float)provinces.size());
+        float rotateX = 60.0f * 3.1459265f / 180.0f, yScale = 10.0f;
+        glm::mat4 rotate = glm::mat4{1.0f};
+        rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
+
+        std::vector<int> pids;
+        for (std::size_t i = 0; i < tempUnits.size(); ++i) {
+            if (abs(tempUnits[i].pos.x - camera.eye.x) > 400)
+                continue;
+            if (abs(tempUnits[i].pos.y - camera.eye.y) > 200)
+                continue;
+            glm::mat4 unitModel = glm::mat4(1.0);
+            unitModel = glm::translate(unitModel, tempUnits[i].pos);
+
+            unitModel = unitModel * rotate;
+            unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
+            // unitModel = glm::scale(unitModel, glm::vec3{80.0, 50.0f, 80.0});
+            uMat.push_back(unitModel);
+            pids.push_back(tempUnits[i].provId);
+        }
+
+        if (window.keys['I']) {
+            {  // check for unit clicks
+                glUseProgram(pickModelShader.GetProgram());
+                glUniformMatrix4fv(glGetUniformLocation(pickModelShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                                   glm::value_ptr(matrix));
+                glBindVertexArray(model3d.rectVao);
+                glBindBuffer(GL_ARRAY_BUFFER, model3d.rectVbo);
+                for (std::size_t i = 0; i < uMat.size(); ++i) {
+                    glUniformMatrix4fv(glGetUniformLocation(pickModelShader.GetProgram(), "ml"), 1, GL_FALSE,
+                                       glm::value_ptr(uMat[i]));
+                    // glm::vec4 pcol{(float)provinces[pids[i]].r, provinces[pids[i]].g, provinces[pids[i]].b,
+                    //               255.0f};
+                    glm::vec4 pcol{(float)provinces[pids[i]].r / 255.0f, provinces[pids[i]].g / 255.0f,
+                                   provinces[pids[i]].b / 255.0f, 1.0f};
+                    // glm::vec4 pcol{1.0f, 0.0f, 0.0f, 1.0f};
+                    glUniform4fv(glGetUniformLocation(pickModelShader.GetProgram(), "col"), 1,
+                                 glm::value_ptr(pcol));
+
+                    glDrawArrays(GL_TRIANGLES, 0, model3d.rectVertsCount);
+                    err = glGetError();
+                    if (err)
+                        Log(err);
+                    // model3d.Draw();
+                }
+                // window.Update();
+            }
 
             unsigned char pixel[4];
             int pixx = window.xMouse, pixy = windowSize.y - window.yMouse;
             glReadPixels(pixx, pixy, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
-
             window.Refresh();
-            provColor = {(int)pixel[0] / 255.0, (int)pixel[1] / 255.0, (int)pixel[2] / 255.0};
-            clickedProviPhash = getHash(pixel[0], pixel[1], pixel[2]);
-            if (colorToId.find(clickedProviPhash) != colorToId.end()) {
-                int pid = colorToId[clickedProviPhash];
-                markedProvId = (float)pid;
-                // Log(provinces[pid].id << ", water: " << provinces[pid].water << ", " << provinces[pid].name
-                //                      << ", col: " << provinces[pid].r << ", " << provinces[pid].g << ", "
-                //                      << provinces[pid].b);
-                // std::cout << "Neighb: ";
-                // for (auto i : provinces[pid].neighb) std::cout << i << " ";
-                // std::cout << "\n";
-                // std::cout << "NeighbSea: ";
-                // for (auto i : provinces[pid].neighbSea) std::cout << i << " ";
-                // std::cout << "\n";
-                unitPos.x = provinces[pid].x * scale;
-                unitPos.y = provinces[pid].y * scale;
-                unitPos.z = heightMap.GetPixels()[(int)(provinces[pid].x * 3 + provinces[pid].y * mapWidth * 3)];
+            glm::vec3 unitColor = {(int)pixel[0] / 255.0, (int)pixel[1] / 255.0, (int)pixel[2] / 255.0};
+            unsigned int clickedUnitPhash = getHash(pixel[0], pixel[1], pixel[2]);
+
+            if (colorToId.find(clickedUnitPhash) != colorToId.end()) {
+                Log("Unit click");
+                std::cout << "R: " << (int)pixel[0] << "< ";
+                std::cout << "G: " << (int)pixel[1] << "< ";
+                std::cout << "B: " << (int)pixel[2] << "< \n";
             }
-            // std::cout << "R: " << (int)pixel[0] << "< ";
-            // std::cout << "G: " << (int)pixel[1] << "< ";
-            // std::cout << "B: " << (int)pixel[2] << "< \n";
+            else {
+                map2.DrawForColorPick(matrix, (float)provinces.size());
+
+                glReadPixels(pixx, pixy, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+
+                window.Refresh();
+                provColor = {(int)pixel[0] / 255.0, (int)pixel[1] / 255.0, (int)pixel[2] / 255.0};
+                clickedProviPhash = getHash(pixel[0], pixel[1], pixel[2]);
+                if (colorToId.find(clickedProviPhash) != colorToId.end()) {
+                    int pid = colorToId[clickedProviPhash];
+                    markedProvId = (float)pid;
+                    // Log(provinces[pid].id << ", water: " << provinces[pid].water << ", " << provinces[pid].name
+                    //                      << ", col: " << provinces[pid].r << ", " << provinces[pid].g << ", "
+                    //                      << provinces[pid].b);
+                    // std::cout << "Neighb: ";
+                    // for (auto i : provinces[pid].neighb) std::cout << i << " ";
+                    // std::cout << "\n";
+                    // std::cout << "NeighbSea: ";
+                    // for (auto i : provinces[pid].neighbSea) std::cout << i << " ";
+                    // std::cout << "\n";
+                    unitPos.x = provinces[pid].x * scale;
+                    unitPos.y = provinces[pid].y * scale;
+                    unitPos.z =
+                        heightMap.GetPixels()[(int)(provinces[pid].x * 3 + provinces[pid].y * mapWidth * 3)];
+                }
+                Log("prov click");
+                std::cout << "R: " << (int)pixel[0] << "< ";
+                std::cout << "G: " << (int)pixel[1] << "< ";
+                std::cout << "B: " << (int)pixel[2] << "< \n";
+            }
         }
 
         if (window.keys['L'])
@@ -474,8 +541,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         }
 
         float zPoint = 1500.0f;
-#if 0 
-        {
+#if 1
+        if (camera.eye.z < zPoint && !window.keys['U']) {
             for (int i = 0; i < 32; ++i) {
                 glActiveTexture(GL_TEXTURE0 + i);
                 glBindTexture(GL_TEXTURE_2D, otherTexID[i]);
@@ -507,32 +574,16 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         }
 #else
         err = glGetError();
-        //if (err)
-            //Log("Opengl error: " << err);
-        if (camera.eye.z < zPoint) {
+        // if (err)
+        // Log("Opengl error: " << err);
+        if (camera.eye.z < zPoint && !window.keys['U']) {
             for (int i = 0; i < 32; ++i) {
                 glActiveTexture(GL_TEXTURE0 + i);
                 glBindTexture(GL_TEXTURE_2D, otherTexID[i]);
             }
             err = glGetError();
-            //if (err)
-                //Log("Opengl error: " << err);
-            float rotateX = 60.0f * 3.1459265f / 180.0f, yScale = 10.0f;
-            glm::mat4 rotate = glm::mat4{1.0f};
-            rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
-
-            for (std::size_t i = 0; i < tempUnits.size(); ++i) {
-                if (abs(tempUnits[i].pos.x - camera.eye.x) > 400)
-                    continue;
-                if (abs(tempUnits[i].pos.y - camera.eye.y) > 200)
-                    continue;
-                glm::mat4 unitModel = glm::mat4(1.0);
-                unitModel = glm::translate(unitModel, tempUnits[i].pos);
-
-                unitModel = unitModel * rotate;
-                unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
-                uMat.push_back(unitModel);
-            }
+            // if (err)
+            // Log("Opengl error: " << err);
             err = glGetError();
             if (err)
                 Log("Opengl error: " << err);
@@ -548,28 +599,27 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             if (err)
                 Log("Opengl error: " << err);
             glBindVertexArray(model3d.vao);
-            //glBindBuffer(GL_ARRAY_BUFFER, model3d.vbo);
+            // glBindBuffer(GL_ARRAY_BUFFER, model3d.vbo);
             glBindBuffer(GL_ARRAY_BUFFER, unitBuffer);
-            //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model3d.ibo);
+            // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model3d.ibo);
             err = glGetError();
             if (err)
                 Log("Opengl error: " << err);
 
-        float prep = glfwGetTime();
+            float prep = glfwGetTime();
             glm::mat4* uData = (glm::mat4*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-        prep = glfwGetTime() - prep;
+            prep = glfwGetTime() - prep;
             err = glGetError();
             if (err)
                 Log("Opengl error: " << err);
             for (std::size_t i = 0; i < uMat.size(); ++i) {
                 uData[i] = uMat[i];
             }
-        
-        //Log("prep="<<prep);
-        
 
-        float dr = glfwGetTime();
-        Log("uMat.size = " << uMat.size());
+            Log("prep=" << prep);
+
+            float dr = glfwGetTime();
+            // Log("uMat.size = " << uMat.size());
             // Log("ibo.size = " << AM::am.model->iboCount);
             glDrawElementsInstanced(GL_TRIANGLES, model3d.iboCount, GL_UNSIGNED_INT, NULL, uMat.size());
             err = glGetError();
@@ -578,23 +628,22 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             // glDrawElementsInstanced(GL_TRIANGLES, AM::am.model->iboCount * uMat.size(), GL_UNSIGNED_INT, NULL,
             //                       uMat.size());
             glUnmapBuffer(GL_ARRAY_BUFFER);
-        dr = glfwGetTime() - dr;
-        //Log("draw="<<dr);
+            dr = glfwGetTime() - dr;
+            // Log("draw="<<dr);
             err = glGetError();
             if (err)
                 Log("Opengl error: " << err);
 
             // AM::am.model->Draw();
-
-            uMat.clear();
         }
 #endif
+        uMat.clear();
 
         for (int i = 0; i <= (int)AM::FontSize::PX160; ++i) {
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, (GLuint)fontTexID[i]);
         }
-        
+
         if (camera.eye.z > zPoint) {
             ctrNamesFade = 0.0f;
         }
@@ -628,7 +677,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         ctrNamesFadeIn -= dt;
         if (ctrNamesFadeIn > 0.0f)
             ctrNamesFadeIn = -10.0f;
-        //Log(dt);
+        // Log(dt);
         time = glfwGetTime();
     }
 }

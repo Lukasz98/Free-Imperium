@@ -19,6 +19,9 @@ public:
 
     std::unique_ptr<Rectangle> plane;
 
+    GLuint rectVao, rectVbo;
+    int rectVertsCount = 6;
+
     void bind();
     void unbind();
 
