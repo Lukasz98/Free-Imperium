@@ -15,6 +15,7 @@
 
 #include "new_map.h"
 
+#define GUI_LAST 1
 #define MAP_TEST 1
 #define BATCH_TEST 0
 #define GUI_PREVIEW 0
@@ -22,6 +23,8 @@
     #include "gui_2/gui_preview.h"
 #endif
 #include <time.h>
+
+#include "gui_last.h"
 
 #if BATCH_TEXT
 void batch_test(Window & window, glm::vec2 windowSize);
@@ -48,11 +51,14 @@ int main()
 
    
    AM::Init();
+#if GUI_LAST
 
-#if MAP_TEST
+    GuiLast::init(&window, resolution, windowSize);
+    GuiLast::start();
+#elif MAP_TEST
     //newMapTest(window, resolution, windowSize);
-    newTesMapTest(window, resolution, windowSize);
-    
+    GuiLast::init(window, resolution, windowSize);
+    GuiLast::start();
 #elif GUI_PREVIEW
     GuiPreview::Play(window, resolution, windowSize);
 #elif BATCH_TEST

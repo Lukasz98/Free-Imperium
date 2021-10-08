@@ -7,9 +7,12 @@
 #include "vec.h"
 
 struct Vertex {
-    Vec3 pos;
-    Vec4 color;
-    Vec2 tc;
+    //Vec3 pos;
+    //Vec4 color;
+    //Vec2 tc;
+    glm::vec3 pos;
+    glm::vec4 color;
+    glm::vec2 tc;
     float textureId = 443;
 };
 

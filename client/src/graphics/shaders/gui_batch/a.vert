@@ -18,12 +18,12 @@ out float
 
 void main()
 {
-    if (textureID >= 0) {
+    //if (textureID >= 0) {
         Position = pr_matrix * vec4(position, 1.0f);
         gl_Position = Position;
-	} else { // if is negative, it should not be visible
-        gl_Position = vec4(-1000.0f, 0.0f, 0.0f, 1.0f);
-    }
+	//} else { // if is negative, it should not be visible
+    //    gl_Position = vec4(-1000.0f, 0.0f, 0.0f, 1.0f);
+    //}
 
     //Position = ml_matrix * vec4(position, 1.0f);
 	//if(texCoord.x == 1.0)

@@ -457,11 +457,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                 for (std::size_t i = 0; i < uMat.size(); ++i) {
                     glUniformMatrix4fv(glGetUniformLocation(pickModelShader.GetProgram(), "ml"), 1, GL_FALSE,
                                        glm::value_ptr(uMat[i]));
-                    // glm::vec4 pcol{(float)provinces[pids[i]].r, provinces[pids[i]].g, provinces[pids[i]].b,
-                    //               255.0f};
                     glm::vec4 pcol{(float)provinces[pids[i]].r / 255.0f, provinces[pids[i]].g / 255.0f,
                                    provinces[pids[i]].b / 255.0f, 1.0f};
-                    // glm::vec4 pcol{1.0f, 0.0f, 0.0f, 1.0f};
                     glUniform4fv(glGetUniformLocation(pickModelShader.GetProgram(), "col"), 1,
                                  glm::value_ptr(pcol));
 
@@ -469,9 +466,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                     err = glGetError();
                     if (err)
                         Log(err);
-                    // model3d.Draw();
                 }
-                // window.Update();
             }
 
             unsigned char pixel[4];
@@ -482,10 +477,10 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             unsigned int clickedUnitPhash = getHash(pixel[0], pixel[1], pixel[2]);
 
             if (colorToId.find(clickedUnitPhash) != colorToId.end()) {
-                Log("Unit click");
-                std::cout << "R: " << (int)pixel[0] << "< ";
-                std::cout << "G: " << (int)pixel[1] << "< ";
-                std::cout << "B: " << (int)pixel[2] << "< \n";
+                //Log("Unit click");
+                //std::cout << "R: " << (int)pixel[0] << "< ";
+                //std::cout << "G: " << (int)pixel[1] << "< ";
+                //std::cout << "B: " << (int)pixel[2] << "< \n";
             }
             else {
                 map2.DrawForColorPick(matrix, (float)provinces.size());
@@ -512,10 +507,10 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
                     unitPos.z =
                         heightMap.GetPixels()[(int)(provinces[pid].x * 3 + provinces[pid].y * mapWidth * 3)];
                 }
-                Log("prov click");
-                std::cout << "R: " << (int)pixel[0] << "< ";
-                std::cout << "G: " << (int)pixel[1] << "< ";
-                std::cout << "B: " << (int)pixel[2] << "< \n";
+                ///Log("prov click");
+                ///std::cout << "R: " << (int)pixel[0] << "< ";
+                ///std::cout << "G: " << (int)pixel[1] << "< ";
+                ///std::cout << "B: " << (int)pixel[2] << "< \n";
             }
         }
 
@@ -681,6 +676,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         time = glfwGetTime();
     }
 }
+
+
 
 /*
 provs error on map

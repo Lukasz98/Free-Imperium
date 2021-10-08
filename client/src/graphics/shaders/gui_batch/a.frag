@@ -14,13 +14,18 @@ void main()
         gl_FragColor = Color;
     }
     else {
-        
         vec4 c = texture(tex[int(TextureID + 0.5)], TexCoord);
-        if (TextureID <= 2) { // it's a font
-            c[0] = Color[0];
-            c[1] = Color[1];
-            c[2] = Color[2];
-        }
+        //vec4 c = texture(tex[1], TexCoord);
+        //if (TextureID <= 2) { // it's a font
+        
+        c.x = Color.x;
+        c.y = Color.y;
+        c.z = Color.z;
+        //c[0] = Color[0];
+        //c[1] = Color[1];
+        //c[2] = Color[2];
+        
+        //}
         //if (TextureID == 1.0 && c[3] < 1.0)
         //    c[3] = 1.0;
             //c = vec4(0.5, 0.5, 0.0, 1.0);

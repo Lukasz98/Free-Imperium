@@ -34,7 +34,7 @@ Vec3 loadVec4(char * ptr) // assumes pointer is continuation of strtok
     return v;
 }
 */
-
+/*
 void loadChars(const std::string & s, int max, Win & win, Vec3 parentPos, Vec2 parentSize, int textAlign, int padding, AM::FontSize fontSize, Vec4 color)
 {
     Vec3 textPos{0.0f, 0.0f, 0.1f};
@@ -633,24 +633,22 @@ void GuiPreview::Play(Window & window, glm::vec2 resolution, glm::vec2 windowSiz
         batch.Begin();
         clock_t t1 = clock();
         
-/*
-        batch.Push(guiWin.verts);
-        for (int i = 0; i < guiWin.groups.size(); ++i) {
-            batch.Push(guiWin.groups[i].verts);
-            for (int j = 0; j < guiWin.groups[i].textLabels.size(); ++j) {
-                batch.Push(guiWin.groups[i].textLabels[j].verts);
-            }
-        }
-        for (int i = 0; i < guiWin.tabs.size(); ++i) {
-            batch.Push(guiWin.tabs[i].verts);
-            for (int j = 0; j < guiWin.tabs[i].groups.size(); ++j) {
-                batch.Push(guiWin.tabs[i].groups[j].verts);
-                for (int k = 0; k < guiWin.tabs[i].groups[j].textLabels.size(); ++k) {
-                    batch.Push(guiWin.tabs[i].groups[j].textLabels[k].verts);
-                }
-            }
-        }
-*/
+        //batch.Push(guiWin.verts);
+        //for (int i = 0; i < guiWin.groups.size(); ++i) {
+        //    batch.Push(guiWin.groups[i].verts);
+        //    for (int j = 0; j < guiWin.groups[i].textLabels.size(); ++j) {
+        //        batch.Push(guiWin.groups[i].textLabels[j].verts);
+        //    }
+        //}
+        //for (int i = 0; i < guiWin.tabs.size(); ++i) {
+        //    batch.Push(guiWin.tabs[i].verts);
+        //    for (int j = 0; j < guiWin.tabs[i].groups.size(); ++j) {
+        //        batch.Push(guiWin.tabs[i].groups[j].verts);
+        //        for (int k = 0; k < guiWin.tabs[i].groups[j].textLabels.size(); ++k) {
+        //            batch.Push(guiWin.tabs[i].groups[j].textLabels[k].verts);
+        //        }
+        //    }
+        //}
         for (int i = 0; i < guiWin.vertexes.size(); i += 4) {
             batch.Push(&guiWin.vertexes[i]);
         }
@@ -671,5 +669,5 @@ void GuiPreview::Play(Window & window, glm::vec2 resolution, glm::vec2 windowSiz
     }
 }
 
-
+*/
 
