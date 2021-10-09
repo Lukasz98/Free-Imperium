@@ -34,19 +34,6 @@ struct List2 {
 
 std::vector<List2> lists;
 
-void drawLists()
-{
-    batch.Flush();
-    for (std::size_t i = 0; i < lists.size(); ++i) {
-        batch.Begin();
-        glScissor(lists[i].pos.x, lists[i].pos.y, lists[i].size.x, lists[i].size.y);
-        for (std::size_t j = 0; j < lists[i].v.size(); j += 4) {
-            batch.Push(&lists[i].v[j]);
-        }
-        batch.Flush();
-    }
-    lists.clear();
-}
 // struct Vertex {
 //    Vec3 pos;
 //    Vec4 color;
@@ -83,6 +70,40 @@ void drawRectToList(const glm::vec3& pos, const glm::vec2& size, const glm::vec4
     // lists[listId].v[lists[listId].v.size() - 2].pos += lists[listId].pos;
     // lists[listId].v[lists[listId].v.size() - 3].pos += lists[listId].pos;
     // lists[listId].v[lists[listId].v.size() - 4].pos += lists[listId].pos;
+}
+
+void drawLists()
+{
+    batch.Flush();
+    for (std::size_t i = 0; i < lists.size(); ++i) {
+        batch.Begin();
+        glScissor(lists[i].pos.x, lists[i].pos.y, lists[i].size.x, lists[i].size.y);
+        glm::vec2 rsize{5.0f, 10.0f};
+        if (lists[i].v.size() > 2) { // draw bar
+            float firsty = lists[i].v[1].pos.y;
+            float totalh = firsty - lists[i].lastY;
+            rsize.y = (lists[i].size.y / totalh) * lists[i].size.y;
+            if (rsize.y > lists[i].size.y - lists[i].ypadding * 2)
+                rsize.y = lists[i].size.y - lists[i].ypadding * 2;
+
+            float bottomYOffset = lists[i].pos.y - lists[i].lastY;
+            float tmp = bottomYOffset / totalh;
+            tmp *= lists[i].size.y;
+            glm::vec3 rpos{lists[i].pos.x + lists[i].size.x - rsize.x, lists[i].pos.y, lists[i].pos.z + 0.5f};
+            rpos.y = lists[i].pos.y + tmp;
+            if (rpos.y < lists[i].pos.y + lists[i].ypadding)
+                rpos.y = lists[i].pos.y + lists[i].ypadding;
+            else if (rpos.y + rsize.y > lists[i].pos.y + lists[i].size.y - lists[i].ypadding)
+                rpos.y = lists[i].pos.y + lists[i].size.y - rsize.y - lists[i].ypadding;
+            glm::vec4 rcol{1.0f, 0.0f, 0.0f, 1.0f};
+            drawRectToList(rpos, rsize, rcol, i);
+        }
+        for (std::size_t j = 0; j < lists[i].v.size(); j += 4) {
+            batch.Push(&lists[i].v[j]);
+        }
+        batch.Flush();
+    }
+    lists.clear();
 }
 
 int TEXT_CENTER = 2;
@@ -254,47 +275,45 @@ void drawText(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col,
     }
 }
 
-void doTestList(int scroll)
+void listScroll(int listid, int& scr)
+{
+    if (scr == 0 || lists[listid].v.size() == 0)
+        return;
+    int maxscr = (lists[listid].pos.y + lists[listid].ypadding) - lists[listid].lastY;
+    if (maxscr < 0)
+        maxscr = 0;
+    if (lists[listid].v[1].pos.y - scr < lists[listid].pos.y + lists[listid].size.y - lists[listid].ypadding)
+        scr = 0;
+    else {
+        if (scr < -maxscr)
+            scr = -maxscr;
+        for (std::size_t i = 0; i < lists[listid].v.size(); ++i) {
+            lists[listid].v[i].pos.y -= scr;
+        }
+        lists[listid].lastY -= scr;
+    }
+}
+
+void doTestList(int scroll, float dt)
 {
     static int scr = 0;
     int scrspeed = 10;
     scr -= scroll * scrspeed;
-    Log(scr);
     glm::vec3 lpos{300.0f, 250.0f, 0.1f};
     glm::vec2 lsize{100.0f, 200.0f};
     int listid = createList(lpos, lsize, brownCol);
-    for (int i = 0; i < 8; ++i) {
+    std::string text = std::to_string(dt);
+    for (int i = 0; i < 6; ++i) {
         glm::vec2 elSize{lsize.x, 40.0f};
         glm::vec3 elPos{lpos.x, lists[listid].lastY - lists[listid].ypadding - elSize.y, lpos.z + 0.01f};
         lists[listid].lastY = elPos.y;
         drawRectToList(elPos, elSize, greenCol, listid);
         glm::vec3 tElPos = elPos;
         tElPos.z += 0.01f;
-        drawTextToList(tElPos, elSize, brownCol, "Lukasz Kadracki", TEXT_CENTER, listid);
+        //drawTextToList(tElPos, elSize, brownCol, "Lukasz Kadracki", TEXT_CENTER, listid);
+        drawTextToList(tElPos, elSize, brownCol, text, TEXT_CENTER, listid);
     }
-    if (scr && lists[listid].v.size()) {
-        int maxscr = (lists[listid].pos.y + lists[listid].ypadding) - lists[listid].lastY;
-        //maxscr = (lists[listid].pos.y ) - lists[listid].lastY;
-        if (maxscr < 0) maxscr = 0;
-        Log(maxscr << " " << lists[listid].pos.y << " " << lists[listid].lastY);
-        if (lists[listid].v[1].pos.y - scr < lists[listid].pos.y + lists[listid].size.y - lists[listid].ypadding)
-            scr = 0;
-        //else if (lists[listid].lastY - scr > lists[listid].pos.y + lists[listid].ypadding){
-        else if (scr < -maxscr) {
-            scr = -maxscr;
-            //scr -= scroll * scrspeed;
-            for (std::size_t i = 0; i < lists[listid].v.size(); ++i) {
-                lists[listid].v[i].pos.y -= scr;
-            }}
-        else {
-            for (std::size_t i = 0; i < lists[listid].v.size(); ++i) {
-                lists[listid].v[i].pos.y -= scr;
-            }
-        }
-    }
-    // lists[listid].lastY -= scr;
-    // if (lists[listid].lastY > lists[listid].pos.y + lists[listid].size.y)
-    //    lists[listid].lastY = lists[listid].pos.y + lists[listid].size.y;
+    listScroll(listid, scr);
 }
 
 void GuiLast::start()
@@ -365,7 +384,7 @@ void GuiLast::start()
         // int createList((const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col)
         //}
 
-        doTestList(window->scrollOffset);
+        doTestList(window->scrollOffset, dt);
         window->scrollOffset = 0;
         drawLists();
 
