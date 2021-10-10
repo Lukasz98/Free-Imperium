@@ -16,7 +16,7 @@ add_compile_options(-std=c++17 -O0 -g)
 #add_compile_options(-std=c++17 -Wall -O0 -g)
 #add_compile_options(-std=c++17 -Wall -Wextra -O0 -g)
 
-file(GLOB SOURCES "src/*.cpp" "src/graphics/*.cpp" "src/gui/*.cpp" "src/gui_2/*.cpp" "../shared/shared_client/*.cpp" "../shared/*")
+file(GLOB SOURCES "src/*.cpp" "src/graphics/*.cpp" "src/gui/*.cpp" "src/gui_2/*.cpp" "src/gui_last/*.cpp" "../shared/shared_client/*.cpp" "../shared/*")
 add_executable("Word_and_Sword_client" ${SOURCES})
 
 target_link_libraries("Word_and_Sword_client" ${PROJECT_LINK_LIBS})
