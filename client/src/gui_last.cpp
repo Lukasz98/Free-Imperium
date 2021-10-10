@@ -9,42 +9,53 @@
 Window* window;
 glm::vec2 res, winSize;
 
-//Batch batch;
+// Batch batch;
 void GuiLast::init(Window* win, glm::vec2 resolution, glm::vec2 windowSize)
 {
     // camera = Camera{window.GetSize()};
     res = resolution;
     winSize = windowSize;
     window = win;
-    
+
     guiBatchInit();
-    //batch.Init();
+    // batch.Init();
 }
-
-
 
 glm::vec4 brownCol{56.0f / 255.0f, 31.0f / 255.0f, 19.0f / 255.0f, 1.0f};
 glm::vec4 greenCol{0.0f / 255.0f, 255.0f / 255.0f, 0.0f / 255.0f, 1.0f};
 
+//void dragWin(glm::vec3 & pos, glm::vec3 & delta, int mx, int my, bool lpress, bool lclicked)
+//{
+//
+//}
 
-void doTestList(int scroll, int mx, int my, float dt)
+void doTestList(int scroll, int mx, int my, float dt, bool lpress, bool lclicked)
 {
     static int scr = 0;
     int scrspeed = 10;
-    glm::vec3 lpos{300.0f, 250.0f, 0.1f};
+    static glm::vec3 delta{0.0f, 0.0f, 0.0f};
+    static glm::vec3 lpos{300.0f, 250.0f, 0.1f};
     glm::vec2 lsize{100.0f, 200.0f};
-    
+    if (delta.x != 0.0f && delta.y != 0.0f) {
+        lpos.x = ((float)mx - (delta.x));
+        lpos.y = ((float)my - (delta.y));
+    }
     bool minside = isInRect(lpos, lsize, mx, my);
-    if (minside);
+    if (minside)
         scr -= scroll * scrspeed;
-    
+    if (delta.x == 0.0f && delta.y == 0.0f && lpress && minside) {
+        delta = glm::vec3{(float)mx - lpos.x, (float)my - lpos.y, 0.0f};
+    }
+    else if (!lpress || !minside)
+        delta = glm::vec3{0.0f, 0.0f, 0.0f};
+
     std::size_t listid = createList(lpos, lsize, brownCol);
     std::string text = std::to_string(dt);
     float lastY = getListLastY(listid);
     float ypadding = getListYPadding(listid);
     int listElCount = 6;
     std::size_t lrectids[listElCount];
-    //ClickEvent ce[listElCount];
+    // ClickEvent ce[listElCount];
     for (int i = 0; i < listElCount; ++i) {
         glm::vec2 elSize{lsize.x, 40.0f};
         glm::vec3 elPos{lpos.x, lastY - ypadding - elSize.y, lpos.z + 0.01f};
@@ -52,17 +63,17 @@ void doTestList(int scroll, int mx, int my, float dt)
         lrectids[i] = drawRectToList(elPos, elSize, greenCol, listid);
         glm::vec3 tElPos = elPos;
         tElPos.z += 0.01f;
-        //drawTextToList(tElPos, elSize, brownCol, "Lukasz Kadracki", TEXT_CENTER, listid);
+        // drawTextToList(tElPos, elSize, brownCol, "Lukasz Kadracki", TEXT_CENTER, listid);
         drawTextToList(tElPos, elSize, brownCol, text, TEXT_CENTER, listid);
     }
     setListLastY(listid, lastY);
     listScroll(listid, scr);
-    
-    if (minside)
-    for (int i = 0; i < listElCount; ++i) {
-        if (isInRectList(listid, lrectids[i], mx, my))
-            Log("clicked " << i);
-    }
+
+    if (minside && lclicked)
+        for (int i = 0; i < listElCount; ++i) {
+            if (isInRectList(listid, lrectids[i], mx, my))
+                Log("clicked " << i);
+        }
 }
 
 void GuiLast::start()
@@ -103,7 +114,7 @@ void GuiLast::start()
         }
 
         guiBatchBegin();
-        //batch.Begin();
+        // batch.Begin();
         glm::vec3 pos{10.0f, 135.0f, 0.0f};
         glm::vec2 size{100.0f, 200.0f};
 
@@ -113,13 +124,13 @@ void GuiLast::start()
 
         drawText(tpos, tsize, greenCol, "Lukasz Kadracki", TEXT_CENTER);
 
-
-        doTestList(window->scrollOffset, mousePos.x, mousePos.y, dt);
+        doTestList(window->scrollOffset, mousePos.x, mousePos.y, dt, window->mouseL, window->mouseLClicked);
         window->scrollOffset = 0;
+        window->mouseLClicked = false;
         drawLists();
-        
+
         guiBatchFlush();
-        //batch.Flush();
+        // batch.Flush();
 
         window->Update();
         dt = glfwGetTime() - time;
