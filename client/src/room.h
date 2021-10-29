@@ -4,6 +4,7 @@
 #include "settings.h"
 //#include "country.h"
 #include "game.h"
+#include "gui_last.h"
 
 class Room : public Scene
 {
@@ -11,7 +12,6 @@ class Room : public Scene
     sf::Socket::Status status;
     Settings settings;
     std::vector<std::shared_ptr<Country>> & countries;
-    
     void loop(bool & play, std::string & country);
     void processGuiEvent( std::vector<sf::Packet> & toSend, bool & play);
     

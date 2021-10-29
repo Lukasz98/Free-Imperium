@@ -18,7 +18,7 @@ add_compile_options(-std=c++17 -Wall -Wextra -Wpedantic
 #-Wpointer-arith -Wcast-qual -Wmissing-prototypes -Wno-missing-braces
 )
 
-file(GLOB SOURCES "src/*.cpp")
+file(GLOB SOURCES "src/*.cpp" "../shared/*.cpp")
 add_executable("Word_and_Sword_server" ${SOURCES})
 
 target_link_libraries("Word_and_Sword_server" ${PROJECT_LINK_LIBS})

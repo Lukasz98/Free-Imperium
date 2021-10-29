@@ -15,8 +15,8 @@
 
 #include "new_map.h"
 
-#define GUI_LAST 1
-#define MAP_TEST 1
+#define GUI_LAST 0
+#define MAP_TEST 0
 #define BATCH_TEST 0
 #define GUI_PREVIEW 0
 #if GUI_PREVIEW
@@ -53,12 +53,12 @@ int main()
    AM::Init();
 #if GUI_LAST
 
-    GuiLast::init(&window, resolution, windowSize);
-    GuiLast::start();
+    //GuiLast::init(&window, resolution, windowSize);
+    //GuiLast::start();
 #elif MAP_TEST
     //newMapTest(window, resolution, windowSize);
-    GuiLast::init(window, resolution, windowSize);
-    GuiLast::start();
+    //GuiLast::init(window, resolution, windowSize);
+   // GuiLast::start();
 #elif GUI_PREVIEW
     GuiPreview::Play(window, resolution, windowSize);
 #elif BATCH_TEST
