@@ -7,9 +7,10 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 set ( PROJECT_LINK_LIBS  -lpng16 -lstdc++fs -lsfml-system -lsfml-network )
 
-include_directories( "usr/include" "../shared/" "src/")
+include_directories( "usr/include" "../shared" "../shared/" "src/")
 
-add_compile_options(-std=c++17 -Wall -Wextra -Wpedantic
+#add_compile_options(-std=c++17 -Wall -Wextra -Wpedantic
+add_compile_options(-std=c++17  -g
 #-Wconversion
 #-Wcast-align
 -Wunused

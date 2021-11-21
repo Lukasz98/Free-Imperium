@@ -1,40 +1,52 @@
 #pragma once
-#include <memory>
 #include <cassert>
-
 #include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <memory>
+#include <map>
 
 #include "map.h"
 //#include "graphics/window.h"
 //#include "graphics/shader.h"
+#include "battle.h"
 #include "camera.h"
-#include "gui/gui_bridge.h"
-
 #include "country.h"
 #include "country_loader.h"
+#include "gui/gui_bridge.h"
+#include "gui_aid.h"
+#include "peace_offer.h"
+#include "process_packet.h"
 #include "province.h"
 #include "province_loader.h"
-#include "gui_aid.h"
+#include "scene.h"
 #include "unit.h"
 #include "war.h"
-#include "battle.h"
-#include "process_packet.h"
-#include "peace_offer.h"
-#include "scene.h"
+#include "map2.h"
 
-class Game : public Scene
-{
-    sf::TcpSocket & socket;
-    //Shader shader;
-    //Window & window;
+class Game : public Scene {
+    sf::TcpSocket& socket;
+    Shader pickModelShader;
+    Model3D model3d;
+    std::vector<glm::mat4> uMat;
+    std::vector<int> pids; // chyba trzyma id prowincji na ktorych sa unity
+    std::map<unsigned int, int> colorToId;
+    // Shader shader;
+    // Window & window;
     Map map;
-    //Camera camera;
-    //Gui gui;
+    std::unique_ptr<Map2> map2;
+    glm::vec3 clickedProvColor;
+    unsigned int clickedProviPhash;
+    float markedProvId = -1.0f;
+    glm::vec3 unitPos;
+    float scale = 4.0f;
+    std::unique_ptr<Texture> heightMap;
+    int mapWidth = 5632, mapHeight = 2048;
+    // Camera camera;
+    // Gui gui;
     glm::vec2 windowSize, resolution;
     float dt = 0.0f, drawDt = 0.0f;
-    
+
     std::vector<sf::Packet> toSend;
     std::shared_ptr<Country> myCountry;
     std::vector<std::shared_ptr<Country>> countries;
@@ -43,21 +55,22 @@ class Game : public Scene
     std::vector<War> wars;
     std::vector<std::unique_ptr<Battle>> battles;
     std::vector<PeaceOffer> peaceOffers;
-    
+
     void setCountryMap();
     void receivePackets();
     void processPacket(sf::Packet packet);
     void input();
     bool provClick(glm::vec2 mouseInWorld);
     bool unitClick(glm::vec2 mouseInWorld);
-    void unitMove(std::unordered_map<std::string,std::string> & values, glm::vec2 mouseInWorld);
+    void unitMove(std::unordered_map<std::string, std::string>& values, glm::vec2 mouseInWorld);
     void processGuiEvent();
     void sendPackets();
     void updateBattles();
     void updateGui();
-    
-public:
-    Game(Window & win, sf::TcpSocket & sock, std::string countryName, glm::vec2 res, std::vector<std::shared_ptr<Country>> & countries);
+
+   public:
+    Game(Window& win, sf::TcpSocket& sock, std::string countryName, glm::vec2 res,
+         std::vector<std::shared_ptr<Country>>& countries);
     ~Game();
 
     void Play();

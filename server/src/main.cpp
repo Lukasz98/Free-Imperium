@@ -16,7 +16,7 @@ int main()
     }
 
     auto countries = CountryLoader::Load();
-    
+    Log("ctrs size="<<countries.size());
     bool room = true, start = false;
     while (room) {
         auto client = std::make_shared<Client>();
@@ -41,7 +41,7 @@ int main()
                     Log(messg);
                     Log((int)clients.size());
                     c->SetName(messg);
-                    c->SetCountryName("Poland");
+                    c->SetCountryName("Atlantyda");
                     
                     Log(messg);
 

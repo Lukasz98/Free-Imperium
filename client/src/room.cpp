@@ -48,6 +48,8 @@ void Room::Play(bool localhost)
 
 void Room::loop(bool & play, std::string & country)
 {
+    std::vector<sf::Packet> toSend;
+    /*
     //std::vector<std::string> players;
     std::vector<std::string> playersList;
     std::vector<sf::Packet> toSend;
@@ -122,8 +124,8 @@ void Room::loop(bool & play, std::string & country)
         dt = glfwGetTime() - time;
         time = glfwGetTime();
     }
+*/
 
-/*
     while (!window.ShouldClose()) {
         window.Refresh();
 
@@ -211,7 +213,7 @@ void Room::loop(bool & play, std::string & country)
             break;
         }
     }
-    */
+    
 }
 
 void Room::processGuiEvent(std::vector<sf::Packet> & toSend, bool & play)

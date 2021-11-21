@@ -11,7 +11,7 @@
 #include "color.h"
 #include "observer.h"
 #include "log.h"
-
+#include "prov_data.h"
 class Province //: public Subject
 {
     int id;
@@ -35,6 +35,7 @@ class Province //: public Subject
 public:
     Province() = delete;
     Province(int id, DataObj * data);
+    Province(const ProvData& pd);
     ~Province();
 
     Subject subject, siegeSubject;

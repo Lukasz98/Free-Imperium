@@ -7,6 +7,7 @@
 #include "month_cash.h"
 #include "data_object.h"
 #include "observer.h"
+#include "ctr_data.h"
 
 
 class Country
@@ -26,7 +27,8 @@ class Country
     
 public:
 
-    
+
+    Country(const CountryData& cd, const std::string& name);
     Country(DataObj * obj);
     ~Country();
 

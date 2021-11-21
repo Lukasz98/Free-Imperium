@@ -57,11 +57,12 @@ class Country
 public:
 
     Country(DataObj * obj);
+    Country(int id, int r, int g, int b, const std::string& name);
 
     MonthCash MonthUpdate();
 
-    void AddProvince(std::shared_ptr<Province> & p);
-    void RemoveProvince(std::shared_ptr<Province> & p);
+    void AddProvince(std::shared_ptr<Province> p);
+    void RemoveProvince(std::shared_ptr<Province> p);
 
     void AddWar(War * w);
     void RemoveWar(War * w);

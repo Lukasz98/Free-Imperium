@@ -34,6 +34,22 @@ Province::Province(int id, DataObj * data)
         unitPosition.y = std::stoi(val); 
     }
 }
+Province::Province(const ProvData& pd)
+{
+    //pd.id, pd.r, pd.g, pd.b, pd.x, pd.y, pd.name, pd.ctrId
+    this->id = pd.id;
+
+    name = pd.name;//data->values["name:"];
+    development = 1;//std::stoi(data->values["development:"]);
+    country = std::string{"ctr "} + std::to_string(pd.ctrId);;//data->values["country:"];
+    population = 100000;//std::stoi(data->values["population:"]);
+    countryId = pd.ctrId;//std::stoi(data->values["countryId:"]);
+    color.r = pd.r;
+    color.g = pd.g;
+    color.b = pd.b;
+    unitPosition.x = pd.x;
+    unitPosition.y = pd.y;
+}
 
 Province::~Province()
 {

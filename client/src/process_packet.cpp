@@ -156,6 +156,8 @@ int manp = intData;
         for (auto & prov : provinces) {
             if (!prov->WasSiegeUpdated()) {
                 if (prov->GetSieged() != 0) {
+                    if (prov->GetCountryId() < 0) // its water
+                        continue;
                     assert(prov->GetCountryId() >= 0 && prov->GetCountryId() < countries.size());
                     auto sctr = countries.at(prov->GetCountryId());
                     //auto scIt = std::find_if(countries.begin(), countries.end(), [cccc = prov->GetCountry()](std::shared_ptr<Country> & ccc) {

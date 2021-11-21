@@ -24,7 +24,7 @@ struct Line {
     int x, y;
 };
 
-void f(std::vector<FontVertex>& vec, int ctrId, const std::vector<ProvData>& provinces,
+static void f(std::vector<FontVertex>& vec, int ctrId, const std::vector<ProvData>& provinces,
        const std::vector<std::vector<int>>& ctrProvs, int mapWidth, int mapHeight, int scale,
        const unsigned char* h)
 {

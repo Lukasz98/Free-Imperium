@@ -1,6 +1,8 @@
 #include "province_loader.h"
+#include "../shared/load_countries_data.h"
+#include "load_values_from_txt.h"
 
-
+/*
 std::vector<std::unique_ptr<Province>> ProvinceLoader::Load(const unsigned char * pixels, int width, int height)
 {
     std::vector<std::unique_ptr<Province>> provinces;
@@ -8,6 +10,15 @@ std::vector<std::unique_ptr<Province>> ProvinceLoader::Load(const unsigned char 
     loadFromFile(provinces);
     loadFromMap(provinces, pixels, width, height);
     
+    return provinces;
+}
+*/
+std::vector<std::unique_ptr<Province>> ProvinceLoader::Load(std::map<unsigned int, int>& colorToId)
+{
+    std::vector<std::unique_ptr<Province>> provinces;
+    std::vector<ProvData> provData = LoadProvincesData(colorToId);
+    for (auto& pd : provData)
+        provinces.emplace_back(std::make_unique<Province>(pd));
     return provinces;
 }
 

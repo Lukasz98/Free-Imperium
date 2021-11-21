@@ -5,10 +5,10 @@
 #include <fstream>
 #include <sstream>
 #include <experimental/filesystem>
+#include <map>
 
 #include "province.h"
 #include "data_object_loader.h"
-
 class ProvinceLoader
 {
     using vec = std::vector<std::shared_ptr<Province>>;
@@ -21,5 +21,6 @@ class ProvinceLoader
 public:
     ProvinceLoader() = delete;
 
-    static vec Load(const unsigned char * pixels, int width, int height);
+    //static vec Load(const unsigned char * pixels, int width, int height);
+    static std::vector<std::shared_ptr<Province>> Load(std::map<unsigned int, int>& colorToId);
 };

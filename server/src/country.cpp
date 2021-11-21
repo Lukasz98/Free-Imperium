@@ -19,6 +19,15 @@ Country::Country(DataObj * obj)
     color.b = (unsigned char)std::stoi(col);
 }
 
+Country::Country(int id, int r, int g, int b, const std::string& name)
+    : ownedByBoot(true), active(true), name(name), id(id)
+{
+    color.r = r;
+    color.g = g;
+    color.b = b;
+    culture = "some culture";
+    culture = "some religion";
+}
 MonthCash Country::MonthUpdate()
 {
     for (auto & ir : imprRel) {
@@ -41,12 +50,12 @@ MonthCash Country::MonthUpdate()
     return mc;
 }
 
-void Country::AddProvince(std::shared_ptr<Province> & p)
+void Country::AddProvince(std::shared_ptr<Province> p)
 {
     provinces.push_back(p);
 }
 
-void Country::RemoveProvince(std::shared_ptr<Province> & p)
+void Country::RemoveProvince(std::shared_ptr<Province> p)
 {
     for (auto it = provinces.begin(); it < provinces.end(); it++) {
         if ((*it)->GetId() == p->GetId()) {

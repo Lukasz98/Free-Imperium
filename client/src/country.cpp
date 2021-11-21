@@ -17,6 +17,17 @@ Country::Country(DataObj * obj)
     ss >> col;
     color.b = (unsigned char)std::stoi(col);
 }
+Country::Country(const CountryData& cd, const std::string& name)
+    : name(name)
+{
+    id = cd.id;//std::stoi(obj->values["id:"]);
+    culture = "some culture";//obj->values["culture:"];
+    religion = "some religion";//obj->values["religion:"];
+
+    color.r = cd.r;
+    color.g = cd.g;
+    color.b = cd.b;
+}
 
 Country::~Country()
 {
