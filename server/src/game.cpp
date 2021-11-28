@@ -95,7 +95,7 @@ void Game::updateAi()
         if (!c->IsOwnedByBoot() || !c->IsActive())
             continue;
 
-        //ai_newUnits(c);
+        // ai_newUnits(c);
         ai_manageProvincesOfInterest(c);
         ai_warDecisions(c);
         ai_units(c);
@@ -515,8 +515,8 @@ void Game::hourlyUpdate()
         std::vector<std::shared_ptr<Unit>> unitsToSend;
         for (auto& country : countries) {
             // sprawdzac czy client powinnien dostac te informacje o unitach
-            if (country->GetId() != cl->GetCountry()->GetId())
-                continue;
+            // if (country->GetId() != cl->GetCountry()->GetId())
+            //    continue;
             auto units = country->GetUnits();
             unitsToSend.insert(unitsToSend.end(), units.begin(), units.end());
         }
@@ -916,13 +916,15 @@ void Game::processPacket(std::shared_ptr<Client> client, sf::Packet& packet)
         ProcessPacket::MergeUnits(packet, client, provinces, toSend);
     }
     else if (type == "Speed") {
-        bool faster = false;
-        packet >> faster;
-        date.Speed(faster);
-        Packet newPack{true};
-        newPack << "Speed";
-        newPack << date.GetSpeed();
-        toSend.emplace_back(newPack);
+        int val;
+        packet >> val;
+        if (val > 0 && val <= 5) {
+            date.Speed(val);
+            Packet newPack{true};
+            newPack << "Speed";
+            newPack << date.GetSpeed();
+            toSend.emplace_back(newPack);
+        }
     }
     else if (type == "Stop") {
         if (date.IsPaused())

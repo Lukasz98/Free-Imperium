@@ -174,7 +174,7 @@ int manp = intData;
     
 }
 
-void ProcessPacket::HourlyUpdate(sf::Packet & packet, std::vector<std::shared_ptr<Unit>> & units, std::vector<std::unique_ptr<Battle>> & battles, float mapChunkScale)
+void ProcessPacket::HourlyUpdate(sf::Packet & packet, std::vector<std::shared_ptr<Unit>> & units, std::vector<std::unique_ptr<Battle>> & battles, float mapChunkScale, const unsigned char* height, int mapWidth)
 {
     int unitCount;
     packet >> unitCount;
@@ -186,9 +186,9 @@ void ProcessPacket::HourlyUpdate(sf::Packet & packet, std::vector<std::shared_pt
         packet >> uPos.x;
         packet >> uPos.y;
         packet >> uPos.z;
+        uPos.z = (float)height[(int)(uPos.x * 3 + uPos.y * mapWidth * 3)];
        	uPos.x *= mapChunkScale;
     	uPos.y *= mapChunkScale;
-        uPos.z = 10.0f;
 
         int movesCount = 0;
         packet >> movesCount;
@@ -199,8 +199,11 @@ void ProcessPacket::HourlyUpdate(sf::Packet & packet, std::vector<std::shared_pt
             packet >> v.x;
             packet >> v.y;
             packet >> v.z;
-    	    v.x*=2;
-    	    v.y*=2;
+            v.z = (float)height[(int)(v.x * 3 + v.y * mapWidth * 3)];
+       	v.x *= mapChunkScale;
+    	v.y *= mapChunkScale;
+    	  //  v.x*=2;
+               // v.y*=2;
             moves.push_back(v);
         }
 
@@ -293,7 +296,7 @@ void ProcessPacket::NewWar(sf::Packet & packet, std::vector<War> & wars, int myC
         auto defender = countries.at(defenderId);
 
         std::string rival = (myCountryId == attackerId) ? defender->GetName() : attacker->GetName();
-        Gui::SideBar::AddWarIcon(id, rival);
+        //Gui::SideBar::AddWarIcon(id, rival);
 
 /*
         DataObj * obj = new DataObj{"label"};

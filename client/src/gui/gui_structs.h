@@ -45,7 +45,7 @@ struct TopBarData
             dateSpeed = dateSp;
             vals.push_back({2, 4, itos(dateSpeed)});
         }
-        if (vals.size())
-            subject.Notify(vals);
+        //if (vals.size())
+        //    subject.Notify(vals);
     }
 }; 

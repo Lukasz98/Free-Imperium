@@ -16,4 +16,20 @@ namespace PreparePacket {
         return packet;
     }
 
+    static sf::Packet SetSpeed(int val)
+    {
+        sf::Packet packet;
+        packet << "Speed";
+        packet << val;
+        return packet;
+    }
+    
+    static sf::Packet MoveUnit(int uid, int provid)
+    {
+        sf::Packet packet;
+        packet << "UnitMove";
+        packet << uid;
+        packet << provid;
+        return packet;
+    }
 }   

@@ -27,6 +27,10 @@ enum class ClickEventType {
     OPEN_PEACE_OFFERT = 17,
     REJECT_PEACE_OFFER = 18,
     ACCEPT_PEACE_OFFER = 19,
+    OPEN_MY_COUNTRY = 20,
+    OPEN_COUNTRY_FROM_PROV = 21,
+    CREATE_UNIT = 22,
+    SET_SPEED = 23,
 
     CLOSE_WINDOW
 };

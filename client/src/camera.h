@@ -33,6 +33,7 @@ public:
 public:
     Camera(glm::vec2 winSize);
 
+    void SetPos(float x, float y);
     void MoveHor(int x, float dt);
     void MoveVer(int y, float dt);
 

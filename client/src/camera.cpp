@@ -32,6 +32,13 @@ Camera::Camera(glm::vec2 winSize)
     setPlanes();
 }
 
+void Camera::SetPos(float x, float y)
+{
+    eye.x = x;
+    eye.y = y;
+    setPlanes();
+}
+
 void Camera::MoveHor(int x, float dt)
 {
     eye.x += speed * x * dt;

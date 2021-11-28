@@ -13,8 +13,8 @@
 #include "camera.h"
 #include "country.h"
 #include "country_loader.h"
-#include "gui/gui_bridge.h"
-#include "gui_aid.h"
+//#include "gui/gui_bridge.h"
+//#include "gui_aid.h"
 #include "peace_offer.h"
 #include "process_packet.h"
 #include "province.h"
@@ -23,7 +23,7 @@
 #include "unit.h"
 #include "war.h"
 #include "map2.h"
-
+#include "gui_last.h"
 class Game : public Scene {
     sf::TcpSocket& socket;
     Shader pickModelShader;
@@ -35,6 +35,7 @@ class Game : public Scene {
     // Window & window;
     Map map;
     std::unique_ptr<Map2> map2;
+    GuiLast::Gui guiLast;
     glm::vec3 clickedProvColor;
     unsigned int clickedProviPhash;
     float markedProvId = -1.0f;
@@ -42,6 +43,13 @@ class Game : public Scene {
     float scale = 4.0f;
     std::unique_ptr<Texture> heightMap;
     int mapWidth = 5632, mapHeight = 2048;
+    GuiLast::GuiEv ctype;
+bool openMyCountry = false;
+int openCountryId = -1;
+int openProvId = -1;
+int openUnitId = -1;
+bool openUnitsList = false;
+std::vector<int> clickedUnits;
     // Camera camera;
     // Gui gui;
     glm::vec2 windowSize, resolution;
@@ -60,13 +68,15 @@ class Game : public Scene {
     void receivePackets();
     void processPacket(sf::Packet packet);
     void input();
-    bool provClick(glm::vec2 mouseInWorld);
+    int provClick(glm::vec2 mouseInWorld);
     bool unitClick(glm::vec2 mouseInWorld);
     void unitMove(std::unordered_map<std::string, std::string>& values, glm::vec2 mouseInWorld);
     void processGuiEvent();
     void sendPackets();
     void updateBattles();
     void updateGui();
+    
+    void guiDraw();
 
    public:
     Game(Window& win, sf::TcpSocket& sock, std::string countryName, glm::vec2 res,

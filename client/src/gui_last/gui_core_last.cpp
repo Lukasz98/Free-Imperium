@@ -1,4 +1,5 @@
 #include "gui_core_last.h"
+#include "../gui/gui_structs.h"
 
 Batch batch;
 std::vector<List2> lists;
@@ -152,12 +153,12 @@ void drawTextToList(const glm::vec3& pos, const glm::vec2& size, const glm::vec4
 }
 
 void drawText(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col, const std::string& text,
-              int flags)
+              int flags, AM::FontSize fontSize)
 {
     glm::vec3 textPos = pos;
     // GLuint tid = AM::atlasTexture[AM::FontSize::PX32]->GetId();
     // GLuint tid = (int)fontSize;
-    AM::FontSize fontSize = AM::FontSize::PX16;
+    //AM::FontSize fontSize = AM::FontSize::PX16;
     // GLuint tid = AM::atlasTexture[fontSize]->GetId();
     GLuint tid = (GLuint)fontSize;
     // GLuint tid = AM::atlasTexture[AM::FontSize::PX16]->GetId();
@@ -307,4 +308,7 @@ bool isInRectList(std::size_t listid, std::size_t vid, int mx, int my)
 }
 
 
+//ClickEventType drawTopBar(const TopBarData& td, const glm::vec2 & resolution)
+//{
 
+//}

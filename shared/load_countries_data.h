@@ -85,7 +85,8 @@ inline std::vector<ProvData> LoadProvincesData(std::map<unsigned int, int>& colo
             if (strcmp(ptr, "}") == 0) {
                 //provinces.push_back(pd);
                 //provinces.emplace_back(std::make_shared<Province>(pd.id, pd.r, pd.g, pd.b, pd.x, pd.y, pd.name, pd.ctrId));
-                provinces.emplace_back(ProvData{.name = pd.name, .r = pd.r, .g = pd.g, .b = pd.b, .id = pd.id, .ctrId = pd.ctrId, .x = pd.x, .y = pd.y});
+               // provinces.emplace_back(ProvData{.name = pd.name, .r = pd.r, .g = pd.g, .b = pd.b, .id = pd.id, .ctrId = pd.ctrId, .x = pd.x, .y = pd.y});
+                provinces.emplace_back(pd);
                 colorToId[getHash(pd.r, pd.g, pd.b)] = pd.id;
                 break;
             }

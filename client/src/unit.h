@@ -98,12 +98,12 @@ public:
     void UpdateGuiWin();
 
     inline int GetCountryId() const { return countryId; }
-    inline int GeProvId() const { return provId; }
-    std::string GetName() { return name; }
-    std::string GetCountry() { return country; }
+    inline int GetProvId() const { return provId; }
+    std::string GetName() const { return name; }
+    std::string GetCountry() const { return country; }
     int GetMorale() { return morale; }
     int GetId() { return id; }
-    int GetSoldiers() { return soldiers; }
+    int GetSoldiers() const { return soldiers; }
     int GetAttack() { return attack; }
     int GetDefense() { return defense; }
     glm::vec3 GetFakePos() { return fakePos; }

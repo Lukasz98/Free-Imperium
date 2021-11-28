@@ -98,12 +98,9 @@ public:
         }
     }
 
-    void Speed(bool faster)
+    void Speed(int val)
     {
-        if (faster && speed < 5)
-            speed++;
-        else if (!faster && speed > 1)
-            speed--;
+        speed = val;
     }
 
     std::string GetDate()

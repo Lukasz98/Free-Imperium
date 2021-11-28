@@ -21,7 +21,8 @@ std::vector<std::shared_ptr<Province>> ProvinceLoader::Load(std::map<unsigned in
     std::vector<std::shared_ptr<Province>> provinces;
     std::vector<ProvData> provData = LoadProvincesData(colorToId);
     for (auto& pd : provData)
-        provinces.emplace_back(std::make_shared<Province>(pd.id, pd.r, pd.g, pd.b, pd.x, pd.y, pd.name, pd.ctrId));
+        provinces.emplace_back(std::make_shared<Province>(pd));
+        //provinces.emplace_back(std::make_shared<Province>(pd.id, pd.r, pd.g, pd.b, pd.x, pd.y, pd.name, pd.ctrId));
     return provinces;
 }
 void ProvinceLoader::loadFromFile(vec & provinces)

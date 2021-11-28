@@ -50,7 +50,7 @@ void drawTextToList(const glm::vec3& pos, const glm::vec2& size, const glm::vec4
                     int flags, std::size_t listid);
 
 void drawText(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col, const std::string& text,
-              int flags);
+              int flags, AM::FontSize fontSize = AM::FontSize::PX16);
 
 void listScroll(int listid, int& scr);
 
@@ -61,4 +61,6 @@ void guiBatchInit();
 void guiBatchBegin();
 void guiBatchFlush();
 
+
+//ClickEventType drawTopBar(const TopBarData& td, const glm::vec2 & resolution);
 
