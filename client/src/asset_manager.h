@@ -15,6 +15,7 @@ struct AM
     std::unique_ptr<Shader> shader;
     std::unique_ptr<Shader> modelInstancedShader;
     std::unique_ptr<Texture> modelTexture;
+    std::unique_ptr<Texture> iconsTexture;
 
     GLuint fontAtlas;
     struct AtlasInfo

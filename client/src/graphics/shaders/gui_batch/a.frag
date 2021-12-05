@@ -13,6 +13,12 @@ void main()
     if (TextureID == 443) {
         gl_FragColor = Color;
     }
+    else if (TextureID == 31) {
+        vec4 c = texture(tex[int(TextureID + 0.5)], TexCoord);
+        gl_FragColor = c;
+//        gl_FragColor = vec4(TexCoord.x, TexCoord.y , 0.0,1.0);
+
+    }
     else {
         vec4 c = texture(tex[int(TextureID + 0.5)], TexCoord);
         //vec4 c = texture(tex[1], TexCoord);

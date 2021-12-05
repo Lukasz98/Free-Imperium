@@ -48,13 +48,12 @@ GuiLast::GuiEv GuiLast::Gui::game_topBar(const TopBarData& td, int mx, int my)
 
         glm::vec2 dateGrpSize{150.0f, wSize.y - 2.0f * offset.y};
         glm::vec3 dateGrpPos{wPos.x + wSize.x - dateGrpSize.x - offset.x - 30, wPos.y + offset.y, 0.1f};
-        
+
         glm::vec2 dateSize{dateGrpSize.x - 2 * offset.x, 25.0f};
         glm::vec3 datePos{dateGrpPos.x + offset.x, dateGrpPos.y + offset.y, dateGrpPos.z + 0.05f};
         drawText(datePos, dateSize, brown, td.date, TEXT_CENTER);
         datePos.y += dateSize.y + offset.y;
         drawText(datePos, dateSize, brown, std::string{"speed: "} + std::to_string(td.dateSpeed), TEXT_CENTER);
-        
 
         glm::vec2 arrowSize{25.0f, dateSize.y};
         glm::vec3 arrowPos{datePos.x - arrowSize.x, datePos.y, datePos.z};
@@ -67,7 +66,7 @@ GuiLast::GuiEv GuiLast::Gui::game_topBar(const TopBarData& td, int mx, int my)
         if (isInRect(arrowPos, arrowSize, mx, my) && td.dateSpeed + 1 <= 5)
             ct = GuiLast::GuiEv{ClickEventType::SET_SPEED, td.dateSpeed + 1};
     }
-    
+
     if (ct.ct != ClickEventType::MISS)
         return ct;
     if (isInRect(ctrPos, ctrSize, mx, my))
@@ -106,6 +105,7 @@ GuiLast::GuiEv GuiLast::Gui::game_myCountry(const Country& ctr, int mx, int my)
 
 GuiLast::GuiEv GuiLast::Gui::game_country(const Country& ctr, int mx, int my)
 {
+    GuiLast::GuiEv ct{ClickEventType::MISS};
     glm::vec2 offset{5.0f, 2.5f};
     glm::vec2 wSize{res.x * 0.3f, res.y * 0.65f};
     glm::vec3 wPos{offset.x, offset.y, 0.1f};
@@ -124,6 +124,17 @@ GuiLast::GuiEv GuiLast::Gui::game_country(const Country& ctr, int mx, int my)
     glm::vec3 valuePos{namePos.x + nameSize.x + offset.x, namePos.y, namePos.z};
     drawText(valuePos, valueSize, greenCol, ctr.GetName(), TEXT_LEFT, AM::FontSize::PX16);
 
+    namePos.y -= nameSize.y - offset.y;
+    valuePos.y -= valueSize.y - offset.y;
+    drawRect(namePos, nameSize, weirdBrown);
+    namePos.z += 0.1;
+    drawText(namePos, nameSize, greenCol, "Declare war", TEXT_LEFT, AM::FontSize::PX16);
+    namePos.z -= 0.1;
+    if (isInRect(namePos, nameSize, mx, my))
+        ct = GuiLast::GuiEv{ClickEventType::DECLARE_WAR, ctr.GetId()};
+
+    if (ct.ct != ClickEventType::MISS)
+        return ct;
     if (isInRect(closePos, closeSize, mx, my))
         return GuiLast::GuiEv{ClickEventType::CLOSE_WINDOW};
     if (isInRect(wPos, wSize, mx, my))
@@ -268,6 +279,42 @@ GuiLast::GuiEv GuiLast::Gui::game_unitsList(const std::vector<Unit*>& units, int
     return GuiLast::GuiEv{ClickEventType::MISS};
 }
 
+GuiLast::GuiEv GuiLast::Gui::game_SideBar(const SideBarData& sbData, int mx, int my, bool clicked)
+{
+    GuiLast::GuiEv ct{ClickEventType::MISS};
+    glm::vec2 offset{5.0f, 2.5f};
+    glm::vec2 wSize{res.x * 0.05f, res.y * 0.65f};
+    glm::vec3 wPos{res.x - offset.x - wSize.x, wSize.y * 0.25f, 0.1f};
+
+    drawRect(wPos, wSize, darkBrown);
+
+    glm::vec2 elSize{wSize.x, wSize.x};
+    glm::vec3 startPos{wPos.x, wPos.y + wSize.y - elSize.y, 0.2f};
+    glm::vec2 elTextSize{200.0f, wSize.x};
+    glm::vec3 startTextPos{startPos.x - elTextSize.x, startPos.y, startPos.z};
+    for (std::size_t i = 0; i < sbData.elements.size(); ++i) {
+        if (isInRect(startPos, elSize, mx, my)) {
+            drawRect(startTextPos, elTextSize, darkBrown);
+            drawText(startTextPos, elTextSize, greenCol, sbData.elements[i].hoverText, TEXT_LEFT,
+                     AM::FontSize::PX16);
+        }
+        drawIcon(startPos, elSize, (int)sbData.elements[i].type);
+
+        if (isInRect(startPos, elSize, mx, my))
+            ct = GuiLast::GuiEv{ClickEventType::SIDEBAR_LEFTC, i};
+        startPos.y -= elSize.y - offset.y;
+        startTextPos.y = startPos.y;
+    }
+
+    if (ct.ct != ClickEventType::MISS)
+        return ct;
+    //    if (isInRect(closePos, closeSize, mx, my))
+    //        return GuiLast::GuiEv{ClickEventType::CLOSE_WINDOW};
+    if (isInRect(wPos, wSize, mx, my))
+        return GuiLast::GuiEv{ClickEventType::NONE};
+    return GuiLast::GuiEv{ClickEventType::MISS};
+}
+
 void GuiLast::Gui::room_playerListDraw(const std::vector<std::string>& playersList)
 {
     int scroll = false;
@@ -391,6 +438,9 @@ void GuiLast::Gui::start()
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, (GLuint)fontTexID[i]);
     }
+    fontTexID[31] = AM::am.iconsTexture->GetId();
+    glActiveTexture(GL_TEXTURE0 + 31);
+    glBindTexture(GL_TEXTURE_2D, (GLuint)fontTexID[31]);
     glUniform1iv(glGetUniformLocation(shader.GetProgram(), "tex"), 32, tex);
     guiBatchBegin();
     /*

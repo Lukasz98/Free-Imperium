@@ -52,6 +52,8 @@ void drawTextToList(const glm::vec3& pos, const glm::vec2& size, const glm::vec4
 void drawText(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col, const std::string& text,
               int flags, AM::FontSize fontSize = AM::FontSize::PX16);
 
+void drawIcon(const glm::vec3& pos, const glm::vec2& size, int iconId);
+
 void listScroll(int listid, int& scr);
 
 float getListLastY(std::size_t listid);

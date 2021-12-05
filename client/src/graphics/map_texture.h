@@ -9,10 +9,10 @@ struct MapTexture
 {
     GLuint id = 0;
     unsigned char * pix = nullptr;
-
+    int w = 0, h = 0;
     ~MapTexture();
 
-    void Update(int w, int h);
+    void Update();
 };
 
 

@@ -31,12 +31,13 @@ struct Move
     std::shared_ptr<Arrow> arrow;
 };
 
-class Unit : public Rectangle //, public Subject
+class Unit// : public Rectangle //, public Subject
 {
+    public:
     glm::mat4 model, rotate;
     const float rotateX, yScale;
     //std::unique_ptr<Label> bar;
-
+    glm::vec3 position;
     // if those three will have different sizes
     // code will brake
     std::shared_ptr<Texture> texture[2];
@@ -64,10 +65,11 @@ class Unit : public Rectangle //, public Subject
 
 
 public:
-    Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string country, Color color, int ctrId, int provId);
+    //Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string country, Color color, int ctrId, int provId);
+    //Unit(int id, std::string name, glm::vec3 pos, int soldiers, int ctrId, const std::vector<glm::vec3>& moves);
     
-    Unit(const Unit & u) = delete;
-    
+//    Unit(const Unit & u) = delete;
+   Unit(); 
     ~Unit();
     
     Subject subject;
@@ -102,7 +104,7 @@ public:
     std::string GetName() const { return name; }
     std::string GetCountry() const { return country; }
     int GetMorale() { return morale; }
-    int GetId() { return id; }
+    int GetId() const { return id; }
     int GetSoldiers() const { return soldiers; }
     int GetAttack() { return attack; }
     int GetDefense() { return defense; }

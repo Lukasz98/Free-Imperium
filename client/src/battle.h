@@ -9,27 +9,30 @@
 
 class Battle
 {
-    std::vector<std::shared_ptr<Unit>> attackers;
-    std::vector<std::shared_ptr<Unit>> defenders;
+    public:
+
+    std::vector<int> attackers;
+    std::vector<int> defenders;
 
     int id, warId, provId;
-    glm::vec3 position;
-    std::string provName;
-    bool updated = false;
+    //glm::vec3 position;
+    //std::string provName;
+    //bool updated = false;
     int attackersSize = 0;
     int defendersSize = 0;
     int attackersMorale = 0;
     int defendersMorale = 0;
-    std::string attacker = "";
-    std::string defender = "";
+    //std::string attacker = "";
+    //std::string defender = "";
     int attackerId, defenderId;
 
-   Subject subject;
+   //Subject subject;
 
 public:
-    Battle(int id, int warId, glm::vec3 pos, std::string prov, int provId);
+    //Battle(int id, int warId, glm::vec3 pos, std::string prov, int provId);
     ~Battle();
-    
+    inline int GetProvId() const { return provId; }
+    /*
     void Update();
     bool IsInFight(const std::shared_ptr<Unit> b);
     bool ShouldFight(const std::shared_ptr<Unit> b);
@@ -74,4 +77,5 @@ public:
     int GetWarId() const { return warId; }
     int GetId() const { return id; }
     glm::vec3 GetPos() const { return position; }
+*/
 };

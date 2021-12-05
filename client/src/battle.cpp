@@ -1,18 +1,18 @@
 #include "battle.h"
-    
+/*    
 Battle::Battle(int id, int warId, glm::vec3 pos, std::string prov, int provId)
    : id(id), warId(warId), provId(provId), position(pos), provName(prov)
 {
 }
-
+*/
 Battle::~Battle()
 {
 }
 
+    /*
 void Battle::Update()
 {
     //subject.Notify(GetValues());
-    /*
     attackersMorale = 0;
     defendersMorale = 0;
 
@@ -66,26 +66,24 @@ void Battle::Update()
             d->Kill(lost);
         }
     } 
-    */       
 }
-    /*
-bool Battle::IsInFight(const std::shared_ptr<Unit> b)
+bool Battle::IsInFight(int id)
 {
-    for (auto & a : attackers)
-        if (a->GetId() == b->GetId())
+    for (auto a : attackers)
+        if (a == id)
             return true;
 
-    for (auto & d : defenders)
-        if (d->GetId() == b->GetId())
+    for (auto d : defenders)
+        if (d == id)
             return true;
 
     return false;
 }
 
-bool Battle::ShouldFight(const std::shared_ptr<Unit> b)
+bool Battle::ShouldFight(int id)
 {
     for (auto & a : attackers)
-        if (a->GetCountryId() == b->GetCountryId())
+        if (a->GetCountryId() == id)
             return true;
         
     for (auto & d : defenders)
@@ -95,31 +93,32 @@ bool Battle::ShouldFight(const std::shared_ptr<Unit> b)
     return false;
 }
 */
-void Battle::AddAttacker(std::shared_ptr<Unit> p)
+/*
+void Battle::AddAttacker(int id, int ctr)
 {
     if (!attackers.size()) {
-        attackerId = p->GetCountryId();
-        attacker = p->GetCountry();
+        attackerId = ctr;
+        //attacker = ctr;
     }
     updated = true;
-    p->Battle(true, true);
-    attackers.push_back(p);
+    //p->Battle(true, true);
+    attackers.push_back(id);
     //subject.Notify(GetValues());
 }
     
-void Battle::AddDefender(std::shared_ptr<Unit> p)
+void Battle::AddDefender(int id, int ctr)
 {
     if (!defenders.size()) {
-        defenderId = p->GetCountryId();
-        defender = p->GetCountry();
+        defenderId = ctr;
+        //defender = p->GetCountry();
     }
     updated = true;
-    p->Battle(true, false);
-    defenders.push_back(p);
+    //p->Battle(true, false);
+    defenders.push_back(id);
     //subject.Notify(GetValues());
 }
 
-void Battle::AddUnit(std::shared_ptr<Unit> p)
+void Battle::AddUnit(int id, int ctr)
 {
     //updated = true;
     for (auto & a : attackers)
@@ -195,3 +194,4 @@ std::unordered_map<std::string, std::string> Battle::GetValues() const
 
     return result;
 }
+*/

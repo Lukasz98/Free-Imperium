@@ -1,4 +1,5 @@
 #include "gui_core_last.h"
+
 #include "../gui/gui_structs.h"
 
 Batch batch;
@@ -28,10 +29,9 @@ std::size_t drawRectToList(const glm::vec3& pos, const glm::vec2& size, const gl
     lists[listId].v.push_back(Vertex{.pos = glm::vec3{pos.x, pos.y + size.y, pos.z}, .color = col});
     lists[listId].v.push_back(Vertex{.pos = glm::vec3{pos.x + size.x, pos.y + size.y, pos.z}, .color = col});
     lists[listId].v.push_back(Vertex{.pos = glm::vec3{pos.x + size.x, pos.y, pos.z}, .color = col});
-    
+
     return lists[listId].v.size() - 4;
 }
-
 
 void drawLists()
 {
@@ -40,7 +40,7 @@ void drawLists()
         batch.Begin();
         glScissor(lists[i].pos.x, lists[i].pos.y, lists[i].size.x, lists[i].size.y);
         glm::vec2 rsize{5.0f, 10.0f};
-        if (lists[i].v.size() > 2) { // draw bar
+        if (lists[i].v.size() > 2) {  // draw bar
             float firsty = lists[i].v[1].pos.y;
             float totalh = firsty - lists[i].lastY;
             rsize.y = (lists[i].size.y / totalh) * lists[i].size.y;
@@ -66,7 +66,6 @@ void drawLists()
     }
     lists.clear();
 }
-
 
 void drawTextToList(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col, const std::string& text,
                     int flags, std::size_t listid)
@@ -158,7 +157,7 @@ void drawText(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col,
     glm::vec3 textPos = pos;
     // GLuint tid = AM::atlasTexture[AM::FontSize::PX32]->GetId();
     // GLuint tid = (int)fontSize;
-    //AM::FontSize fontSize = AM::FontSize::PX16;
+    // AM::FontSize fontSize = AM::FontSize::PX16;
     // GLuint tid = AM::atlasTexture[fontSize]->GetId();
     GLuint tid = (GLuint)fontSize;
     // GLuint tid = AM::atlasTexture[AM::FontSize::PX16]->GetId();
@@ -233,6 +232,23 @@ void drawText(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col,
     }
 }
 
+void drawIcon(const glm::vec3& pos, const glm::vec2& size, int iconId)
+{
+    float textWidth = AM::am.iconsTexture->GetWidth();
+    const float iconWidth = 50.0f;
+    float tcW = iconWidth / textWidth;
+    float tcX = iconId * tcW;
+    const float tid = 31;
+    //Log(iconId << " " << tcW << " " << textWidth);
+    Vertex v[] = {
+        Vertex{.pos = pos, .color = glm::vec4{}, .tc = glm::vec2{tcX, 0.0f}, .textureId = (float)tid},
+        Vertex{.pos = glm::vec3{pos.x, pos.y + size.y, pos.z}, .color = glm::vec4{}, .tc = glm::vec2{tcX, 1.0f}, .textureId = (float)tid},
+        Vertex{.pos = glm::vec3{pos.x + size.x, pos.y + size.y, pos.z}, .color = glm::vec4{}, .tc = glm::vec2{tcX + tcW, 1.0f}, .textureId = (float)tid},
+        Vertex{.pos = glm::vec3{pos.x + size.x, pos.y, pos.z}, .color = glm::vec4{}, .tc = glm::vec2{tcX + tcW, 0.0f}, .textureId = (float)tid}
+    };
+    batch.Push(v);
+}
+
 void listScroll(int listid, int& scr)
 {
     if (scr == 0 || lists[listid].v.size() == 0)
@@ -251,7 +267,6 @@ void listScroll(int listid, int& scr)
         lists[listid].lastY -= scr;
     }
 }
-
 
 float getListLastY(std::size_t listid)
 {
@@ -286,16 +301,12 @@ void guiBatchFlush()
     batch.Flush();
 }
 
-
-
-
-bool isInRect(const glm::vec3 & pos, const glm::vec2 & size, int mx, int my)
+bool isInRect(const glm::vec3& pos, const glm::vec2& size, int mx, int my)
 {
     if (mx > pos.x && mx < pos.x + size.x && my > pos.y && my < pos.y + size.y)
         return true;
     return false;
 }
-
 
 bool isInRectList(std::size_t listid, std::size_t vid, int mx, int my)
 {
@@ -307,8 +318,7 @@ bool isInRectList(std::size_t listid, std::size_t vid, int mx, int my)
     return false;
 }
 
-
-//ClickEventType drawTopBar(const TopBarData& td, const glm::vec2 & resolution)
+// ClickEventType drawTopBar(const TopBarData& td, const glm::vec2 & resolution)
 //{
 
 //}

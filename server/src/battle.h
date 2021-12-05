@@ -65,6 +65,8 @@ public:
         return "Floating fire";
     }
 
+    const std::vector<std::shared_ptr<Unit>>& GetAttackers() { return attackers; } 
+    const std::vector<std::shared_ptr<Unit>>& GetDefenders() { return defenders; }
     int GetAttackersSize() const { return attackersSize; }
     int GetDefendersSize() const { return defendersSize; }
     int GetWarId() const { return warId; }

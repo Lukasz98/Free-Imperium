@@ -31,6 +31,7 @@ enum class ClickEventType {
     OPEN_COUNTRY_FROM_PROV = 21,
     CREATE_UNIT = 22,
     SET_SPEED = 23,
+    SIDEBAR_LEFTC = 24,
 
     CLOSE_WINDOW
 };

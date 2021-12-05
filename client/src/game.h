@@ -24,6 +24,8 @@
 #include "war.h"
 #include "map2.h"
 #include "gui_last.h"
+#include "gui/gui_structs.h"
+
 class Game : public Scene {
     sf::TcpSocket& socket;
     Shader pickModelShader;
@@ -50,6 +52,7 @@ int openProvId = -1;
 int openUnitId = -1;
 bool openUnitsList = false;
 std::vector<int> clickedUnits;
+SideBarData sideBarData;
     // Camera camera;
     // Gui gui;
     glm::vec2 windowSize, resolution;
@@ -59,11 +62,14 @@ std::vector<int> clickedUnits;
     std::shared_ptr<Country> myCountry;
     std::vector<std::shared_ptr<Country>> countries;
     std::vector<std::unique_ptr<Province>> provinces;
-    std::vector<std::shared_ptr<Unit>> units;
+    //std::vector<std::shared_ptr<Unit>> units;
+    std::vector<Unit> units;
     std::vector<War> wars;
-    std::vector<std::unique_ptr<Battle>> battles;
+    std::vector<Battle> battles;
     std::vector<PeaceOffer> peaceOffers;
 
+    std::vector<CountryData> ctrsData;
+    void editCountryMap2(MapTexture* mt);
     void setCountryMap();
     void receivePackets();
     void processPacket(sf::Packet packet);

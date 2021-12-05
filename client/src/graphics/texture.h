@@ -47,5 +47,5 @@ public:
     const unsigned char * GetOriginPixels() { return pixelsOrigin; }
     //virtual void SwapColors(Color bef, Color aft) {}//= 0;
     //virtual void BrightenProvince(Color bef, int increase) {}
-
+    int GetWidth() const { return originW; }
 };

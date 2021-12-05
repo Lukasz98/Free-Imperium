@@ -2,7 +2,6 @@
 
 #include "ctr_data.h"
 #include "font_batch.h"
-#include "gui/gui_structs.h"
 #include "load_data.h"
 #include "prov_data.h"
 #include "save_borders.h"
@@ -236,10 +235,30 @@ Game::Game(Window &win, sf::TcpSocket &sock, std::string countryName, glm::vec2 
     }
     else
         Log("There is no country for you ;(");
+
+    // sidebar
+    sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText = "test 1"});
+    sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText = "test 2"});
+    sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText = "test 3"});
+    sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText = "test 4"});
+    sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText = "test 5"});
+
+    //
+
     ctype = ClickEventType::MISS;
 }
 
 Game::~Game() {}
+        
+void Game::editCountryMap2(MapTexture* mt)
+{
+        for (std::size_t i = 0; i < provinces.size(); ++i) {
+            map2->mapTextures.country.pix[i * 3 + 0] = ctrsData[provinces[i]->GetCountryId()].r;
+            map2->mapTextures.country.pix[i * 3 + 1] = ctrsData[provinces[i]->GetCountryId()].g;
+            map2->mapTextures.country.pix[i * 3 + 2] = ctrsData[provinces[i]->GetCountryId()].b;
+        }
+        map2->mapTextures.country.Update();
+}
 
 void Game::setCountryMap()
 {
@@ -301,12 +320,11 @@ void Game::Play()
     }
 
     // saveProvinceFromImg(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
-    std::vector<ProvData> provinces;
-    std::vector<CountryData> ctrsData;
+    std::vector<ProvData> provsData;
     std::vector<std::vector<int>> ctrProvs;
     std::map<unsigned int, int> colorToId;
     std::map<int, Node> nodes;
-    loadProvData(provinces, colorToId);
+    loadProvData(provsData, colorToId);
     loadCountriesData(ctrsData);
     ctrProvs.reserve(ctrsData.size());
 
@@ -333,13 +351,13 @@ void Game::Play()
     GLuint fontCtrVao, fontCtrVbo;
     {
         for (std::size_t i = 0; i < ctrsData.size(); ++i) ctrProvs.push_back(std::vector<int>{});
-        for (auto &pd : provinces) {
+        for (auto &pd : provsData) {
             if (pd.ctrId == -1)
                 continue;
             ctrProvs[pd.ctrId].push_back(pd.id);
         }
         for (std::size_t i = 0; i < ctrsData.size(); ++i) {
-            f(fontVerts, ctrsData[i].id, provinces, ctrProvs, mapWidth, mapHeight, scale, h);
+            f(fontVerts, ctrsData[i].id, provsData, ctrProvs, mapWidth, mapHeight, scale, h);
         }
         Log("fontVerts.size = " << fontVerts.size());
         glCreateVertexArrays(1, &fontCtrVao);
@@ -382,27 +400,26 @@ void Game::Play()
 
     std::vector<Color3> provsCols;
     provsCols.reserve(provinces.size());
-    for (auto &p : provinces) provsCols.push_back(Color3{p.r, p.g, p.b});
+    for (auto &p : provsData) provsCols.push_back(Color3{p.r, p.g, p.b});
 
     map2 = std::make_unique<Map2>(h, mapWidth, mapHeight, provsCols, scale, heightMap->GetId());
     map2->ReloadShaders();
     {
         map2->mapTextures.country.pix = new unsigned char[provinces.size() * 3];
         map2->mapTextures.province.pix = new unsigned char[provinces.size() * 3];
+        map2->mapTextures.country.w = provinces.size();
+        map2->mapTextures.country.h = 1;
+        map2->mapTextures.province.w = provinces.size();
+        map2->mapTextures.province.h = 1;
 
+        editCountryMap2(&map2->mapTextures.country);
         for (std::size_t i = 0; i < provinces.size(); ++i) {
             map2->mapTextures.province.pix[i * 3 + 0] = provsCols[i].r;
             map2->mapTextures.province.pix[i * 3 + 1] = provsCols[i].g;
             map2->mapTextures.province.pix[i * 3 + 2] = provsCols[i].b;
         }
-        for (std::size_t i = 0; i < provinces.size(); ++i) {
-            map2->mapTextures.country.pix[i * 3 + 0] = ctrsData[provinces[i].ctrId].r;
-            map2->mapTextures.country.pix[i * 3 + 1] = ctrsData[provinces[i].ctrId].g;
-            map2->mapTextures.country.pix[i * 3 + 2] = ctrsData[provinces[i].ctrId].b;
-        }
 
-        map2->mapTextures.country.Update(provinces.size(), 1);
-        map2->mapTextures.province.Update(provinces.size(), 1);
+        map2->mapTextures.province.Update();
     }
 
     const unsigned char *pix = map2->provTexture.GetPixels();
@@ -416,13 +433,13 @@ void Game::Play()
         int provId;
     };
     std::vector<TempUnit> tempUnits;
-    for (std::size_t i = 0; i < provinces.size(); ++i) {
-        if (provinces[i].water)
+    for (std::size_t i = 0; i < provsData.size(); ++i) {
+        if (provsData[i].water)
             continue;
 
-        float z = (float)heightMap->GetPixels()[(int)(provinces[i].x * 3 + provinces[i].y * mapWidth * 3)];
-        tempUnits.push_back(TempUnit{.pos = glm::vec3{provinces[i].x * scale, provinces[i].y * scale, z},
-                                     .provId = provinces[i].id});
+        float z = (float)heightMap->GetPixels()[(int)(provsData[i].x * 3 + provsData[i].y * mapWidth * 3)];
+        tempUnits.push_back(TempUnit{.pos = glm::vec3{provsData[i].x * scale, provsData[i].y * scale, z},
+                                     .provId = provsData[i].id});
     }
 
     GLuint unitBuffer;
@@ -488,18 +505,18 @@ void Game::Play()
         glm::mat4 rotate = glm::mat4{1.0f};
         rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
         for (auto &unit : units) {
-            if (abs(unit->GetFakePos().x - camera.eye.x) > 400)
+            if (abs(unit.GetFakePos().x - camera.eye.x) > 400)
                 continue;
-            if (abs(unit->GetFakePos().y - camera.eye.y) > 200)
+            if (abs(unit.GetFakePos().y - camera.eye.y) > 200)
                 continue;
             glm::mat4 unitModel = glm::mat4(1.0);
-            unitModel = glm::translate(unitModel, unit->GetFakePos());
+            unitModel = glm::translate(unitModel, unit.GetFakePos());
 
             unitModel = unitModel * rotate;
             unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
             // unitModel = glm::scale(unitModel, glm::vec3{80.0, 50.0f, 80.0});
             uMat.push_back(unitModel);
-            pids.push_back(unit->GetProvId());
+            pids.push_back(unit.GetProvId());
         }
 
         input();
@@ -542,12 +559,12 @@ void Game::Play()
             rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
 
             for (auto &unit : units) {
-                if (abs(unit->GetFakePos().x - camera.eye.x) > 400)
+                if (abs(unit.GetFakePos().x - camera.eye.x) > 400)
                     continue;
-                if (abs(unit->GetFakePos().y - camera.eye.y) > 200)
+                if (abs(unit.GetFakePos().y - camera.eye.y) > 200)
                     continue;
                 glm::mat4 unitModel = glm::mat4(1.0);
-                unitModel = glm::translate(unitModel, unit->GetFakePos());
+                unitModel = glm::translate(unitModel, unit.GetFakePos());
                 // unitModel = glm::translate(unitModel, unitPos);
 
                 unitModel = unitModel * rotate;
@@ -811,6 +828,10 @@ void Game::guiDraw()
     if (tmpctype.ct != ClickEventType::MISS)
         ctype = tmpctype;
 
+    tmpctype = guiLast.game_SideBar(sideBarData, mp.x, mp.y, window.mouseLClicked);
+    if (tmpctype.ct != ClickEventType::MISS)
+        ctype = tmpctype;
+
     if (openMyCountry) {
         tmpctype = guiLast.game_myCountry(*myCountry, mp.x, mp.y);
         if (window.mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
@@ -838,9 +859,9 @@ void Game::guiDraw()
 
     if (openUnitId != -1) {
         auto unit = std::find_if(units.begin(), units.end(),
-                                 [id = openUnitId](const std::shared_ptr<Unit> &u) { return u->GetId() == id; });
+                                 [id = openUnitId](const Unit& u) { return u.GetId() == id; });
         assert(unit != units.end());
-        tmpctype = guiLast.game_unit(*(*unit), mp.x, mp.y, window.mouseLClicked);
+        tmpctype = guiLast.game_unit((*unit), mp.x, mp.y, window.mouseLClicked);
         if (window.mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
             openUnitId = -1;
         else if (tmpctype.ct != ClickEventType::MISS)
@@ -851,9 +872,9 @@ void Game::guiDraw()
         std::vector<Unit *> clickedUnits_ptr;
         for (auto uid : clickedUnits) {
             auto unit = std::find_if(units.begin(), units.end(),
-                                     [id = uid](const std::shared_ptr<Unit> &u) { return u->GetId() == id; });
+                                     [id = uid](const Unit& u) { return u.GetId() == id; });
             if (unit != units.end()) {
-                clickedUnits_ptr.push_back((*unit).get());
+                clickedUnits_ptr.push_back(&(*unit));
             }
         }
         tmpctype = guiLast.game_unitsList(clickedUnits_ptr, mp.x, mp.y, window.mouseLClicked);
@@ -907,6 +928,16 @@ void Game::guiDraw()
                 packets.emplace_back(PreparePacket::SetSpeed(ctype.val));
                 break;
             }
+            case ClickEventType::SIDEBAR_LEFTC: {
+                int ind = ctype.val;
+                assert(ind >= 0 && ind < sideBarData.elements.size());
+                sideBarData.elements.erase(sideBarData.elements.begin() + ind);
+                break;
+            }
+            case ClickEventType::DECLARE_WAR: {
+                packets.emplace_back(PreparePacket::DeclareWar(ctype.val));
+                break;
+            }
         };
         if (packets.size())
             toSend.insert(toSend.end(), packets.begin(), packets.end());
@@ -933,49 +964,50 @@ void Game::processPacket(sf::Packet packet)
         ProcessPacket::DailyUpdate(packet, wars, provinces, countries, map, topBarData);
     }
     else if (type == "NewUnit") {
-        ProcessPacket::NewUnit(packet, units, countries, myCountry->GetName());
+        //ProcessPacket::NewUnit(packet, units, countries, myCountry->GetName());
     }
     else if (type == "hourly") {
         ProcessPacket::HourlyUpdate(packet, units, battles, scale, heightMap->GetPixels(), mapWidth);
     }
     else if (type == "NewBattle") {
-        ProcessPacket::NewBattle(packet, units, battles, provinces);
+        //ProcessPacket::NewBattle(packet, units, battles, provinces);
     }
     else if (type == "EndBattle") {
-        ProcessPacket::EndBattle(packet, battles);
+        //rocessPacket::EndBattle(packet, battles);
     }
     else if (type == "DeleteUnit") {
-        ProcessPacket::DeleteUnit(packet, units);
+        //ProcessPacket::DeleteUnit(packet, units);
     }
     else if (type == "NewUnitInBattle") {
-        ProcessPacket::NewUnitInBattle(packet, units, battles);
+        //ProcessPacket::NewUnitInBattle(packet, units, battles);
     }
     else if (type == "PeaceAccepted") {
-        int warId = ProcessPacket::PeaceAccepted(packet, provinces, countries, wars, map);
-        map.Unbright();
-        setCountryMap();
+        int warId = ProcessPacket::PeaceAccepted(packet, provinces, countries, wars, map, sideBarData);
+        editCountryMap2(&map2->mapTextures.country);
+        //map.Unbright();
+        //setCountryMap();
         if (openedProvId >= 0) {
             assert(openedProvId < (int)provinces.size());
-            map.BrightenProv(provinces[openedProvId]->GetColor());
+            //map.BrightenProv(provinces[openedProvId]->GetColor());
         }
         // Gui::SideBar::DeleteWarIcon(warId);
         if (warId == Gui::OfferPeace::IsOpened()) {
             //    Gui::OfferPeace::Close();
         }
         else if (warId >= 0) {  // means that some peace offer window is opened, but not related to this peace
-            for (auto pair : offerPeaceData.provs) {
-                map.BrightenProv(provinces[pair.provId]->GetColor());
-            }
+            //for (auto pair : offerPeaceData.provs) {
+            //    map.BrightenProv(provinces[pair.provId]->GetColor());
+            //}
         }
     }
     else if (type == "MergeUnits") {
-        ProcessPacket::MergeUnits(packet, units);
+        //ProcessPacket::MergeUnits(packet, units);
     }
     else if (type == "ProvincePopulation") {
         ProcessPacket::ProvincePopulation(packet, provinces);
     }
     else if (type == "NewWar") {
-        ProcessPacket::NewWar(packet, wars, myCountry->GetId(), countries);
+        ProcessPacket::NewWar(packet, wars, myCountry->GetId(), countries, sideBarData);
     }
     else if (type == "SetGold") {
         ProcessPacket::SetGold(packet, myCountry);
@@ -987,7 +1019,7 @@ void Game::processPacket(sf::Packet packet)
         ProcessPacket::MonthlyUpdate(packet, myCountry->GetName(), countries);
     }
     else if (type == "BotPeaceOffer") {
-        ProcessPacket::BotPeaceOffer(packet, peaceOffers, countries);
+        ProcessPacket::BotPeaceOffer(packet, peaceOffers, countries, sideBarData);
     }
     else if (type == "PeaceDeclined") {
         ProcessPacket::PeaceDeclined(packet);
@@ -1059,7 +1091,7 @@ void Game::input()
                     // gui.ObservationOfLastWin((*provIt).get());
                     // return true;
                 }
-                else  if (pid != -1) {
+                else if (pid != -1) {
                     // provinces[pid]->siegeSubject.AddObserver(Gui::ProvSiege::Open(resolution));
                     // provinces[pid]->UpdateSiegeGuiWin();
 
@@ -1073,6 +1105,7 @@ void Game::input()
             int pid = provClick(mouseInWorld);
             if (pid != -1) {
                 toSend.emplace_back(PreparePacket::MoveUnit(openUnitId, pid));
+                Log("Try unit move: " << openUnitId << " => topid: " << pid);
             }
         }
     }
@@ -1111,7 +1144,7 @@ int Game::provClick(glm::vec2 mouseInWorld)
         return pid;
         auto battleIt = std::find_if(
             battles.begin(), battles.end(),
-            [pId = openedProvId](const std::unique_ptr<Battle> &b) { return (b->GetProvId() == pId); });
+            [pId = openedProvId](const Battle& b) { return (b.GetProvId() == pId); });
 
         if (battleIt != battles.end()) {
             // GuiAid::OpenBattle(gui, battleIt, provIt);
@@ -1170,8 +1203,8 @@ bool Game::unitClick(glm::vec2 mouseInWorld)
         //}
         clickedUnits.clear();
         for (auto &u : units) {
-            if (u->GetProvId() == provId)
-                clickedUnits.push_back(u->GetId());
+            if (u.GetProvId() == provId)
+                clickedUnits.push_back(u.GetId());
         }
         if (clickedUnits.size() == 1) {
             openUnitId = clickedUnits[0];
@@ -1347,9 +1380,9 @@ void Game::sendPackets()
 
 void Game::updateBattles()
 {
-    for (auto &b : battles) {
-        b->Update();
-    }
+    //for (auto &b : battles) {
+    //    b->Update();
+   // }
 }
 
 void Game::updateGui()

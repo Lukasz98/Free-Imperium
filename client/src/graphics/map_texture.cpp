@@ -1,6 +1,6 @@
 #include "map_texture.h"
 
-void MapTexture::Update(int w, int h)
+void MapTexture::Update()
 {
     if  (id != 0) {
         glDeleteTextures(1, &id);

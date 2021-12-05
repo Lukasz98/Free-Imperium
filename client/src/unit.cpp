@@ -1,6 +1,28 @@
 #include "unit.h"
 #include "gui/num_to_string.h"
+Unit::Unit()
+    :rotateX(60.0f*3.1459265f/180.0f), yScale(10.0f)
+{
 
+}
+
+/*
+Unit(int id, std::string name, glm::vec3 pos, int soldiers, int ctrId, const std::vector<glm::vec3>& moves)
+    : Rectangle(pos, glm::vec2(10*4, 15*4)), countryId(ctrId), provId(provId),
+      rotateX(60.0f*3.1459265f/180.0f), yScale(10.0f)
+{
+    rotate = glm::mat4{1.0f};
+    //model;
+    this->name = name;
+    this->soldiers = soldiers;
+    this->id = id;
+    this->country = country;
+    dt = 0.0f;
+    activeFrame = 0;
+    fakePos = pos;
+    visible = false;
+
+}
 
 Unit::Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string country, Color color, int ctrId, int provId)
     : Rectangle(pos, glm::vec2(10*4, 15*4)), countryId(ctrId), provId(provId),
@@ -16,48 +38,15 @@ Unit::Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string co
     activeFrame = 0;
     fakePos = pos;
     visible = false;
-/*
-    DataObj * obj = new DataObj{"label"};
-    obj->values["position:"] = "0.0 0.0 2.1";
-    //obj->values["size:"] = "96 44";
-    obj->values["size:"] = "70 24";
-    obj->values["bgColor:"] = "0 0 0 255";
-
-    obj->objects.push_back(new DataObj{"label"});
-    //obj->objects.back()->values["position:"] = "3.0 2.0 0.1";
-    obj->objects.back()->values["position:"] = "3.0 1.0 0.1";
-    //obj->objects.back()->values["size:"] = "90 40";
-    obj->objects.back()->values["size:"] = "64 22";
-    //obj->values["valueName:"] = "unitSize";
-    std::string lbgc = std::to_string(color.r) + " ";
-    lbgc += std::to_string(color.g) + " ";
-    lbgc += std::to_string(color.b) + " ";
-    lbgc += std::to_string(color.a) + " ";
-     
-    obj->objects.back()->values["bgColor:"] = lbgc;
-    obj->objects.back()->values["contentAlign:"] = "center";
-    obj->objects.back()->values["textColor:"] = "200 200 200 255";
-
-    obj->objects.back()->objects.push_back(new DataObj{"text"});
-    obj->objects.back()->objects.back()->values["position:"] = "0.0, 0.0, 0.1";
-    obj->objects.back()->objects.back()->values["valueName:"] = "unitSize";
-    obj->objects.back()->objects.back()->values["content:"] = itos(soldiers);
-    obj->objects.back()->objects.back()->values["height:"] = "15"; //20
-
-    //std::vector<GuiClick> clickPatterns;
-    //bar = std::make_unique<Label>(glm::vec3{pos.x - labelXOffset, pos.y - labelYOffset, pos.z}, obj->values, obj->objects, clickPatterns);
-
-    delete obj;    
-  */  
-    texture[0] = std::make_shared<Texture>(std::string("src/img/unit_1.png"), 40, 40);
-    texture[1] = std::make_shared<Texture>(std::string("src/img/unit_2.png"), 40, 40);
-    move_texture[0] = std::make_shared<Texture>(std::string("src/img/unit_move_1.png"), 40, 40);
-    move_texture[1] = std::make_shared<Texture>(std::string("src/img/unit_move_2.png"), 40, 40);
-    battle_texture[0] = std::make_shared<Texture>(std::string("src/img/unit_battle_1.png"), 40, 40);
-    battle_texture[1] = std::make_shared<Texture>(std::string("src/img/unit_battle_2.png"), 40, 40);
-    SetTexture(texture[0]);
+    //texture[0] = std::make_shared<Texture>(std::string("src/img/unit_1.png"), 40, 40);
+    //texture[1] = std::make_shared<Texture>(std::string("src/img/unit_2.png"), 40, 40);
+    //move_texture[0] = std::make_shared<Texture>(std::string("src/img/unit_move_1.png"), 40, 40);
+    //move_texture[1] = std::make_shared<Texture>(std::string("src/img/unit_move_2.png"), 40, 40);
+    //battle_texture[0] = std::make_shared<Texture>(std::string("src/img/unit_battle_1.png"), 40, 40);
+    //battle_texture[1] = std::make_shared<Texture>(std::string("src/img/unit_battle_2.png"), 40, 40);
+    //SetTexture(texture[0]);
 }
-    
+*/    
 Unit::~Unit()
 {
 }
@@ -81,7 +70,7 @@ void Unit::Update(glm::vec3 p, std::vector<glm::vec3> mvs, int soldiersCount)
     if (p != position) {
         position = p;
         fakePos = p;
-        Init();
+        //Init();
     //    bar->SetPos(glm::vec3{position.x - labelXOffset, position.y - labelYOffset, position.z});
     }
 
@@ -109,11 +98,11 @@ void Unit::Update(glm::vec3 p, std::vector<glm::vec3> mvs, int soldiersCount)
     }
 
     if (moves.size()) {
-        if (moves[0].destiny.x < position.x)
-            Left();
-        else
-            Right();
-        Init();
+//        if (moves[0].destiny.x < position.x)
+ //           Left();
+   //     else
+     //       Right();
+       // Init();
     }
 }
 
@@ -225,13 +214,13 @@ void Unit::Battle(bool is, bool attacker)
 {
     isInBattle = is;
     if (is) {
-        if (!attacker)
-            Left();
-        else
-            Right();
-        Init();
+       // if (!attacker)
+       //     Left();
+       // else
+       //     Right();
+       // Init();
     }
-    Init();
+    //Init();
 }
 
 void Unit::UpdateDt(float d)
@@ -244,12 +233,12 @@ void Unit::UpdateDt(float d)
         if (activeFrame > 1)
             activeFrame = 0;
 
-        if (isInBattle)
-            SetTexture(battle_texture[activeFrame]);
-        else if (moves.size())
-            SetTexture(move_texture[activeFrame]);
-        else
-            SetTexture(texture[activeFrame]);
+     //   if (isInBattle)
+     //       SetTexture(battle_texture[activeFrame]);
+     //   else if (moves.size())
+     //       SetTexture(move_texture[activeFrame]);
+     //   else
+     //       SetTexture(texture[activeFrame]);
     }
 }
 

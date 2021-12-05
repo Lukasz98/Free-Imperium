@@ -95,7 +95,7 @@ void Game::updateAi()
         if (!c->IsOwnedByBoot() || !c->IsActive())
             continue;
 
-        // ai_newUnits(c);
+        ai_newUnits(c);
         ai_manageProvincesOfInterest(c);
         ai_warDecisions(c);
         ai_units(c);
@@ -515,8 +515,22 @@ void Game::hourlyUpdate()
         std::vector<std::shared_ptr<Unit>> unitsToSend;
         for (auto& country : countries) {
             // sprawdzac czy client powinnien dostac te informacje o unitach
-            // if (country->GetId() != cl->GetCountry()->GetId())
-            //    continue;
+            int ok = 0;
+            if (country->GetId() == cl->GetCountry()->GetId()) {
+                ok = 1;
+            }
+            else {
+                for (auto w : wars) {
+                    if (w->ShouldTheyFight(country->GetId(), cl->GetCountry()->GetId())) {
+                        ok = 1;
+                        break;
+                    }
+                }
+            }
+
+            if (ok == 0)
+                continue;
+
             auto units = country->GetUnits();
             unitsToSend.insert(unitsToSend.end(), units.begin(), units.end());
         }
@@ -524,10 +538,13 @@ void Game::hourlyUpdate()
         packet << (int)unitsToSend.size();
         for (auto& u : unitsToSend) {
             packet << u->GetId();
+            packet << u->GetCountryId();
+            packet << u->GetName();
             packet << u->GetSoldiers();
             packet << u->GetPos().x;
             packet << u->GetPos().y;
             packet << u->GetPos().z;
+            packet << u->GetProvId();
             auto moves = u->GetMoves();
             packet << (int)moves.size();
             for (auto& m : moves) {
@@ -560,6 +577,15 @@ void Game::hourlyUpdate()
                     packet << battle.GetId();
                     packet << battle.GetAttackersSize();
                     packet << battle.GetDefendersSize();
+                    auto atts = battle.GetAttackers();
+                    auto defs = battle.GetDefenders();
+
+                    packet << (int)atts.size();
+                    packet << (int)defs.size();
+                    for (auto& a : atts)
+                        packet << a->GetId();
+                    for (auto& d : defs)
+                        packet << d->GetId();
                     break;
                 }
             }
@@ -737,10 +763,10 @@ void Game::battlesUpdate()
                 }
             }
         }
-        Packet packet{true};
-        packet << "EndBattle";
-        packet << it->GetId();
-        toSend.emplace_back(packet);
+        //Packet packet{true};
+        //packet << "EndBattle";
+        //packet << it->GetId();
+        //toSend.emplace_back(packet);
         battles.erase(it);
     }
 
@@ -758,12 +784,12 @@ void Game::battlesUpdate()
                 if (!isInFight && battle.ShouldFight(unit)) {
                     isInFight = true;
                     battle.AddUnit(unit);
-                    Packet packet{true};
-                    packet << "NewUnitInBattle";
-                    packet << battle.GetId();
-                    packet << unit->GetId();
-                    packet << battle.IsAttacker(unit->GetId());
-                    toSend.emplace_back(packet);
+                    //Packet packet{true};
+                    //packet << "NewUnitInBattle";
+                    //packet << battle.GetId();
+                    //packet << unit->GetId();
+                    //packet << battle.IsAttacker(unit->GetId());
+                    //toSend.emplace_back(packet);
                     break;
                 }
             }
@@ -785,17 +811,17 @@ void Game::battlesUpdate()
                                                    // provincja trzyma ref do unitow. Wystarczt sprawdzac kto
                                                    // pierwszy wchodzi na prowincje
                         battles.push_back(battle);
-                        Packet packet{true};
-                        packet << "NewBattle";
-                        packet << battle.GetId();
-                        packet << war->GetId();
-                        packet << provPos.x;
-                        packet << provPos.y;
-                        packet << provPos.z;
-                        packet << province->GetId();
-                        packet << unit->GetId();
-                        packet << uu->GetId();
-                        toSend.emplace_back(packet);
+                        //Packet packet{true};
+                        //packet << "NewBattle";
+                        //packet << battle.GetId();
+                        //packet << war->GetId();
+                        //packet << provPos.x;
+                        //packet << provPos.y;
+                        //packet << provPos.z;
+                        //packet << province->GetId();
+                        //packet << unit->GetId();
+                        //packet << uu->GetId();
+                        //toSend.emplace_back(packet);
                         break;
                     }
                 }

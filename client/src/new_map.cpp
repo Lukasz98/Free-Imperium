@@ -330,8 +330,8 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
             map2.mapTextures.country.pix[i * 3 + 2] = ctrsData[provinces[i].ctrId].b;
         }
 
-        map2.mapTextures.country.Update(provinces.size(), 1);
-        map2.mapTextures.province.Update(provinces.size(), 1);
+        //map2.mapTextures.country.Update(provinces.size(), 1);
+        //map2.mapTextures.province.Update(provinces.size(), 1);
     }
 
     const unsigned char* pix = map2.provTexture.GetPixels();
