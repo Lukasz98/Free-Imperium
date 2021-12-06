@@ -242,6 +242,7 @@ void ProcessPacket::HourlyUpdate(sf::Packet& packet, std::vector<Unit>& units, s
     for (int i = 0; i < battlesCount; i++) {
         // int id, attSize, defSize;
         packet >> battles[i].id;
+        packet >> battles[i].provId;
         packet >> battles[i].attackersSize;
         packet >> battles[i].defendersSize;
         int attCount = 0, defCount = 0;

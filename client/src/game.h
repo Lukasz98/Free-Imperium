@@ -49,10 +49,12 @@ class Game : public Scene {
 bool openMyCountry = false;
 int openCountryId = -1;
 int openProvId = -1;
+int openBattleId = -1;
 int openUnitId = -1;
 bool openUnitsList = false;
 std::vector<int> clickedUnits;
 SideBarData sideBarData;
+void resetGuiWindows();
     // Camera camera;
     // Gui gui;
     glm::vec2 windowSize, resolution;

@@ -575,6 +575,7 @@ void Game::hourlyUpdate()
             for (auto bId : battlesToSend) {
                 if (battle.GetId() == bId) {
                     packet << battle.GetId();
+                    packet << battle.GetProvId();
                     packet << battle.GetAttackersSize();
                     packet << battle.GetDefendersSize();
                     auto atts = battle.GetAttackers();

@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 
+#include "battle.h"
 #include "camera.h"
 #include "country.h"
 #include "graphics/shader.h"
@@ -33,7 +34,7 @@ struct Gui {
     glm::vec4 brown{0.388, 0.298, 0.290, 1.0};
     glm::vec4 lightBrown{0.568, 0.435, 0.427, 1.0};
     glm::vec4 weirdBrown{.333, .258, 0.258, 1.0};
-    
+
     GLuint iconsTid;
 
     Window* window;
@@ -50,6 +51,8 @@ struct Gui {
     GuiEv game_myCountry(const Country& ctr, int mx, int my);
     GuiEv game_country(const Country& ctr, int mx, int my);
     GuiEv game_prov(const Province& prov, int mx, int my, bool clicked, bool myProv);
+    GuiEv game_battle(const Battle& battle, const Province& prov, int mx, int my, bool clicked,
+                      const std::vector<std::shared_ptr<Country>>& countries, const std::vector<Unit>& units);
     GuiEv game_unit(const Unit& unit, int mx, int my, bool clicked);
     GuiEv game_unitsList(const std::vector<Unit*>& units, int mx, int my, bool clicked);
     GuiEv game_SideBar(const SideBarData& sbData, int mx, int my, bool clicked);

@@ -167,7 +167,7 @@ GuiLast::GuiEv GuiLast::Gui::game_prov(const Province& prov, int mx, int my, boo
     valuePos.y -= valueSize.y - offset.y;
     drawText(valuePos, valueSize, greenCol, prov.GetCountry(), TEXT_LEFT, AM::FontSize::PX16);
     if (isInRect(valuePos, valueSize, mx, my))
-        ct = GuiLast::GuiEv{ClickEventType::OPEN_COUNTRY_FROM_PROV};
+        ct = GuiLast::GuiEv{ClickEventType::OPEN_COUNTRY, prov.GetCountryId()};
 
     if (myProv) {
         static int unitSize = 1000;
@@ -202,6 +202,77 @@ GuiLast::GuiEv GuiLast::Gui::game_prov(const Province& prov, int mx, int my, boo
     return GuiLast::GuiEv{ClickEventType::MISS};
 }
 
+GuiLast::GuiEv GuiLast::Gui::game_battle(const Battle& battle, const Province& prov, int mx, int my, bool clicked,
+                                         const std::vector<std::shared_ptr<Country>>& countries,
+                                         const std::vector<Unit>& units)
+{
+    GuiLast::GuiEv ct{ClickEventType::MISS};
+    glm::vec2 offset{5.0f, 2.5f};
+    glm::vec2 wSize{res.x * 0.3f, res.y * 0.65f};
+    glm::vec3 wPos{offset.x, offset.y, 0.1f};
+
+    drawRect(wPos, wSize, darkBrown);
+
+    glm::vec2 closeSize{100.0f, 40.0f};
+    glm::vec3 closePos{wPos.x + wSize.x - offset.x - closeSize.x, wPos.y + offset.y, 0.2f};
+    drawText(closePos, closeSize, greenCol, "Close", TEXT_LEFT, AM::FontSize::PX16);
+
+    glm::vec2 nameSize{100.0f, 40.0f};
+    glm::vec3 namePos{wPos.x + offset.x, wPos.y + wSize.y - offset.y - nameSize.y, 0.2f};
+    drawText(namePos, nameSize, greenCol, "Province: ", TEXT_LEFT, AM::FontSize::PX16);
+    glm::vec2 valueSize{100.0f, 40.0f};
+    glm::vec3 valuePos{namePos.x + wSize.x * 0.5f - offset.x, namePos.y, namePos.z};
+    drawText(valuePos, valueSize, greenCol, prov.GetName(), TEXT_LEFT, AM::FontSize::PX16);
+
+    namePos.y -= nameSize.y - offset.y;
+    drawText(namePos, nameSize, greenCol, "Attacker: ", TEXT_LEFT, AM::FontSize::PX16);
+    valuePos.y -= valueSize.y - offset.y;
+    if (battle.attackers.size()) {
+        for (std::size_t i = 0; i < units.size(); ++i) {
+            if (units[i].id == battle.attackers[0]) {
+                assert(units[i].countryId >= 0 && units[i].countryId < countries.size());
+                drawText(valuePos, valueSize, greenCol, countries[units[i].countryId]->GetName(), TEXT_LEFT,
+                         AM::FontSize::PX16);
+                break;
+            }
+        }
+    }
+    namePos.y -= nameSize.y - offset.y;
+    drawText(namePos, nameSize, greenCol, "Defenders count: ", TEXT_LEFT, AM::FontSize::PX16);
+    valuePos.y -= valueSize.y - offset.y;
+    if (battle.defenders.size()) {
+        for (std::size_t i = 0; i < units.size(); ++i) {
+            if (units[i].id == battle.defenders[0]) {
+                assert(units[i].countryId >= 0 && units[i].countryId < countries.size());
+                drawText(valuePos, valueSize, greenCol, countries[units[i].countryId]->GetName(), TEXT_LEFT,
+                         AM::FontSize::PX16);
+                break;
+            }
+        }
+    }
+
+    namePos.y -= nameSize.y - offset.y;
+    drawText(namePos, nameSize, greenCol, "Attackers count: ", TEXT_LEFT, AM::FontSize::PX16);
+    valuePos.y -= valueSize.y - offset.y;
+    drawText(valuePos, valueSize, greenCol, std::to_string(battle.attackersSize), TEXT_LEFT, AM::FontSize::PX16);
+
+    namePos.y -= nameSize.y - offset.y;
+    drawText(namePos, nameSize, greenCol, "Defenders count: ", TEXT_LEFT, AM::FontSize::PX16);
+    valuePos.y -= valueSize.y - offset.y;
+    drawText(valuePos, valueSize, greenCol, std::to_string(battle.defendersSize), TEXT_LEFT, AM::FontSize::PX16);
+
+    if (isInRect(valuePos, valueSize, mx, my))
+        ct = GuiLast::GuiEv{ClickEventType::OPEN_COUNTRY_FROM_PROV};
+
+
+    if (ct.ct != ClickEventType::MISS)
+        return ct;
+    if (isInRect(closePos, closeSize, mx, my))
+        return GuiLast::GuiEv{ClickEventType::CLOSE_WINDOW};
+    if (isInRect(wPos, wSize, mx, my))
+        return GuiLast::GuiEv{ClickEventType::NONE};
+    return GuiLast::GuiEv{ClickEventType::MISS};
+}
 GuiLast::GuiEv GuiLast::Gui::game_unit(const Unit& unit, int mx, int my, bool clicked)
 {
     GuiLast::GuiEv ct{ClickEventType::MISS};
