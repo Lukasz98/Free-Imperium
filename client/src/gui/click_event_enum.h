@@ -32,6 +32,8 @@ enum class ClickEventType {
     CREATE_UNIT = 22,
     SET_SPEED = 23,
     SIDEBAR_LEFTC = 24,
+    ROOM_PICK_COUNTRY = 25,
+    ROOM_START_GAME = 26,
 
     CLOSE_WINDOW
 };

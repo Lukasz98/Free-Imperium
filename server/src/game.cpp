@@ -526,6 +526,7 @@ void Game::hourlyUpdate()
                         break;
                     }
                 }
+                if (cl->GetCountry()->GetName() == "Atlantyda") ok = 1;
             }
 
             if (ok == 0)
@@ -568,6 +569,8 @@ void Game::hourlyUpdate()
                     battlesToSend.push_back(battle.GetId());
                     continue;
                 }
+                else if (cl->GetCountry()->GetName() == "Atlantyda")
+                    battlesToSend.push_back(battle.GetId());
             }
         }
         packet << (int)battlesToSend.size();

@@ -14,6 +14,7 @@ class Room : public Scene
     std::vector<std::shared_ptr<Country>> & countries;
     void loop(bool & play, std::string & country);
     void processGuiEvent( std::vector<sf::Packet> & toSend, bool & play);
+    GuiLast::Gui guiLast;
     
 public:
     Room(Window & window, Settings & s, std::vector<std::shared_ptr<Country>> & countries);

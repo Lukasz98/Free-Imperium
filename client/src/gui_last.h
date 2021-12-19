@@ -16,6 +16,7 @@
 #include "gui/gui_structs.h"
 #include "province.h"
 #include "unit.h"
+#include "gui_last/gui_core_last.h"
 
 namespace GuiLast {
 
@@ -28,6 +29,7 @@ struct GuiEv {
 };
 
 struct Gui {
+    GuiCore core;
     glm::vec4 brownCol{56.0f / 255.0f, 31.0f / 255.0f, 19.0f / 255.0f, 1.0f};
     glm::vec4 greenCol{0.0f / 255.0f, 255.0f / 255.0f, 0.0f / 255.0f, 1.0f};
     glm::vec4 darkBrown{0.294, 0.227, 0.223, 1.0};
@@ -57,7 +59,8 @@ struct Gui {
     GuiEv game_unitsList(const std::vector<Unit*>& units, int mx, int my, bool clicked);
     GuiEv game_SideBar(const SideBarData& sbData, int mx, int my, bool clicked);
 
-    void room_playerListDraw(const std::vector<std::string>& playersList);
+    GuiEv room_playerList(const std::vector<std::string>& plarr, int mx, int my, int sc);
+    GuiEv room_countryList(const std::vector<std::string>& ctrarr, int mx, int my);
 };
 
 };  // namespace GuiLast

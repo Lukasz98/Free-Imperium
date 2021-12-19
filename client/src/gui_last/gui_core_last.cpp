@@ -2,10 +2,9 @@
 
 #include "../gui/gui_structs.h"
 
-Batch batch;
 std::vector<List2> lists;
 
-void drawRect(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col)
+void GuiCore::drawRect(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col)
 {
     Vertex v[] = {Vertex{.pos = pos, .color = col},
                   Vertex{.pos = glm::vec3{pos.x, pos.y + size.y, pos.z}, .color = col},
@@ -14,14 +13,14 @@ void drawRect(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col)
     batch.Push(v);
 }
 
-int createList(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col)
+int GuiCore::createList(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col)
 {
     drawRect(pos, size, col);
     lists.emplace_back(pos, size);
     return lists.size() - 1;
 }
 
-std::size_t drawRectToList(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col, std::size_t listId)
+std::size_t GuiCore::drawRectToList(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col, std::size_t listId)
 {
     assert(listId < lists.size());
 
@@ -33,7 +32,7 @@ std::size_t drawRectToList(const glm::vec3& pos, const glm::vec2& size, const gl
     return lists[listId].v.size() - 4;
 }
 
-void drawLists()
+void GuiCore::drawLists()
 {
     batch.Flush();
     for (std::size_t i = 0; i < lists.size(); ++i) {
@@ -67,7 +66,7 @@ void drawLists()
     lists.clear();
 }
 
-void drawTextToList(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col, const std::string& text,
+void GuiCore::drawTextToList(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col, const std::string& text,
                     int flags, std::size_t listid)
 {
     assert(listid < lists.size());
@@ -151,7 +150,7 @@ void drawTextToList(const glm::vec3& pos, const glm::vec2& size, const glm::vec4
     }
 }
 
-void drawText(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col, const std::string& text,
+void GuiCore::drawText(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col, const std::string& text,
               int flags, AM::FontSize fontSize)
 {
     glm::vec3 textPos = pos;
@@ -232,7 +231,7 @@ void drawText(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col,
     }
 }
 
-void drawIcon(const glm::vec3& pos, const glm::vec2& size, int iconId)
+void GuiCore::drawIcon(const glm::vec3& pos, const glm::vec2& size, int iconId)
 {
     float textWidth = AM::am.iconsTexture->GetWidth();
     const float iconWidth = 50.0f;
@@ -249,7 +248,7 @@ void drawIcon(const glm::vec3& pos, const glm::vec2& size, int iconId)
     batch.Push(v);
 }
 
-void listScroll(int listid, int& scr)
+void GuiCore::listScroll(int listid, int& scr)
 {
     if (scr == 0 || lists[listid].v.size() == 0)
         return;
@@ -268,47 +267,47 @@ void listScroll(int listid, int& scr)
     }
 }
 
-float getListLastY(std::size_t listid)
+float GuiCore::getListLastY(std::size_t listid)
 {
     assert(listid < lists.size());
     return lists[listid].lastY;
 }
 
-float getListYPadding(std::size_t listid)
+float GuiCore::getListYPadding(std::size_t listid)
 {
     assert(listid < lists.size());
     return lists[listid].ypadding;
 }
 
-void setListLastY(std::size_t listid, float lastY)
+void GuiCore::setListLastY(std::size_t listid, float lastY)
 {
     assert(listid < lists.size());
     lists[listid].lastY = lastY;
 }
 
-void guiBatchInit()
+void GuiCore::guiBatchInit()
 {
     batch.Init();
 }
 
-void guiBatchBegin()
+void GuiCore::guiBatchBegin()
 {
     batch.Begin();
 }
 
-void guiBatchFlush()
+void GuiCore::guiBatchFlush()
 {
     batch.Flush();
 }
 
-bool isInRect(const glm::vec3& pos, const glm::vec2& size, int mx, int my)
+bool GuiCore::isInRect(const glm::vec3& pos, const glm::vec2& size, int mx, int my)
 {
     if (mx > pos.x && mx < pos.x + size.x && my > pos.y && my < pos.y + size.y)
         return true;
     return false;
 }
 
-bool isInRectList(std::size_t listid, std::size_t vid, int mx, int my)
+bool GuiCore::isInRectList(std::size_t listid, std::size_t vid, int mx, int my)
 {
     assert(listid < lists.size());
     assert(vid + 3 < lists[listid].v.size());

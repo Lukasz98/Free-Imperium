@@ -33,11 +33,17 @@ struct ClickEvent
 #define TEXT_CENTER 2
 #define TEXT_RIGHT 3
 #define TEXT_LEFT 4
-
+struct GuiCore {
+Batch batch;
 bool isInRect(const glm::vec3 & pos, const glm::vec2 & size, int mx, int my);
+void drawRect(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col);
+void drawIcon(const glm::vec3& pos, const glm::vec2& size, int iconId);
+void guiBatchInit();
+void guiBatchBegin();
+void guiBatchFlush();
+
 bool isInRectList(std::size_t listid, std::size_t vid, int mx, int my);
 
-void drawRect(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col);
 int createList(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col);
 
 std::size_t drawRectToList(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col, std::size_t listId);
@@ -52,17 +58,13 @@ void drawTextToList(const glm::vec3& pos, const glm::vec2& size, const glm::vec4
 void drawText(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col, const std::string& text,
               int flags, AM::FontSize fontSize = AM::FontSize::PX16);
 
-void drawIcon(const glm::vec3& pos, const glm::vec2& size, int iconId);
 
 void listScroll(int listid, int& scr);
 
 float getListLastY(std::size_t listid);
 float getListYPadding(std::size_t listid);
 void setListLastY(std::size_t listid, float lastY);
-void guiBatchInit();
-void guiBatchBegin();
-void guiBatchFlush();
-
+};
 
 //ClickEventType drawTopBar(const TopBarData& td, const glm::vec2 & resolution);
 
