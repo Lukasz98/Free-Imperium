@@ -2,6 +2,12 @@
 
 #include "asset_manager.h"
 // using namespace GuiLast;
+static glm::vec4 brownCol{56.0f / 255.0f, 31.0f / 255.0f, 19.0f / 255.0f, 1.0f};
+static glm::vec4 greenCol{0.0f / 255.0f, 255.0f / 255.0f, 0.0f / 255.0f, 1.0f};
+static glm::vec4 darkBrown{0.294, 0.227, 0.223, 1.0};
+static glm::vec4 brown{0.388, 0.298, 0.290, 1.0};
+static glm::vec4 lightBrown{0.568, 0.435, 0.427, 1.0};
+static glm::vec4 weirdBrown{.333, .258, 0.258, 1.0};
 
 // Camera camera;
 
@@ -16,6 +22,55 @@ void GuiLast::Gui::init(Window* win, glm::vec2 resolution, glm::vec2 windowSize)
 
     core.guiBatchInit();
     // batch.Init();
+}
+
+static void listDraw(GuiLast::Gui& gui, glm::vec3 listPos, glm::vec2 listSize, glm::vec2 offset,
+                     glm::vec3& itemPos, glm::vec2 itemSize, float& sc, int scr, int itemCount)
+{
+    gui.flush();
+    glScissor(listPos.x, listPos.y, listSize.x, listSize.y);
+    gui.start();
+    {
+        itemPos.y = listPos.y + listSize.y - offset.y - itemSize.y;
+        float lasty = itemPos.y;
+        for (int i = 0; i < itemCount - 1; ++i) {
+            lasty -= itemSize.y - offset.y;
+        }
+        if (scr != 0) {
+            sc += scr * 30;
+            if (listSize.y > (itemSize.y + offset.y) * (itemCount - 0.0f)) {  // wSize.y > listlen
+                sc = 0.0f;
+            }
+            else if (itemPos.y + sc < itemPos.y) {
+                sc = 0.0f;
+            }
+            else if (lasty + sc > listPos.y + offset.y) {
+                sc = listPos.y + offset.y - (lasty);
+            }
+        }
+        itemPos.y += sc;
+        lasty += sc;
+        {  // draw bar
+            float firsty = itemPos.y;
+            float totalh = firsty - lasty;
+            glm::vec2 rsize = glm::vec2{listSize.x * 0.05f, (listSize.y / totalh) * listSize.y};
+            if (rsize.y > listSize.y - offset.y * 2)
+                rsize.y = listSize.y - offset.y * 2;
+
+            float bottomYOffset = listPos.y + offset.y - lasty;
+            float tmp = bottomYOffset / totalh;
+            tmp *= listSize.y;
+            glm::vec3 rpos{listPos.x + listSize.x - rsize.x, listPos.y + offset.y + tmp, listPos.z + 0.1};
+            if (rpos.y < listPos.y + offset.y)
+                rpos.y = listPos.y + offset.y;
+            else if (rpos.y + rsize.y > listPos.y + listSize.y - offset.y)
+                rpos.y = listPos.y + offset.y + listSize.y - rsize.y - offset.y;
+            glm::vec4 rcol{1.0f, 0.0f, 0.0f, 1.0f};
+            gui.core.drawRect(glm::vec3{rpos.x, listPos.y, listPos.z + 0.05f}, glm::vec2{rsize.x, listSize.y},
+                              greenCol);
+            gui.core.drawRect(rpos, rsize, rcol);
+        }
+    }
 }
 
 void GuiLast::Gui::reloadShader()
@@ -386,60 +441,54 @@ GuiLast::GuiEv GuiLast::Gui::game_SideBar(const SideBarData& sbData, int mx, int
         return GuiLast::GuiEv{ClickEventType::NONE};
     return GuiLast::GuiEv{ClickEventType::MISS};
 }
-
-GuiLast::GuiEv GuiLast::Gui::room_countryList(const std::vector<std::string>& plarr, int mx, int my)
-{
-    return GuiLast::GuiEv{ClickEventType::MISS};
-}
-
-// void GuiLast::Gui::room_playerListDraw(const std::vector<std::string>& playersList)
-GuiLast::GuiEv GuiLast::Gui::room_playerList(const std::vector<std::string>& plarr, int mx, int my, int scr)
+    
+GuiLast::GuiEv GuiLast::Gui::room_startButton(int mx, int my)
 {
     GuiLast::GuiEv ct{ClickEventType::MISS};
     glm::vec2 offset{5.0f, 2.5f};
-    // glm::vec2 wSize{res.x * 0.3f, res.y * 0.65f};
-    // glm::vec3 wPos{offset.x, offset.y, 0.1f};
-    glm::vec2 wSize{res.x * 0.3f, 200.0f};
-    glm::vec3 wPos{offset.x, 200.0f, 0.1f};
+    glm::vec2 wSize{150, 100.0f};
+    glm::vec3 wPos{res.x - wSize.x - offset.x, 50.0f, 0.1f};
 
     core.drawRect(wPos, wSize, darkBrown);
-    glm::vec2 nameSize{wSize.x, 50.0f};
-    glm::vec3 namePos{wPos.x + offset.x, wPos.y + wSize.y - offset.y - nameSize.y, 0.2f};
+    core.drawText(glm::vec3{wPos.x, wPos.y, wPos.z + 0.1f},
+                  glm::vec2{wSize.x, wSize.y}, greenCol, "Start", TEXT_CENTER, AM::FontSize::PX16);
+    if (core.isInRect(wPos, wSize, mx, my))
+        ct = GuiLast::GuiEv{ClickEventType::ROOM_START_GAME};
+
+    if (ct.ct != ClickEventType::MISS)
+        return ct;
+    if (core.isInRect(wPos, wSize, mx, my))
+        return GuiLast::GuiEv{ClickEventType::NONE};
+    return GuiLast::GuiEv{ClickEventType::MISS};
+}
+
+GuiLast::GuiEv GuiLast::Gui::room_countryList(const std::vector<std::string>& ctrarr, int mx, int my, int scr)
+{
+    GuiLast::GuiEv ct{ClickEventType::MISS};
+    glm::vec2 offset{5.0f, 2.5f};
+    glm::vec2 wSize{res.x * 0.3f, res.y * 0.7f};
+    glm::vec3 wPos{offset.x * 2 + wSize.y, 50.0f, 0.1f};
+
+    core.drawRect(wPos, wSize, darkBrown);
+    core.drawText(glm::vec3{wPos.x, wPos.y + wSize.y * 0.9f, wPos.z + 0.2f},
+                  glm::vec2{wSize.x, wSize.y * 0.1f}, greenCol, "Countries", TEXT_CENTER, AM::FontSize::PX16);
+
+    glm::vec2 listSize{wSize.x, wSize.y * 0.9f};
+    glm::vec3 listPos{wPos.x, wPos.y, wPos.z + 0.1f};
+    core.drawRect(listPos, listSize, brown);
+    glm::vec2 nameSize{listSize.x, 50.0f};
+    glm::vec3 namePos{listPos.x + offset.x, listPos.y + listSize.y - offset.y - nameSize.y, listPos.z + 0.1f};
     {  // list
-        flush();
-        glScissor(wPos.x, wPos.y, wSize.x, wSize.y);
-        start();
-
         static float sc = 0;
-        float pcount = 20;
-        if (1 || scr != 0) {
-            sc += scr * 30;
-            float lasty = namePos.y;
-            for (int i = 0; i < pcount - 1; ++i) {
-                lasty -= nameSize.y - offset.y;
-            }
-            if (wSize.y > (nameSize.y + offset.y) * (pcount - 0.0f)) {  // wSize.y > listlen
-                sc = 0.0f;
-            }
-            else if (namePos.y + sc < namePos.y) {
-                sc = 0.0f;
-            }
-            else if (lasty + sc > wPos.y + offset.y) {
-                sc = wPos.y + offset.y - (lasty);
-                Log(plarr.size());
-            }
-        }
-        namePos.y += sc;
-
-        for (int i = 0; i < pcount; ++i) {
-            core.drawText(namePos, nameSize, greenCol, std::to_string(i), TEXT_LEFT, AM::FontSize::PX16);
+        if (!core.isInRect(listPos, listSize, mx, my))
+            scr = 0;
+        listDraw(*this, listPos, listSize, offset, namePos, nameSize, sc, scr, ctrarr.size());
+        for (std::size_t i = 0; i < ctrarr.size(); ++i) {
+            core.drawText(namePos, nameSize, greenCol, ctrarr[i], TEXT_LEFT, AM::FontSize::PX16);
+            if (core.isInRect(namePos, nameSize, mx, my))
+                ct = GuiLast::GuiEv{ClickEventType::ROOM_PICK_COUNTRY, i};
             namePos.y -= nameSize.y - offset.y;
         }
-        // Log(namePos.y + nameSize.y + offset.y);
-        //  for (auto& pl : plarr) {
-        //      core.drawText(namePos, nameSize, greenCol, pl, TEXT_LEFT, AM::FontSize::PX16);
-        //      namePos.y -= nameSize.y - offset.y;
-        //  }
         flush();
         glScissor(0.0f, 0.0f, res.x, res.y);
         start();
@@ -449,58 +498,45 @@ GuiLast::GuiEv GuiLast::Gui::room_playerList(const std::vector<std::string>& pla
     if (core.isInRect(wPos, wSize, mx, my))
         return GuiLast::GuiEv{ClickEventType::NONE};
     return GuiLast::GuiEv{ClickEventType::MISS};
+}
 
+
+GuiLast::GuiEv GuiLast::Gui::room_playerList(const std::vector<std::string>& plarr, int mx, int my, int scr)
+{
+    GuiLast::GuiEv ct{ClickEventType::MISS};
+    glm::vec2 offset{5.0f, 2.5f};
+    glm::vec2 wSize{res.x * 0.3f, res.y * 0.7f};
+    glm::vec3 wPos{offset.x, 50.0f, 0.1f};
+
+    core.drawRect(wPos, wSize, darkBrown);
+    core.drawText(glm::vec3{wPos.x, wPos.y + wSize.y * 0.9f, wPos.z + 0.2f},
+                  glm::vec2{wSize.x, wSize.y * 0.1f}, greenCol, "Players list", TEXT_CENTER, AM::FontSize::PX16);
+
+    glm::vec2 listSize{wSize.x, wSize.y * 0.9f};
+    glm::vec3 listPos{wPos.x, wPos.y, wPos.z + 0.1f};
+    core.drawRect(listPos, listSize, brown);
+    glm::vec2 nameSize{listSize.x, 50.0f};
+    glm::vec3 namePos{listPos.x + offset.x, listPos.y + listSize.y - offset.y - nameSize.y, 0.2f};
+    {  // list
+        static float sc = 0;
+        if (!core.isInRect(listPos, listSize, mx, my))
+            scr = 0;
+        listDraw(*this, listPos, listSize, offset, namePos, nameSize, sc, scr, plarr.size());
+        for (auto& pl : plarr) {
+            core.drawText(namePos, nameSize, greenCol, pl, TEXT_LEFT, AM::FontSize::PX16);
+            namePos.y -= nameSize.y - offset.y;
+        }
+        flush();
+        glScissor(0.0f, 0.0f, res.x, res.y);
+        start();
+    }
+    if (ct.ct != ClickEventType::MISS)
+        return ct;
+    if (core.isInRect(wPos, wSize, mx, my))
+        return GuiLast::GuiEv{ClickEventType::NONE};
     return GuiLast::GuiEv{ClickEventType::MISS};
 }
 
-/*
-void doTestList(int scroll, int mx, int my, float dt, bool lpress, bool lclicked)
-{
-    static int scr = 0;
-    int scrspeed = 10;
-    static glm::vec3 delta{0.0f, 0.0f, 0.0f};
-    static glm::vec3 lpos{300.0f, 250.0f, 0.1f};
-    glm::vec2 lsize{100.0f, 200.0f};
-    if (delta.x != 0.0f && delta.y != 0.0f) {
-        lpos.x = ((float)mx - (delta.x));
-        lpos.y = ((float)my - (delta.y));
-    }
-    bool minside = core.isInRect(lpos, lsize, mx, my);
-    if (minside)
-        scr -= scroll * scrspeed;
-    if (delta.x == 0.0f && delta.y == 0.0f && lpress && minside) {
-        delta = glm::vec3{(float)mx - lpos.x, (float)my - lpos.y, 0.0f};
-    }
-    else if (!lpress || !minside)
-        delta = glm::vec3{0.0f, 0.0f, 0.0f};
-
-    std::size_t listid = createList(lpos, lsize, brownCol);
-    std::string text = std::to_string(dt);
-    float lastY = getListLastY(listid);
-    float ypadding = getListYPadding(listid);
-    int listElCount = 6;
-    std::size_t lrectids[listElCount];
-    // ClickEvent ce[listElCount];
-    for (int i = 0; i < listElCount; ++i) {
-        glm::vec2 elSize{lsize.x, 40.0f};
-        glm::vec3 elPos{lpos.x, lastY - ypadding - elSize.y, lpos.z + 0.01f};
-        lastY = elPos.y;
-        lrectids[i] = core.drawRectToList(elPos, elSize, greenCol, listid);
-        glm::vec3 tElPos = elPos;
-        tElPos.z += 0.01f;
-        // core.drawTextToList(tElPos, elSize, brownCol, "Lukasz Kadracki", TEXT_CENTER, listid);
-        core.drawTextToList(tElPos, elSize, brownCol, text, TEXT_CENTER, listid);
-    }
-    setListLastY(listid, lastY);
-    listScroll(listid, scr);
-
-    if (minside && lclicked)
-        for (int i = 0; i < listElCount; ++i) {
-            if (core.isInRectList(listid, lrectids[i], mx, my))
-                Log("clicked " << i);
-        }
-}
-*/
 void GuiLast::Gui::start()
 {
     // Shader shader("src/graphics/shaders/gui_batch/a.vert", "src/graphics/shaders/gui_batch/a.frag", "", "");
@@ -539,7 +575,8 @@ void GuiLast::Gui::start()
 
             if (window->keys['M']) {
                 shader =
-                    Shader("src/graphics/shaders/gui_batch/a.vert", "src/graphics/shaders/gui_batch/a.frag", "",
+                    Shader("src/graphics/shaders/gui_batch/a.vert", "src/graphics/shaders/gui_batch/a.frag",
+       "",
        "");
             }
 
@@ -554,10 +591,8 @@ void GuiLast::Gui::start()
 
             core.drawText(tpos, tsize, greenCol, "Lukasz Kadracki", TEXT_CENTER);
 
-            doTestList(window->scrollOffset, mousePos.x, mousePos.y, dt, window->mouseL, window->mouseLClicked);
-            window->scrollOffset = 0;
-            window->mouseLClicked = false;
-            drawLists();
+            doTestList(window->scrollOffset, mousePos.x, mousePos.y, dt, window->mouseL,
+       window->mouseLClicked); window->scrollOffset = 0; window->mouseLClicked = false; drawLists();
 
             core.guiBatchFlush();
             // batch.Flush();

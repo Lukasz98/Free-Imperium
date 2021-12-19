@@ -46,9 +46,11 @@ void Room::loop(bool& play, std::string& country)
     std::vector<sf::Packet> toSend;
     std::vector<std::string> plarr;
     std::vector<std::string> ctrarr;
-    ctrarr.resize(countries.size());
 
+    ctrarr.push_back("Atlantyda");
     for (auto& c : countries) {
+        if (c->GetName() == "Atlantyda")
+            continue;
         ctrarr.push_back(c->GetName());
     }
 
@@ -79,7 +81,6 @@ void Room::loop(bool& play, std::string& country)
                     packet >> messg;
                     text += " " + messg;
                     plarr.push_back(text);
-                    // Gui::Room::AddPlayerToList(text);
                 }
             }
         }
@@ -95,7 +96,11 @@ void Room::loop(bool& play, std::string& country)
         if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
         
-        tmpctype = guiLast.room_countryList(ctrarr, mp.x, mp.y);
+        tmpctype = guiLast.room_countryList(ctrarr, mp.x, mp.y, window.scrollOffset);
+        if (tmpctype.ct != ClickEventType::MISS)
+            ctype = tmpctype;
+        
+        tmpctype = guiLast.room_startButton(mp.x, mp.y);
         if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
 
@@ -104,6 +109,11 @@ void Room::loop(bool& play, std::string& country)
             std::vector<sf::Packet> packets;
             switch (ctype.ct) {
                 case ClickEventType::ROOM_PICK_COUNTRY: {
+                    auto ctrName = ctrarr[ctype.val];
+                    sf::Packet packet;
+                    packet << "country"; 
+                    packet << ctrName; 
+                    toSend.emplace_back(packet); 
                     break;
                 }
                 case ClickEventType::ROOM_START_GAME: {

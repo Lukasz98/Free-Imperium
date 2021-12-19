@@ -30,13 +30,6 @@ struct GuiEv {
 
 struct Gui {
     GuiCore core;
-    glm::vec4 brownCol{56.0f / 255.0f, 31.0f / 255.0f, 19.0f / 255.0f, 1.0f};
-    glm::vec4 greenCol{0.0f / 255.0f, 255.0f / 255.0f, 0.0f / 255.0f, 1.0f};
-    glm::vec4 darkBrown{0.294, 0.227, 0.223, 1.0};
-    glm::vec4 brown{0.388, 0.298, 0.290, 1.0};
-    glm::vec4 lightBrown{0.568, 0.435, 0.427, 1.0};
-    glm::vec4 weirdBrown{.333, .258, 0.258, 1.0};
-
     GLuint iconsTid;
 
     Window* window;
@@ -60,7 +53,8 @@ struct Gui {
     GuiEv game_SideBar(const SideBarData& sbData, int mx, int my, bool clicked);
 
     GuiEv room_playerList(const std::vector<std::string>& plarr, int mx, int my, int sc);
-    GuiEv room_countryList(const std::vector<std::string>& ctrarr, int mx, int my);
+    GuiEv room_countryList(const std::vector<std::string>& ctrarr, int mx, int my, int scr);
+    GuiEv room_startButton(int mx, int my);
 };
 
 };  // namespace GuiLast
