@@ -369,6 +369,60 @@ GuiLast::GuiEv GuiLast::Gui::game_unit(const Unit& unit, int mx, int my, bool cl
         return GuiLast::GuiEv{ClickEventType::NONE};
     return GuiLast::GuiEv{ClickEventType::MISS};
 }
+    
+GuiLast::GuiEv GuiLast::Gui::game_war(const War* war, int mx, int my, bool clicked)
+{
+    GuiLast::GuiEv ct{ClickEventType::MISS};
+    glm::vec2 offset{5.0f, 2.5f};
+    glm::vec2 wSize{res.x * 0.35f, res.y * 0.35f};
+    glm::vec3 wPos{res.x * 0.5f - wSize.x * 0.5f, res.y * 0.5f - wSize.y * 0.5f, 0.1f};
+
+    core.drawRect(wPos, wSize, darkBrown);
+
+    glm::vec2 closeSize{100.0f, 40.0f};
+    glm::vec3 closePos{wPos.x + wSize.x - offset.x - closeSize.x, wPos.y + offset.y, 0.2f};
+    core.drawText(closePos, closeSize, greenCol, "Close", TEXT_LEFT, AM::FontSize::PX16);
+
+    glm::vec2 nameSize{wSize.x - offset.x * 2.0f, 40.0f};
+    glm::vec3 namePos{wPos.x + offset.x, wPos.y + wSize.y - offset.y - nameSize.y, 0.2f};
+    core.drawText(namePos, nameSize, greenCol, "War", TEXT_CENTER, AM::FontSize::PX16);
+    
+    glm::vec2 leftSize{wSize.x * 0.5f - offset.x * 2.0f, 40.0f};
+    glm::vec3 leftPos{wPos.x + offset.x, namePos.y - leftSize.y - offset.y, 0.2f};
+    core.drawText(leftPos, leftSize, greenCol, "Attacker:", TEXT_CENTER, AM::FontSize::PX16);
+    
+    glm::vec2 rightSize = leftSize;
+    glm::vec3 rightPos{leftPos.x + leftSize.x + offset.x * 2.0f, leftPos.y, 0.2f};
+    core.drawText(rightPos, rightSize, greenCol, "Defender:", TEXT_CENTER, AM::FontSize::PX16);
+
+    leftPos.y -= (offset.y + leftSize.y);
+    core.drawText(leftPos, leftSize, greenCol, war->attackers[0], TEXT_CENTER, AM::FontSize::PX16);
+    if (core.isInRect(leftPos, leftSize, mx, my))
+        ct = GuiLast::GuiEv{ClickEventType::OPEN_COUNTRY, war->attackersIds[0]};
+    
+    rightPos.y -= (offset.y + rightSize.y);
+    core.drawText(rightPos, rightSize, greenCol, war->defenders[0], TEXT_CENTER, AM::FontSize::PX16);
+    if (core.isInRect(rightPos, rightSize, mx, my))
+        ct = GuiLast::GuiEv{ClickEventType::OPEN_COUNTRY, war->defendersIds[0]};
+    
+    namePos.y = leftPos.y - offset.y - nameSize.y;
+    core.drawText(namePos, nameSize, greenCol, std::string{"Attacker war score: "} + std::to_string(war->attackerWarScore), TEXT_CENTER, AM::FontSize::PX16);
+
+    namePos.y = closePos.y;
+    nameSize.x *= 0.5f;
+    core.drawText(namePos, nameSize, greenCol, "Offer peace: ", TEXT_LEFT, AM::FontSize::PX16);
+    if (core.isInRect(namePos, nameSize, mx, my))
+        ct = GuiLast::GuiEv{ClickEventType::OPEN_OFFER_PEACE , war->id};
+
+    if (ct.ct != ClickEventType::MISS)
+        return ct;
+    if (core.isInRect(closePos, closeSize, mx, my))
+        return GuiLast::GuiEv{ClickEventType::CLOSE_WINDOW};
+    if (core.isInRect(wPos, wSize, mx, my))
+        return GuiLast::GuiEv{ClickEventType::NONE};
+    return GuiLast::GuiEv{ClickEventType::MISS};
+
+}
 
 GuiLast::GuiEv GuiLast::Gui::game_unitsList(const std::vector<Unit*>& units, int mx, int my, bool clicked)
 {
@@ -536,12 +590,27 @@ GuiLast::GuiEv GuiLast::Gui::room_playerList(const std::vector<std::string>& pla
         return GuiLast::GuiEv{ClickEventType::NONE};
     return GuiLast::GuiEv{ClickEventType::MISS};
 }
+    
+void GuiLast::Gui::game_drawUnitBar(const Unit& u)
+{
+    glm::vec2 wSize{100.0f, 50.0f};
+    glm::vec3 wPos{u.fakePos.x, u.fakePos.y, u.fakePos.z + 0.1f};
+
+    core.drawRect(wPos, wSize, darkBrown);
+    core.drawText(glm::vec3{wPos.x, wPos.y, wPos.z + 0.2f},
+                  glm::vec2{wSize.x, wSize.y}, greenCol, "ASD", TEXT_CENTER, AM::FontSize::PX32);
+
+}
 
 void GuiLast::Gui::start()
 {
+    start(glm::ortho(0.0f, (float)winSize.x, 0.0f, (float)winSize.y));
+}
+
+void GuiLast::Gui::start(const glm::mat4& matrix)
+{
     // Shader shader("src/graphics/shaders/gui_batch/a.vert", "src/graphics/shaders/gui_batch/a.frag", "", "");
     glUseProgram(shader.GetProgram());
-    glm::mat4 matrix = glm::ortho(0.0f, (float)winSize.x, 0.0f, (float)winSize.y);
     glUniformMatrix4fv(glGetUniformLocation(shader.GetProgram(), "pr_matrix"), 1, GL_FALSE,
                        glm::value_ptr(matrix));
 

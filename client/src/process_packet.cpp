@@ -334,52 +334,6 @@ void ProcessPacket::NewWar(sf::Packet& packet, std::vector<War>& wars, int myCou
         // enum class IType { WAR = 0, PEACE_OFFER = 1, PEACE_ACCEPTED = 2 };
         sideBarData.elements.push_back(
             SideBarData::Element{.type = SideBarData::IType::WAR, .val = id, .hoverText = rival});
-        /*
-                DataObj * obj = new DataObj{"label"};
-                obj->values["position:"] = "0.0 0.0 0.1";
-                obj->values["bgColor:"] = "0 0 0 0";
-                obj->values["size:"] = "50 50";
-
-                DataObj * hoverLabel = new DataObj{"label"};
-                hoverLabel->values["position:"] = "0.0 0.0 -0.1";
-                hoverLabel->values["bgColor:"] = "0 0 0 0";
-                hoverLabel->values["size:"] = "50 50";
-                hoverLabel->values["hover:"] = "true";
-
-                DataObj * popUpLabel = new DataObj{"label"};
-                popUpLabel->values["position:"] = "-200.0 3.0 0.1";
-                popUpLabel->values["bgColor:"] = "50 15 15 200";
-                popUpLabel->values["size:"] = "205 44";
-                popUpLabel->values["contentAlign:"] = "center";
-
-                DataObj * icon = new DataObj{"icon"};
-                icon->values["position:"] = "0.0 0.0 0.1";
-                icon->values["clickEvent:"] = "openWar";
-                icon->values["size:"] = "50 50";
-                icon->values["texturePath:"] = "src/img/war.png";
-                icon->values["impact:"] = std::to_string(id);
-
-                DataObj * hoverText = new DataObj{"text"};
-                hoverText->values["position:"] = "0.0 0.0 0.1";
-                hoverText->values["bgColor:"] = "0 0 0 0";
-                hoverText->values["height:"] = "25";
-                if (attackerId != myCountryId) {
-                    hoverText->values["content:"] = attacker->GetName();
-                    icon->values["content:"] = attacker->GetName();
-                }
-                else {
-                    hoverText->values["content:"] = defender->GetName();
-                    icon->values["content:"] = defender->GetName();
-                }
-
-                popUpLabel->objects.push_back(hoverText);
-                hoverLabel->objects.push_back(popUpLabel);
-                obj->objects.push_back(hoverLabel);
-                obj->objects.push_back(icon);
-
-                int idInGui = 0;//gui.AddToList(obj, "notifications", "notificationsList");
-                delete obj;
-        */
         War war{id, 0};  // idInGui};
         war.AddAttacker(attacker->GetName(), attackerId);
         war.AddDefender(defender->GetName(), defenderId);

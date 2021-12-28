@@ -547,8 +547,8 @@ void Game::Play()
         // Gui::Base::Hover(glm::vec2{window.xMouse * resolution.x / windowSize.x,
         //                           (windowSize.y - window.yMouse) * (resolution.y / windowSize.y)});
 
+        std::vector<std::size_t> uinds;
         float zPoint = 1500.0f;
-#if 1
         if (camera.eye.z < zPoint && !window.keys['U']) {
             for (int i = 0; i < 32; ++i) {
                 glActiveTexture(GL_TEXTURE0 + i);
@@ -558,6 +558,7 @@ void Game::Play()
             glm::mat4 rotate = glm::mat4{1.0f};
             rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
 
+            int i = 0;
             for (auto &unit : units) {
                 if (abs(unit.GetFakePos().x - camera.eye.x) > 400)
                     continue;
@@ -577,95 +578,10 @@ void Game::Play()
                                    glm::value_ptr(unitModel));
                 glUniform1iv(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"), 32, tex);
                 model3d.Draw();
+                uinds.push_back(i);
+                ++i;
             }
-            /*
-            for (std::size_t i = 0; i < tempUnits.size(); ++i) {
-                if (abs(tempUnits[i].pos.x - camera.eye.x) > 400)
-                    continue;
-                if (abs(tempUnits[i].pos.y - camera.eye.y) > 200)
-                    continue;
-                glm::mat4 unitModel = glm::mat4(1.0);
-                unitModel = glm::translate(unitModel, tempUnits[i].pos);
-                // unitModel = glm::translate(unitModel, unitPos);
-
-                unitModel = unitModel * rotate;
-                unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
-
-                glUseProgram(AM::am.shader->GetProgram());
-                glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "matrix"), 1, GL_FALSE,
-                                   glm::value_ptr(matrix));
-                glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE,
-                                   glm::value_ptr(unitModel));
-                glUniform1iv(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"), 32, tex);
-                model3d.Draw();
-            }
-*/
         }
-#else
-        err = glGetError();
-        // if (err)
-        // Log("Opengl error: " << err);
-        if (camera.eye.z < zPoint && !window.keys['U']) {
-            for (int i = 0; i < 32; ++i) {
-                glActiveTexture(GL_TEXTURE0 + i);
-                glBindTexture(GL_TEXTURE_2D, otherTexID[i]);
-            }
-            err = glGetError();
-            // if (err)
-            // Log("Opengl error: " << err);
-            err = glGetError();
-            if (err)
-                Log("Opengl error: " << err);
-
-            glUseProgram(AM::am.modelInstancedShader->GetProgram());
-            glUniformMatrix4fv(glGetUniformLocation(AM::am.modelInstancedShader->GetProgram(), "matrix"), 1,
-                               GL_FALSE, glm::value_ptr(matrix));
-            // glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE,
-            //                   glm::value_ptr(unitModel));
-            glUniform1iv(glGetUniformLocation(AM::am.modelInstancedShader->GetProgram(), "tex"), 32, tex);
-            // Log(AM::am.model->vao);
-            err = glGetError();
-            if (err)
-                Log("Opengl error: " << err);
-            glBindVertexArray(model3d.vao);
-            // glBindBuffer(GL_ARRAY_BUFFER, model3d.vbo);
-            glBindBuffer(GL_ARRAY_BUFFER, unitBuffer);
-            // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model3d.ibo);
-            err = glGetError();
-            if (err)
-                Log("Opengl error: " << err);
-
-            float prep = glfwGetTime();
-            glm::mat4 *uData = (glm::mat4 *)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-            prep = glfwGetTime() - prep;
-            err = glGetError();
-            if (err)
-                Log("Opengl error: " << err);
-            for (std::size_t i = 0; i < uMat.size(); ++i) {
-                uData[i] = uMat[i];
-            }
-
-            Log("prep=" << prep);
-
-            float dr = glfwGetTime();
-            // Log("uMat.size = " << uMat.size());
-            // Log("ibo.size = " << AM::am.model->iboCount);
-            glDrawElementsInstanced(GL_TRIANGLES, model3d.iboCount, GL_UNSIGNED_INT, NULL, uMat.size());
-            err = glGetError();
-            if (err)
-                Log("Opengl error: " << err);
-            // glDrawElementsInstanced(GL_TRIANGLES, AM::am.model->iboCount * uMat.size(), GL_UNSIGNED_INT, NULL,
-            //                       uMat.size());
-            glUnmapBuffer(GL_ARRAY_BUFFER);
-            dr = glfwGetTime() - dr;
-            // Log("draw="<<dr);
-            err = glGetError();
-            if (err)
-                Log("Opengl error: " << err);
-
-            // AM::am.model->Draw();
-        }
-#endif
         uMat.clear();
 
         for (int i = 0; i <= (int)AM::FontSize::PX160; ++i) {
@@ -709,11 +625,16 @@ void Game::Play()
         GLuint ts[] = {0};
         glBindTextures(ts[0], 1, ts);
         glActiveTexture(GL_TEXTURE0);
-
-        // Gui::Base::Draw();
-        //
+/*        
+        if (uinds.size()) {
+            guiLast.start(camera.GetMat());
+            for (auto i : uinds) {
+                guiLast.game_drawUnitBar(units[i]);
+            }
+            guiLast.flush();
+        }
+*/
         guiLast.start();
-        // guiLast.room_playerListDraw({"asd", "dsa"});
 
         guiDraw();
         guiLast.flush();
@@ -877,6 +798,15 @@ void Game::guiDraw()
         else if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
     }
+    
+    if (openWarInd != -1) {
+        tmpctype = guiLast.game_war(&wars[openWarInd], mp.x, mp.y, window.mouseLClicked);
+        Log((int)tmpctype.ct);
+        if (window.mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
+            openWarInd = -1;
+        else if (tmpctype.ct != ClickEventType::MISS)
+            ctype = tmpctype;
+    }
 
     if (openUnitsList == true) {
         std::vector<Unit *> clickedUnits_ptr;
@@ -929,11 +859,35 @@ void Game::guiDraw()
             case ClickEventType::SIDEBAR_LEFTC: {
                 int ind = ctype.val;
                 assert(ind >= 0 && ind < sideBarData.elements.size());
-                sideBarData.elements.erase(sideBarData.elements.begin() + ind);
+                if (sideBarData.elements[ind].type != SideBarData::IType::WAR) {
+                    sideBarData.elements.erase(sideBarData.elements.begin() + ind);
+                }
+                else {
+                    for (std::size_t i = 0; i < wars.size(); ++i) {
+                        if (wars[i].id == sideBarData.elements[ind].val) {
+                            resetGuiWindows();
+                            openWarInd = i;
+                            break;
+                        }
+                    }
+                }
                 break;
             }
             case ClickEventType::DECLARE_WAR: {
                 packets.emplace_back(PreparePacket::DeclareWar(ctype.val));
+                break;
+            }
+            case ClickEventType::OPEN_WAR_WINDOW: {
+                resetGuiWindows();
+                for (std::size_t i = 0; i < wars.size(); ++i)
+                    if (wars[i].id == ctype.val) {
+                        openWarInd = i;
+                        break;
+                    }
+                break;
+            }
+            case ClickEventType::OPEN_OFFER_PEACE: {
+                Log("off peacee");
                 break;
             }
         };
@@ -1032,6 +986,7 @@ void Game::resetGuiWindows()
     openMyCountry = false;
     openUnitsList = false;
     openBattleId = -1;
+    openWarInd = -1;
 }
 
 void Game::input()

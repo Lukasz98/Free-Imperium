@@ -6,6 +6,7 @@
 
 class War
 {
+public:
     int id = 0, idInGui = 0;
     std::vector<int> attackersIds;
     std::vector<int> defendersIds;
