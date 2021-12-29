@@ -78,6 +78,7 @@ struct MapTextures {
 struct Map2 {
     const float MAPID_PROV_COLOR = 20.0f;
     const float MAPID_COUNTRY = 21.0f;
+    const float MAPID_PEACE_OFFER = 22.0f;
     
     LandBorders landBorders;
     SeaBorders seaBorders;

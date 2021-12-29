@@ -538,7 +538,23 @@ void Game::Play()
         }
         else {
             map2->DrawWater(matrix, camera.eye);
-            map2->DrawLand(matrix, camera.eye, markedProvId, provinces.size(), map2->MAPID_COUNTRY);
+            if (openPeaceOffer == -1) {
+                map2->DrawLand(matrix, camera.eye, markedProvId, provinces.size(), map2->MAPID_COUNTRY);
+            }
+            else {
+                unsigned char * nexpix = new unsigned char[mapWidth * 4];
+                for (int i = 0; i < mapWidth * 4; i += 4) {
+                    nexpix[i] = 255;
+                    nexpix[i+1] = 0;
+                    nexpix[i+2] = 0;
+                    nexpix[i+3] = 255;
+                }
+                Texture newtex = Texture(nexpix, mapWidth, 1);
+                //delete [] pix;
+                map2->texID[(int)(map2->MAPID_PEACE_OFFER + 0.5f)] = newtex.GetId();
+                map2->ActivateTextures();
+                map2->DrawLand(matrix, camera.eye, markedProvId, provinces.size(), map2->MAPID_PEACE_OFFER);
+            }
         }
 
         if (drawBorders) {

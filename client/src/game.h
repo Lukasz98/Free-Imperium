@@ -52,6 +52,7 @@ int openProvId = -1;
 int openBattleId = -1;
 int openUnitId = -1;
 int openWarInd = -1;
+int openPeaceOffer = 1;
 bool openUnitsList = false;
 std::vector<int> clickedUnits;
 SideBarData sideBarData;
