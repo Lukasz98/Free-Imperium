@@ -14,9 +14,10 @@
 #include "graphics/window.h"
 #include "gui/click_event_enum.h"
 #include "gui/gui_structs.h"
+#include "gui_last/gui_core_last.h"
+#include "peace_offer.h"
 #include "province.h"
 #include "unit.h"
-#include "gui_last/gui_core_last.h"
 #include "war.h"
 
 namespace GuiLast {
@@ -57,8 +58,12 @@ struct Gui {
     GuiEv room_playerList(const std::vector<std::string>& plarr, int mx, int my, int sc);
     GuiEv room_countryList(const std::vector<std::string>& ctrarr, int mx, int my, int scr);
     GuiEv room_startButton(int mx, int my);
-    
+
     GuiEv game_war(const War* war, int mx, int my, bool clicked);
+    //    GuiEv game_peaceOffer(const PeaceOffer* offer, int mx, int my, bool clicked);
+    GuiEv game_peaceOffer(const PeaceOffer* offer, int mx, int my, int myctrid,
+                          const std::vector<std::unique_ptr<Province>>& provinces,
+                          std::vector<std::shared_ptr<Country>>& countries, bool clicked, int scr);
 
     void game_drawUnitBar(const Unit& u);
 };

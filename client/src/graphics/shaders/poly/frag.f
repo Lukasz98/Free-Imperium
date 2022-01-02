@@ -22,11 +22,11 @@ void main()
     int mapTypei = int(mapType);
     // float provCount = 3773.0f;
     if (mapTypei == 20) { // only for detecting clicks on prov
-        color = texture(tex[mapTypei], vec2((0.1 + ProvId) / provCount, .5f));
+        color = texture(tex[mapTypei], vec2((0.5 + ProvId) / provCount, .5f));
     }
     else {
-        color = texture(tex[mapTypei], vec2((0.1 + ProvId) / provCount, .5f));
-        if (ProvId == provId)
+        color = texture(tex[mapTypei], vec2((ProvId +.5) / provCount, .5f));
+        if (ProvId == provId && mapTypei != 22)
             color = mix(color, vec4(1.0, 1.0, 1.0, 1.0), 0.5);
 
         vec3 normall = vec3(0.0f, 0.0f, 1.0f);

@@ -541,16 +541,53 @@ void Game::Play()
             if (openPeaceOffer == -1) {
                 map2->DrawLand(matrix, camera.eye, markedProvId, provinces.size(), map2->MAPID_COUNTRY);
             }
-            else {
-                unsigned char * nexpix = new unsigned char[mapWidth * 4];
-                for (int i = 0; i < mapWidth * 4; i += 4) {
-                    nexpix[i] = 255;
-                    nexpix[i+1] = 0;
-                    nexpix[i+2] = 0;
-                    nexpix[i+3] = 255;
+            else {  // open offering peace mode
+                unsigned char *nexpix = new unsigned char[mapWidth * 4];
+                Color lightBlue{25, 94, 176, 255};
+                Color green{5, 142, 72, 255};
+                Color lightRed{159, 95, 95, 255};
+                Color red{229, 0, 0, 255};
+                Color neutral{160, 160, 160, 255};
+                Color *col = &neutral;
+                for (int i = 0; i < provinces.size(); ++i) {
+                    if (peaceOffers[openPeaceOffer].offeredBy == provinces[i]->GetCountryId()) {
+                        if (std::find_if(peaceOffers[openPeaceOffer].lostProv.begin(),
+                                         peaceOffers[openPeaceOffer].lostProv.end(),
+                                         [id = i](const std::tuple<int, int, int> &t) {
+                                             return std::get<0>(t) == id;
+                                         }) != peaceOffers[openPeaceOffer].lostProv.end())
+                        {
+                            col = &red;
+                        }
+                        else
+                            col = &lightBlue;
+                    }
+                    else if (peaceOffers[openPeaceOffer].recipant == provinces[i]->GetCountryId()) {
+                        if (std::find_if(peaceOffers[openPeaceOffer].gainProv.begin(),
+                                         peaceOffers[openPeaceOffer].gainProv.end(),
+                                         [id = i](const std::tuple<int, int, int> &t) {
+                                             return std::get<0>(t) == id;
+                                         }) != peaceOffers[openPeaceOffer].gainProv.end())
+                        {
+                            col = &green;
+                        }
+                        else
+                            col = &lightRed;
+                    }
+                    else {
+                        col = &neutral;
+                    }
+                    if (i == 3018) {
+                        Log((int)col->r << " " << (int)col->g << " " << (int)col->b);
+                    }
+
+                    nexpix[i * 4] = col->r;
+                    nexpix[i * 4 + 1] = col->g;
+                    nexpix[i * 4 + 2] = col->b;
+                    nexpix[i * 4 + 3] = col->a;
                 }
-                Texture newtex = Texture(nexpix, mapWidth, 1);
-                //delete [] pix;
+                Texture newtex = Texture(nexpix, provinces.size(), 1);
+                // delete [] pix;
                 map2->texID[(int)(map2->MAPID_PEACE_OFFER + 0.5f)] = newtex.GetId();
                 map2->ActivateTextures();
                 map2->DrawLand(matrix, camera.eye, markedProvId, provinces.size(), map2->MAPID_PEACE_OFFER);
@@ -612,7 +649,7 @@ void Game::Play()
             ctrNamesFadeIn = 0.0f;
         }
         // Log(ctrNamesFadeIn << ", fade: " << ctrNamesFade);
-        if ((camera.eye.z > zPoint) || ctrNamesFade < 1.0f) {
+        if (((camera.eye.z > zPoint) || ctrNamesFade < 1.0f) && openPeaceOffer == -1) {
             glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
 
             glUseProgram(fontShader.GetProgram());
@@ -630,9 +667,9 @@ void Game::Play()
         float tt2 = glfwGetTime();
 
         //
-        glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
-        // glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
-        // glDepthFunc(GL_GREATER);
+        //glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
+        glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
+        //glDepthFunc(GL_GREATER);
         matrix = glm::ortho(0.0f, (float)resolution.x, 0.0f, (float)resolution.y);
         glUseProgram(shader.GetProgram());
         glUniformMatrix4fv(glGetUniformLocation(shader.GetProgram(), "matrix"), 1, GL_FALSE,
@@ -641,15 +678,15 @@ void Game::Play()
         GLuint ts[] = {0};
         glBindTextures(ts[0], 1, ts);
         glActiveTexture(GL_TEXTURE0);
-/*        
-        if (uinds.size()) {
-            guiLast.start(camera.GetMat());
-            for (auto i : uinds) {
-                guiLast.game_drawUnitBar(units[i]);
-            }
-            guiLast.flush();
-        }
-*/
+        /*
+                if (uinds.size()) {
+                    guiLast.start(camera.GetMat());
+                    for (auto i : uinds) {
+                        guiLast.game_drawUnitBar(units[i]);
+                    }
+                    guiLast.flush();
+                }
+        */
         guiLast.start();
 
         guiDraw();
@@ -814,7 +851,7 @@ void Game::guiDraw()
         else if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
     }
-    
+
     if (openWarInd != -1) {
         tmpctype = guiLast.game_war(&wars[openWarInd], mp.x, mp.y, window.mouseLClicked);
         Log((int)tmpctype.ct);
@@ -836,6 +873,14 @@ void Game::guiDraw()
         tmpctype = guiLast.game_unitsList(clickedUnits_ptr, mp.x, mp.y, window.mouseLClicked);
         if (window.mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
             openUnitsList = false;
+        else if (tmpctype.ct != ClickEventType::MISS)
+            ctype = tmpctype;
+    }
+
+    if (openPeaceOffer != -1) {
+        tmpctype = guiLast.game_peaceOffer(&peaceOffers[openPeaceOffer], mp.x, mp.y, myCountry->GetId(), provinces, countries, window.mouseLClicked, window.scrollOffset);
+        if (window.mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
+            openPeaceOffer = -1;
         else if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
     }
@@ -903,7 +948,21 @@ void Game::guiDraw()
                 break;
             }
             case ClickEventType::OPEN_OFFER_PEACE: {
-                Log("off peacee");
+                for (std::size_t i = 0; i < peaceOffers.size(); ++i) {
+                    if (peaceOffers[i].peaceId == ctype.val) {
+                        resetGuiWindows();
+                        openPeaceOffer = ctype.val;
+                    }
+                }
+                if (openPeaceOffer == -1) {
+                    int warId = wars[openWarInd].id;
+                    int recipantId = wars[warId].attackersIds[0];
+                    if (recipantId == myCountry->GetId())
+                        recipantId = wars[warId].defendersIds[0];
+                    peaceOffers.push_back(PeaceOffer{myCountry->GetId(), warId, recipantId});
+                    resetGuiWindows();
+                    openPeaceOffer = peaceOffers.size() - 1;
+                }
                 break;
             }
         };
@@ -999,6 +1058,7 @@ void Game::resetGuiWindows()
     openProvId = -1;
     openUnitId = -1;
     openCountryId = -1;
+    openPeaceOffer = -1;
     openMyCountry = false;
     openUnitsList = false;
     openBattleId = -1;
@@ -1037,7 +1097,7 @@ void Game::input()
     // map.getheightterrain() do poprawy
     camera.Update(window.xMouse, windowSize.y - window.yMouse, map.GetHeightTerrain());
 
-    if (window.scrollOffset) {
+    if (window.scrollOffset && ctype.ct == ClickEventType::MISS) {
         // if (!Gui::Base::Scroll(window.scrollOffset, glm::vec2{window.xMouse * resolution.x /
         // window.GetSize().x,
         //                                                     (window.GetSize().y - window.yMouse) *
@@ -1056,20 +1116,61 @@ void Game::input()
             if (!unitClick(mouseInWorld)) {
                 int pid = provClick(mouseInWorld);
                 if (pid != -1) {
-                    resetGuiWindows();
-                    bool foundBattle = false;
-                    for (std::size_t i = 0; i < battles.size(); ++i) {
-                        if (battles[i].GetProvId() == pid) {
-                            foundBattle = true;
-                            openBattleId = i;
-                            Log("openBattleId == " << openBattleId);
-                            break;
+                    if (openPeaceOffer == -1) {
+                        resetGuiWindows();
+                        bool foundBattle = false;
+                        for (std::size_t i = 0; i < battles.size(); ++i) {
+                            if (battles[i].GetProvId() == pid) {
+                                foundBattle = true;
+                                openBattleId = i;
+                                Log("openBattleId == " << openBattleId);
+                                break;
+                            }
+                        }
+
+                        if (!foundBattle) {
+                            openProvId = pid;
+                            //&& provinces[pid]->GetSieged() == 0) {
                         }
                     }
-
-                    if (!foundBattle) {
-                        openProvId = pid;
-                        //&& provinces[pid]->GetSieged() == 0) {
+                    else { // offer peace view mode
+                        if ((provinces[pid]->GetCountryId() == peaceOffers[openPeaceOffer].offeredBy ||
+                            provinces[pid]->GetCountryId() == peaceOffers[openPeaceOffer].recipant) &&
+                            peaceOffers[openPeaceOffer].offeredBy == myCountry->GetId()) 
+                        {
+                            auto tmpit = std::find_if(
+                                peaceOffers[openPeaceOffer].lostProv.begin(),
+                                peaceOffers[openPeaceOffer].lostProv.end(),
+                                [id = pid](const std::tuple<int, int, int> &t) { return std::get<0>(t) == id; });
+                            if (tmpit != peaceOffers[openPeaceOffer].lostProv.end()) {
+                                peaceOffers[openPeaceOffer].lostProv.erase(tmpit);
+                            }
+                            else if (provinces[pid]->GetCountryId() == myCountry->GetId()){
+                                peaceOffers[openPeaceOffer].lostProv.push_back(std::make_tuple(pid, peaceOffers[openPeaceOffer].recipant, provinces[pid]->GetDevelopment()));
+                            }
+                            tmpit = std::find_if(
+                                peaceOffers[openPeaceOffer].gainProv.begin(),
+                                peaceOffers[openPeaceOffer].gainProv.end(),
+                                [id = pid](const std::tuple<int, int, int> &t) { return std::get<0>(t) == id; });
+                            if (tmpit != peaceOffers[openPeaceOffer].gainProv.end()) {
+                                peaceOffers[openPeaceOffer].gainProv.erase(tmpit);
+                            }
+                            else if (provinces[pid]->GetCountryId() != myCountry->GetId()){
+                                peaceOffers[openPeaceOffer].gainProv.push_back(std::make_tuple(pid, peaceOffers[openPeaceOffer].offeredBy, provinces[pid]->GetDevelopment()));
+                            }
+                        }
+                        // else if (peaceOffers[openPeaceOffer].recipant == provinces[i]->GetCountryId()) {
+                        //     if (std::find_if(peaceOffers[openPeaceOffer].gainProv.begin(),
+                        //                      peaceOffers[openPeaceOffer].gainProv.end(),
+                        //                      [id = i](const std::tuple<int, int, int> &t) {
+                        //                          return std::get<0>(t) == id;
+                        //                      }) != peaceOffers[openPeaceOffer].gainProv.end())
+                        //     {
+                        //         col = &green;
+                        //     }
+                        //     else
+                        //         col = &lightRed;
+                        // }
                     }
                 }
             }
