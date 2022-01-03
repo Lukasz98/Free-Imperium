@@ -34,7 +34,7 @@ static void listDraw(GuiLast::Gui& gui, glm::vec3 listPos, glm::vec2 listSize, g
         itemPos.y = listPos.y + listSize.y - offset.y - itemSize.y;
         float lasty = itemPos.y;
         for (int i = 0; i < itemCount - 1; ++i) {
-            lasty -= itemSize.y - offset.y;
+            lasty = lasty - itemSize.y - offset.y;
         }
         if (scr != 0) {
             sc += scr * 30;
@@ -471,29 +471,39 @@ GuiLast::GuiEv GuiLast::Gui::game_peaceOffer(const PeaceOffer* offer, int mx, in
     glm::vec2 wSize{res.x * 0.3f, res.y * 0.85f};
     glm::vec3 wPos{offset.x, offset.y, 0.1f};
 
-    core.drawRect(wPos, wSize, darkBrown);
+    core.drawRect(wPos, wSize, brown);
 
     glm::vec2 closeSize{100.0f, 40.0f};
     glm::vec3 closePos{wPos.x + wSize.x - offset.x - closeSize.x, wPos.y + offset.y, 0.2f};
     core.drawText(closePos, closeSize, greenCol, "Close", TEXT_LEFT, AM::FontSize::PX16);
 
-    glm::vec2 nameSize{wSize.x, wSize.y * 0.1f};
+    glm::vec2 sendSize{100.0f, 40.0f};
+    glm::vec3 sendPos{wPos.x + offset.x, closePos.y, closePos.z};
+    core.drawText(sendPos, sendSize, greenCol, "Send", TEXT_LEFT, AM::FontSize::PX16);
+    
+    glm::vec2 nameSize{wSize.x, 50.0f};
     glm::vec3 namePos{wPos.x + offset.x, wPos.y + wSize.y * 0.9f, 0.2f};
     core.drawText(namePos, nameSize, greenCol, std::string("Peace Offer"), TEXT_CENTER,
                   AM::FontSize::PX16);
     namePos.y = namePos.y - offset.y - nameSize.y;
+    assert(offer->recipant >= 0 && offer->recipant < countries.size());
+    assert(offer->offeredBy >= 0 && offer->offeredBy < countries.size());
     core.drawText(namePos, nameSize, greenCol, countries[offer->recipant]->GetName() + std::string(" vs ") + countries[offer->offeredBy]->GetName(), TEXT_CENTER,
                   AM::FontSize::PX16);
 
+    namePos.y = namePos.y - offset.y * 3.0f - nameSize.y;
+    core.drawText(namePos, nameSize, greenCol, "Lost provinces:", TEXT_CENTER,
+                  AM::FontSize::PX16);
     auto* lostTuples = &offer->lostProv;
     auto* gainTuples = &offer->gainProv;
-    if (offer->offeredBy != myCtrId) {
-        lostTuples = &offer->gainProv;
-        gainTuples = &offer->lostProv;
-    }
+    //if (offer->offeredBy != myCtrId) {
+    //    lostTuples = &offer->gainProv;
+    //    gainTuples = &offer->lostProv;
+    //}
+    int scr2 = scr;
     {  // list1
-        glm::vec2 listSize{wSize.x, wSize.y * 0.3f};
-        glm::vec3 listPos{wPos.x, wPos.y + wSize.y * 0.8 - listSize.y, 0.2f};
+        glm::vec2 listSize{wSize.x, wSize.y * 0.2f};
+        glm::vec3 listPos{wPos.x, namePos.y - offset.y * 8.0f - listSize.y, 0.2f};
         core.drawRect(listPos, listSize, lightBrown);
         glm::vec2 elSize{listSize.x, 40.0f};
         glm::vec3 startPos{listPos.x, listPos.y + listSize.y - elSize.y, listPos.z + 0.2f};
@@ -509,24 +519,27 @@ GuiLast::GuiEv GuiLast::Gui::game_peaceOffer(const PeaceOffer* offer, int mx, in
                                   countries[std::get<1>((*lostTuples)[i])]->GetName(),
                               TEXT_LEFT, AM::FontSize::PX16);
 
-                startPos.y -= elSize.y - offset.y;
+                startPos.y = startPos.y - elSize.y - offset.y;
             }
             flush();
             glScissor(0.0f, 0.0f, res.x, res.y);
             start();
         }
+        namePos.y = listPos.y  - nameSize.y;
     }
+    core.drawText(namePos, nameSize, greenCol, "Gain provinces:", TEXT_CENTER,
+                  AM::FontSize::PX16);
     {  // list2
-        glm::vec2 listSize{wSize.x, wSize.y * 0.3f};
-        glm::vec3 listPos{wPos.x, wPos.y + offset.y, 0.2f};
+        glm::vec2 listSize{wSize.x, wSize.y * 0.2f};
+        glm::vec3 listPos{wPos.x, namePos.y - offset.y * 8.0f - listSize.y, 0.2f};
         core.drawRect(listPos, listSize, lightBrown);
         glm::vec2 elSize{listSize.x, 40.0f};
         glm::vec3 startPos{listPos.x, listPos.y + listSize.y - elSize.y, listPos.z + 0.2f};
         {  // list
             static float sc = 0;
             if (!core.isInRect(listPos, listSize, mx, my))
-                scr = 0;
-            listDraw(*this, listPos, listSize, offset, startPos, elSize, sc, scr, gainTuples->size());
+                scr2 = 0;
+            listDraw(*this, listPos, listSize, offset, startPos, elSize, sc, scr2, gainTuples->size());
             for (std::size_t i = 0; i < gainTuples->size(); ++i) {
                 core.drawRect(glm::vec3{startPos.x, startPos.y, startPos.z - 0.05f}, elSize, darkBrown);
                 core.drawText(startPos, elSize, greenCol,
@@ -534,7 +547,7 @@ GuiLast::GuiEv GuiLast::Gui::game_peaceOffer(const PeaceOffer* offer, int mx, in
                                   countries[std::get<1>((*gainTuples)[i])]->GetName(),
                               TEXT_LEFT, AM::FontSize::PX16);
 
-                startPos.y -= elSize.y - offset.y;
+                startPos.y = startPos.y - elSize.y - offset.y;
             }
             flush();
             glScissor(0.0f, 0.0f, res.x, res.y);
@@ -543,6 +556,8 @@ GuiLast::GuiEv GuiLast::Gui::game_peaceOffer(const PeaceOffer* offer, int mx, in
     }
     if (ct.ct != ClickEventType::MISS)
         return ct;
+    if (core.isInRect(sendPos, sendSize, mx, my))
+        return GuiLast::GuiEv{ClickEventType::SEND_PEACE_OFFER, offer->peaceId};
     if (core.isInRect(closePos, closeSize, mx, my))
         return GuiLast::GuiEv{ClickEventType::CLOSE_WINDOW};
     if (core.isInRect(wPos, wSize, mx, my))

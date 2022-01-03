@@ -13,7 +13,7 @@ struct PeaceOffer
     int recipant, offeredBy;
     bool recipantIsDefender;
 
-    PeaceOffer(int offeredBy, int warid, int recipant) : offeredBy(offeredBy), warId(warid), recipant(recipant) {}
+    PeaceOffer(int offeredBy, int warid, int recipant) : offeredBy(offeredBy), warId(warid), recipant(recipant), peaceId(-2) {}
     PeaceOffer() {}
 };
 

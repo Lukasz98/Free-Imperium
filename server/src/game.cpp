@@ -929,6 +929,7 @@ void Game::processPacket(std::shared_ptr<Client> client, sf::Packet& packet)
 {
     std::string type;
     packet >> type;
+    Log(type);
 
     if (type == "NewUnit") {
         ProcessPacket::NewUnit(packet, client, countries, provinces, toSend);

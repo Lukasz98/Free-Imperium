@@ -560,7 +560,7 @@ void ProcessPacket::MonthlyUpdate(sf::Packet& packet, const std::string& myCount
 }
 
 void ProcessPacket::BotPeaceOffer(sf::Packet& packet, std::vector<PeaceOffer>& peaceOffers,
-                                  const std::vector<std::shared_ptr<Country>>& countries, SideBarData& sideBarData)
+                                  const std::vector<std::shared_ptr<Country>>& countries, SideBarData& sideBarData, const std::shared_ptr<Country>& myCountry)
 {
     PeaceOffer peaceOffer;
     int lostProvCount, gainProvCount;
@@ -568,6 +568,7 @@ void ProcessPacket::BotPeaceOffer(sf::Packet& packet, std::vector<PeaceOffer>& p
     packet >> peaceOffer.peaceId;
     packet >> peaceOffer.warId;
     packet >> peaceOffer.offeredBy;
+    peaceOffer.recipant = myCountry->GetId();
 
     packet >> lostProvCount;
     for (int i = 0; i < lostProvCount; i++) {
@@ -590,6 +591,13 @@ void ProcessPacket::BotPeaceOffer(sf::Packet& packet, std::vector<PeaceOffer>& p
         packet >> d;
         peaceOffer.gainProv.emplace_back(std::make_tuple(s, ss, d));
     }
+
+    // ohh
+    //if ((peaceOffer.lostProv.size() > 0 && std::get<1>(peaceOffer.lostProv[0]) != myCountry->GetId()) || (peaceOffer.gainProv.size() > 0 && std::get<1>(peaceOffer.gainProv[0]) != myCountry->GetId())) {
+    //    auto tmp = peaceOffer.lostProv;
+    //    peaceOffer.lostProv = peaceOffer.gainProv;
+    //    peaceOffer.gainProv = tmp;
+    //}
 
     for (auto it = peaceOffers.begin(); it != peaceOffers.end(); ++it) {
         if (it->warId == peaceOffer.warId && it->offeredBy == peaceOffer.offeredBy) {

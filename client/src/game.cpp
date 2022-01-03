@@ -538,10 +538,11 @@ void Game::Play()
         }
         else {
             map2->DrawWater(matrix, camera.eye);
-            if (openPeaceOffer == -1) {
+            if (openPeaceOfferId == -1) {
                 map2->DrawLand(matrix, camera.eye, markedProvId, provinces.size(), map2->MAPID_COUNTRY);
             }
             else {  // open offering peace mode
+                    // Log("peace mode");
                 unsigned char *nexpix = new unsigned char[mapWidth * 4];
                 Color lightBlue{25, 94, 176, 255};
                 Color green{5, 142, 72, 255};
@@ -549,28 +550,34 @@ void Game::Play()
                 Color red{229, 0, 0, 255};
                 Color neutral{160, 160, 160, 255};
                 Color *col = &neutral;
-                for (int i = 0; i < provinces.size(); ++i) {
-                    if (peaceOffers[openPeaceOffer].offeredBy == provinces[i]->GetCountryId()) {
-                        if (std::find_if(peaceOffers[openPeaceOffer].lostProv.begin(),
-                                         peaceOffers[openPeaceOffer].lostProv.end(),
-                                         [id = i](const std::tuple<int, int, int> &t) {
-                                             return std::get<0>(t) == id;
-                                         }) != peaceOffers[openPeaceOffer].lostProv.end())
-                        {
-                            col = &red;
-                        }
-                        else
-                            col = &lightBlue;
+                int peaceind;
+                for (std::size_t i = 0; i < peaceOffers.size(); ++i) {
+                    if (peaceOffers[i].peaceId == openPeaceOfferId) {
+                        peaceind = i;
+                        break;
                     }
-                    else if (peaceOffers[openPeaceOffer].recipant == provinces[i]->GetCountryId()) {
-                        if (std::find_if(peaceOffers[openPeaceOffer].gainProv.begin(),
-                                         peaceOffers[openPeaceOffer].gainProv.end(),
-                                         [id = i](const std::tuple<int, int, int> &t) {
-                                             return std::get<0>(t) == id;
-                                         }) != peaceOffers[openPeaceOffer].gainProv.end())
-                        {
-                            col = &green;
-                        }
+                }
+                assert(peaceind >= 0 && peaceind < peaceOffers.size());
+                for (int i = 0; i < provinces.size(); ++i) {
+                    if (std::find_if(peaceOffers[peaceind].lostProv.begin(), peaceOffers[peaceind].lostProv.end(),
+                                     [id = i](const std::tuple<int, int, int> &t) {
+                                         return std::get<0>(t) == id;
+                                     }) != peaceOffers[peaceind].lostProv.end())
+                    {
+                        col = &red;
+                    }
+                    else if (std::find_if(
+                                 peaceOffers[peaceind].gainProv.begin(), peaceOffers[peaceind].gainProv.end(),
+                                 [id = i](const std::tuple<int, int, int> &t) { return std::get<0>(t) == id; }) !=
+                             peaceOffers[peaceind].gainProv.end())
+                    {
+                        col = &green;
+                    }
+                    else if (peaceOffers[peaceind].offeredBy == provinces[i]->GetCountryId() ||
+                             peaceOffers[peaceind].recipant == provinces[i]->GetCountryId())
+                    {
+                        if (peaceOffers[peaceind].offeredBy == provinces[i]->GetCountryId())
+                            col = &lightBlue;
                         else
                             col = &lightRed;
                     }
@@ -578,7 +585,7 @@ void Game::Play()
                         col = &neutral;
                     }
                     if (i == 3018) {
-                        Log((int)col->r << " " << (int)col->g << " " << (int)col->b);
+                        // Log((int)col->r << " " << (int)col->g << " " << (int)col->b);
                     }
 
                     nexpix[i * 4] = col->r;
@@ -649,7 +656,7 @@ void Game::Play()
             ctrNamesFadeIn = 0.0f;
         }
         // Log(ctrNamesFadeIn << ", fade: " << ctrNamesFade);
-        if (((camera.eye.z > zPoint) || ctrNamesFade < 1.0f) && openPeaceOffer == -1) {
+        if (((camera.eye.z > zPoint) || ctrNamesFade < 1.0f) && openPeaceOfferId == -1) {
             glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
 
             glUseProgram(fontShader.GetProgram());
@@ -667,9 +674,9 @@ void Game::Play()
         float tt2 = glfwGetTime();
 
         //
-        //glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
+        // glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
         glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
-        //glDepthFunc(GL_GREATER);
+        // glDepthFunc(GL_GREATER);
         matrix = glm::ortho(0.0f, (float)resolution.x, 0.0f, (float)resolution.y);
         glUseProgram(shader.GetProgram());
         glUniformMatrix4fv(glGetUniformLocation(shader.GetProgram(), "matrix"), 1, GL_FALSE,
@@ -692,6 +699,7 @@ void Game::Play()
         guiDraw();
         guiLast.flush();
 
+        window.scrollOffset = 0.0f;
         window.Update();
         pids.clear();
         waterTime += dt;
@@ -705,90 +713,6 @@ void Game::Play()
         // Log(dt);
         time = glfwGetTime();
     }
-
-    /*
-    while (!window.ShouldClose()) {
-        receivePackets();
-        updateGui();
-        sendPackets();
-        updateBattles();
-
-        for (auto &u : units) u->UpdateDt(dt);
-
-        if (display || 1) {
-            window.Refresh();
-            input();
-
-            // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            glDepthRange(0, 1);
-            map.Draw(camera, dt);
-
-            glm::mat4 matrix = camera.GetMat();
-
-            for (auto &u : units) u->Draw(matrix, false);
-
-            glUseProgram(shader.GetProgram());
-            glUniformMatrix4fv(glGetUniformLocation(shader.GetProgram(), "matrix"), 1, GL_FALSE,
-                               glm::value_ptr(matrix));
-
-            // testRect.Draw();
-
-            {
-                glDepthRange(0, 0.19);
-                GLuint ts[] = {0};
-                glBindTextures(ts[0], 1, ts);
-
-                bool selected = false;
-                for (auto &u : units) {
-                    if (!selected) {
-                        if (!selected)
-                            u->DrawGuiElements(false);
-                    }
-                    else
-                        u->DrawGuiElements(false);
-                }
-            }
-
-            matrix = glm::ortho(0.0f, (float)resolution.x, 0.0f, (float)resolution.y);
-            glUseProgram(shader.GetProgram());
-            glUniformMatrix4fv(glGetUniformLocation(shader.GetProgram(), "matrix"), 1, GL_FALSE,
-                               glm::value_ptr(matrix));
-
-            GLuint ts[] = {0};
-            glBindTextures(ts[0], 1, ts);
-
-            Gui::Base::Draw();
-            // gui.Draw();
-            window.Update();
-            frames++;
-        }
-
-        Gui::Base::UpdateVals();
-
-        dt = glfwGetTime() - currTime;
-
-        displayTime += dt;
-        framesTime += dt;
-
-        if (displayTime < 1.0f / 100.0f) {
-            display = false;
-        }
-        else {
-            drawDt = displayTime;
-            displayTime = 0.0f;
-            display = true;
-        }
-
-        if (framesTime >= 1.0f) {
-            // Log("Dt: "<<dt );
-            framesTime = 0.0f;
-            // Log("FPS: " << frames);
-            frames = 0;
-        }
-
-        currTime = glfwGetTime();
-    }
-*/
 }
 
 void Game::guiDraw()
@@ -852,11 +776,17 @@ void Game::guiDraw()
             ctype = tmpctype;
     }
 
-    if (openWarInd != -1) {
-        tmpctype = guiLast.game_war(&wars[openWarInd], mp.x, mp.y, window.mouseLClicked);
-        Log((int)tmpctype.ct);
+    if (openWarId != -1) {
+        int warind;
+        for (std::size_t i = 0; i < wars.size(); ++i) {
+            if (wars[i].id == openWarId) {
+                warind = i;
+                break;
+            }
+        }
+        tmpctype = guiLast.game_war(&wars[warind], mp.x, mp.y, window.mouseLClicked);
         if (window.mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
-            openWarInd = -1;
+            openWarId = -1;
         else if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
     }
@@ -877,10 +807,19 @@ void Game::guiDraw()
             ctype = tmpctype;
     }
 
-    if (openPeaceOffer != -1) {
-        tmpctype = guiLast.game_peaceOffer(&peaceOffers[openPeaceOffer], mp.x, mp.y, myCountry->GetId(), provinces, countries, window.mouseLClicked, window.scrollOffset);
+    if (openPeaceOfferId != -1) {
+        int peaceind;
+        for (std::size_t i = 0; i < peaceOffers.size(); ++i) {
+            if (peaceOffers[i].peaceId == openPeaceOfferId) {
+                peaceind = i;
+                break;
+            }
+        }
+        assert(peaceind >= 0 && peaceind < peaceOffers.size());
+        tmpctype = guiLast.game_peaceOffer(&peaceOffers[peaceind], mp.x, mp.y, myCountry->GetId(), provinces,
+                                           countries, window.mouseLClicked, window.scrollOffset);
         if (window.mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
-            openPeaceOffer = -1;
+            openPeaceOfferId = -1;
         else if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
     }
@@ -920,17 +859,32 @@ void Game::guiDraw()
             case ClickEventType::SIDEBAR_LEFTC: {
                 int ind = ctype.val;
                 assert(ind >= 0 && ind < sideBarData.elements.size());
-                if (sideBarData.elements[ind].type != SideBarData::IType::WAR) {
-                    sideBarData.elements.erase(sideBarData.elements.begin() + ind);
+                if (sideBarData.elements[ind].type == SideBarData::IType::PEACE_OFFER) {
+                    // sideBarData.elements.erase(sideBarData.elements.begin() + ind);
+                    // int peaceind;
+                    // for (std::size_t i = 0; i < peaceOffers.size(); ++i) {
+                    //     if (peaceOffers[i].peaceId == ctype.val) {
+                    //         peaceind = i;
+                    //         break;
+                    //     }
+                    // }
+                    // assert(peaceind >= 0 && peaceind < peaceOffers.size());
+                    resetGuiWindows();
+                    openPeaceOfferId = sideBarData.elements[ind].val;  // ctype.val;
+                }
+                else if (sideBarData.elements[ind].type == SideBarData::IType::WAR) {
+                    resetGuiWindows();
+                    openWarId = sideBarData.elements[ind].val;
                 }
                 else {
-                    for (std::size_t i = 0; i < wars.size(); ++i) {
-                        if (wars[i].id == sideBarData.elements[ind].val) {
-                            resetGuiWindows();
-                            openWarInd = i;
-                            break;
-                        }
-                    }
+                    sideBarData.elements.erase(sideBarData.elements.begin() + ind);
+                    // for (std::size_t i = 0; i < wars.size(); ++i) {
+                    //     if (wars[i].id == sideBarData.elements[ind].val) {
+                    //         resetGuiWindows();
+                    //         openWarInd = i;
+                    //         break;
+                    //     }
+                    // }
                 }
                 break;
             }
@@ -940,29 +894,74 @@ void Game::guiDraw()
             }
             case ClickEventType::OPEN_WAR_WINDOW: {
                 resetGuiWindows();
-                for (std::size_t i = 0; i < wars.size(); ++i)
-                    if (wars[i].id == ctype.val) {
-                        openWarInd = i;
-                        break;
-                    }
-                break;
+                openWarId = ctype.val;
+                // for (std::size_t i = 0; i < wars.size(); ++i)
+                //     if (wars[i].id == ctype.val) {
+                //         openWarInd = i;
+                //         break;
+                //     }
+                // break;
             }
             case ClickEventType::OPEN_OFFER_PEACE: {
+                // openPeaceOfferId = ctype.val;
+                Log(openPeaceOfferId);
+                if (openPeaceOfferId == -1) {
+                    int warind;
+                    for (std::size_t i = 0; i < wars.size(); ++i) {
+                        if (wars[i].id == openWarId) {
+                            warind = i;
+                            break;
+                        }
+                    }
+                    Log(warind);
+                    int recipantId = wars[warind].attackersIds[0];
+                    if (recipantId == myCountry->GetId())
+                        recipantId = wars[warind].defendersIds[0];
+                    peaceOffers.push_back(PeaceOffer{myCountry->GetId(), wars[warind].id, recipantId});
+                    resetGuiWindows();
+                    openPeaceOfferId = -2;
+                }
+                break;
+            }
+            case ClickEventType::SEND_PEACE_OFFER: {
+                int peaceind;
                 for (std::size_t i = 0; i < peaceOffers.size(); ++i) {
                     if (peaceOffers[i].peaceId == ctype.val) {
-                        resetGuiWindows();
-                        openPeaceOffer = ctype.val;
+                        peaceind = i;
+                        break;
                     }
                 }
-                if (openPeaceOffer == -1) {
-                    int warId = wars[openWarInd].id;
-                    int recipantId = wars[warId].attackersIds[0];
-                    if (recipantId == myCountry->GetId())
-                        recipantId = wars[warId].defendersIds[0];
-                    peaceOffers.push_back(PeaceOffer{myCountry->GetId(), warId, recipantId});
-                    resetGuiWindows();
-                    openPeaceOffer = peaceOffers.size() - 1;
+                assert(peaceind >= 0 && peaceind < peaceOffers.size());
+                for (std::size_t ind = 0; ind < sideBarData.elements.size(); ++ind) {
+                    if (sideBarData.elements[ind].type == SideBarData::IType::PEACE_OFFER) {
+                        sideBarData.elements.erase(sideBarData.elements.begin() + ind);
+                        break;
+                    }
                 }
+                if (peaceOffers[peaceind].peaceId == -2) {
+                    sf::Packet packet;
+                    packet << "PeaceOffer";
+                    packet << peaceOffers[peaceind].warId;
+                    packet << peaceOffers[peaceind].recipant;
+                    packet << (unsigned int)(peaceOffers[peaceind].gainProv.size() +
+                                             peaceOffers[peaceind].lostProv.size());
+                    for (std::size_t i = 0; i < peaceOffers[peaceind].lostProv.size(); ++i) {
+                        packet << std::get<0>(peaceOffers[peaceind].lostProv[i]);
+                        packet << std::get<1>(peaceOffers[peaceind].lostProv[i]);
+                    }
+                    for (std::size_t i = 0; i < peaceOffers[peaceind].gainProv.size(); ++i) {
+                        packet << std::get<0>(peaceOffers[peaceind].gainProv[i]);
+                        packet << std::get<1>(peaceOffers[peaceind].gainProv[i]);
+                    }
+                    packets.push_back(packet);
+                }
+                else if (peaceOffers[peaceind].peaceId != -1) {
+                    sf::Packet packet;
+                    packet << "AcceptPeace";
+                    packet << peaceOffers[peaceind].peaceId;
+                    packets.push_back(packet);
+                }
+                resetGuiWindows();
                 break;
             }
         };
@@ -1022,9 +1021,9 @@ void Game::processPacket(sf::Packet packet)
             //    Gui::OfferPeace::Close();
         }
         else if (warId >= 0) {  // means that some peace offer window is opened, but not related to this peace
-            // for (auto pair : offerPeaceData.provs) {
-            //     map.BrightenProv(provinces[pair.provId]->GetColor());
-            // }
+                                // for (auto pair : offerPeaceData.provs) {
+                                //     map.BrightenProv(provinces[pair.provId]->GetColor());
+                                // }
         }
     }
     else if (type == "MergeUnits") {
@@ -1046,7 +1045,7 @@ void Game::processPacket(sf::Packet packet)
         ProcessPacket::MonthlyUpdate(packet, myCountry->GetName(), countries);
     }
     else if (type == "BotPeaceOffer") {
-        ProcessPacket::BotPeaceOffer(packet, peaceOffers, countries, sideBarData);
+        ProcessPacket::BotPeaceOffer(packet, peaceOffers, countries, sideBarData, myCountry);
     }
     else if (type == "PeaceDeclined") {
         ProcessPacket::PeaceDeclined(packet);
@@ -1058,11 +1057,11 @@ void Game::resetGuiWindows()
     openProvId = -1;
     openUnitId = -1;
     openCountryId = -1;
-    openPeaceOffer = -1;
+    openPeaceOfferId = -1;
     openMyCountry = false;
     openUnitsList = false;
     openBattleId = -1;
-    openWarInd = -1;
+    openWarId = -1;
 }
 
 void Game::input()
@@ -1105,8 +1104,6 @@ void Game::input()
         //                                                     /
         //                                                         window.GetSize().y}))
         camera.Scroll(window.scrollOffset);
-
-        window.scrollOffset = 0.0f;
     }
 
     glm::vec2 mouseInWorld = camera.GetMouseInWorld();
@@ -1116,7 +1113,7 @@ void Game::input()
             if (!unitClick(mouseInWorld)) {
                 int pid = provClick(mouseInWorld);
                 if (pid != -1) {
-                    if (openPeaceOffer == -1) {
+                    if (openPeaceOfferId == -1) {
                         resetGuiWindows();
                         bool foundBattle = false;
                         for (std::size_t i = 0; i < battles.size(); ++i) {
@@ -1133,44 +1130,39 @@ void Game::input()
                             //&& provinces[pid]->GetSieged() == 0) {
                         }
                     }
-                    else { // offer peace view mode
-                        if ((provinces[pid]->GetCountryId() == peaceOffers[openPeaceOffer].offeredBy ||
-                            provinces[pid]->GetCountryId() == peaceOffers[openPeaceOffer].recipant) &&
-                            peaceOffers[openPeaceOffer].offeredBy == myCountry->GetId()) 
-                        {
-                            auto tmpit = std::find_if(
-                                peaceOffers[openPeaceOffer].lostProv.begin(),
-                                peaceOffers[openPeaceOffer].lostProv.end(),
-                                [id = pid](const std::tuple<int, int, int> &t) { return std::get<0>(t) == id; });
-                            if (tmpit != peaceOffers[openPeaceOffer].lostProv.end()) {
-                                peaceOffers[openPeaceOffer].lostProv.erase(tmpit);
-                            }
-                            else if (provinces[pid]->GetCountryId() == myCountry->GetId()){
-                                peaceOffers[openPeaceOffer].lostProv.push_back(std::make_tuple(pid, peaceOffers[openPeaceOffer].recipant, provinces[pid]->GetDevelopment()));
-                            }
-                            tmpit = std::find_if(
-                                peaceOffers[openPeaceOffer].gainProv.begin(),
-                                peaceOffers[openPeaceOffer].gainProv.end(),
-                                [id = pid](const std::tuple<int, int, int> &t) { return std::get<0>(t) == id; });
-                            if (tmpit != peaceOffers[openPeaceOffer].gainProv.end()) {
-                                peaceOffers[openPeaceOffer].gainProv.erase(tmpit);
-                            }
-                            else if (provinces[pid]->GetCountryId() != myCountry->GetId()){
-                                peaceOffers[openPeaceOffer].gainProv.push_back(std::make_tuple(pid, peaceOffers[openPeaceOffer].offeredBy, provinces[pid]->GetDevelopment()));
+                    else {  // offer peace view mode
+                        int peaceind;
+                        for (std::size_t i = 0; i < peaceOffers.size(); ++i) {
+                            if (peaceOffers[i].peaceId == openPeaceOfferId) {
+                                peaceind = i;
+                                break;
                             }
                         }
-                        // else if (peaceOffers[openPeaceOffer].recipant == provinces[i]->GetCountryId()) {
-                        //     if (std::find_if(peaceOffers[openPeaceOffer].gainProv.begin(),
-                        //                      peaceOffers[openPeaceOffer].gainProv.end(),
-                        //                      [id = i](const std::tuple<int, int, int> &t) {
-                        //                          return std::get<0>(t) == id;
-                        //                      }) != peaceOffers[openPeaceOffer].gainProv.end())
-                        //     {
-                        //         col = &green;
-                        //     }
-                        //     else
-                        //         col = &lightRed;
-                        // }
+                        if ((provinces[pid]->GetCountryId() == peaceOffers[peaceind].offeredBy ||
+                             provinces[pid]->GetCountryId() == peaceOffers[peaceind].recipant) &&
+                            peaceOffers[peaceind].offeredBy == myCountry->GetId())
+                        {
+                            auto tmpit = std::find_if(
+                                peaceOffers[peaceind].lostProv.begin(), peaceOffers[peaceind].lostProv.end(),
+                                [id = pid](const std::tuple<int, int, int> &t) { return std::get<0>(t) == id; });
+                            if (tmpit != peaceOffers[peaceind].lostProv.end()) {
+                                peaceOffers[peaceind].lostProv.erase(tmpit);
+                            }
+                            else if (provinces[pid]->GetCountryId() == myCountry->GetId()) {
+                                peaceOffers[peaceind].lostProv.push_back(std::make_tuple(
+                                    pid, peaceOffers[peaceind].recipant, provinces[pid]->GetDevelopment()));
+                            }
+                            tmpit = std::find_if(
+                                peaceOffers[peaceind].gainProv.begin(), peaceOffers[peaceind].gainProv.end(),
+                                [id = pid](const std::tuple<int, int, int> &t) { return std::get<0>(t) == id; });
+                            if (tmpit != peaceOffers[peaceind].gainProv.end()) {
+                                peaceOffers[peaceind].gainProv.erase(tmpit);
+                            }
+                            else if (provinces[pid]->GetCountryId() != myCountry->GetId()) {
+                                peaceOffers[peaceind].gainProv.push_back(std::make_tuple(
+                                    pid, peaceOffers[peaceind].offeredBy, provinces[pid]->GetDevelopment()));
+                            }
+                        }
                     }
                 }
             }
@@ -1220,7 +1212,8 @@ int Game::provClick(glm::vec2 mouseInWorld)
 
         return pid;
         // auto battleIt = std::find_if(battles.begin(), battles.end(),
-        //                              [pId = openedProvId](const Battle &b) { return (b.GetProvId() == pId); });
+        //                              [pId = openedProvId](const Battle &b) { return (b.GetProvId()
+        //                              == pId); });
 
         // if (battleIt != battles.end()) {
         //     // GuiAid::OpenBattle(gui, battleIt, provIt);
