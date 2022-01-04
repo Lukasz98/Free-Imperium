@@ -51,7 +51,7 @@ struct TopBarData {
 };
 
 struct SideBarData {
-    enum class IType { WAR = 0, PEACE_OFFER = 1, PEACE_ACCEPTED = 2 };
+    enum class IType { WAR = 0, PEACE_OFFER = 1, PEACE_ACCEPTED = 2, PEACE_DECLINED = 3 };
     struct Element {
         IType type;
         int val;

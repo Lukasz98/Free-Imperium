@@ -641,6 +641,12 @@ void Game::Play()
                 uinds.push_back(i);
                 ++i;
             }
+            
+            if (openUnitId != -1) {
+                auto unit = std::find_if(units.begin(), units.end(),
+                                         [id = openUnitId](const Unit &u) { return u.GetId() == id; });
+                assert(unit != units.end());
+            }
         }
         uMat.clear();
 
@@ -964,6 +970,29 @@ void Game::guiDraw()
                 resetGuiWindows();
                 break;
             }
+            case ClickEventType::REJECT_PEACE_OFFER: {
+                int peaceind;
+                for (std::size_t i = 0; i < peaceOffers.size(); ++i) {
+                    if (peaceOffers[i].peaceId == ctype.val) {
+                        peaceind = i;
+                        break;
+                    }
+                }
+                assert(peaceind >= 0 && peaceind < peaceOffers.size());
+                sf::Packet packet;
+                packet << "DeclinePeace";
+                packet << peaceOffers[peaceind].peaceId;
+                packets.push_back(packet);
+
+                for (std::size_t ind = 0; ind < sideBarData.elements.size(); ++ind) {
+                    if (sideBarData.elements[ind].type == SideBarData::IType::PEACE_OFFER) {
+                        sideBarData.elements.erase(sideBarData.elements.begin() + ind);
+                        break;
+                    }
+                }
+                resetGuiWindows();
+                break;
+            }
         };
         if (packets.size())
             toSend.insert(toSend.end(), packets.begin(), packets.end());
@@ -1048,7 +1077,7 @@ void Game::processPacket(sf::Packet packet)
         ProcessPacket::BotPeaceOffer(packet, peaceOffers, countries, sideBarData, myCountry);
     }
     else if (type == "PeaceDeclined") {
-        ProcessPacket::PeaceDeclined(packet);
+        ProcessPacket::PeaceDeclined(packet, sideBarData);
     }
 }
 

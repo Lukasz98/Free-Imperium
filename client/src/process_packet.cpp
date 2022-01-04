@@ -151,7 +151,7 @@ void ProcessPacket::DailyUpdate(sf::Packet& packet, std::vector<War>& wars,
                 //              return ccc->GetName() == siegeCountry;
                 //             });
                 // if (scIt != countries.end())
-                //map.DrawSieged(prov->GetColor(), sctr->GetColor());
+                // map.DrawSieged(prov->GetColor(), sctr->GetColor());
             }
             prov->Sieging(sctr->GetName(), siegeCountryId, sieged, siegeSoldiers);
             //}/
@@ -169,7 +169,7 @@ void ProcessPacket::DailyUpdate(sf::Packet& packet, std::vector<War>& wars,
                     //              return ccc->GetName() == cccc;
                     //             });
                     // if (scIt != countries.end())
-                    //map.ScrapSiegeColor(prov->GetColor());
+                    // map.ScrapSiegeColor(prov->GetColor());
                     // map.DrawSieged(prov->GetColor(), sctr->GetColor());
                 }
                 prov->ResetSieging();
@@ -225,8 +225,8 @@ void ProcessPacket::HourlyUpdate(sf::Packet& packet, std::vector<Unit>& units, s
         units[i].position = uPos;
         units[i].fakePos = uPos;
         units[i].provId = provId;
-        //units[i].moves = moves;
-        //name, uPos, soldiersCount, ctrId, moves);
+        // units[i].moves = moves;
+        // name, uPos, soldiersCount, ctrId, moves);
 
         // auto uIt = std::find_if(units.begin(), units.end(), [id](const std::shared_ptr<Unit> u) {
         //         return u->GetId() == id;
@@ -275,15 +275,15 @@ int ProcessPacket::PeaceAccepted(sf::Packet& packet, std::vector<std::unique_ptr
         assert(provId >= 0 && provId < provinces.size());
         auto& prov = provinces.at(provId);
         prov->SetOwner(ctr->GetName(), ctrId);
-        //map.ScrapSiegeColor(prov->GetColor());
-        // auto provIt = std::find_if(provinces.begin(), provinces.end(), [name](const std::unique_ptr<Province> &
-        // prov){
-        //         return prov->GetName() == name;
-        //     });
-        // if (provIt != provinces.end()) {
-        //   (*provIt)->SetOwner(ctr);
-        // setCountryMap();
-        //}
+        // map.ScrapSiegeColor(prov->GetColor());
+        //  auto provIt = std::find_if(provinces.begin(), provinces.end(), [name](const std::unique_ptr<Province> &
+        //  prov){
+        //          return prov->GetName() == name;
+        //      });
+        //  if (provIt != provinces.end()) {
+        //    (*provIt)->SetOwner(ctr);
+        //  setCountryMap();
+        // }
     }
 
     int warId;
@@ -560,7 +560,8 @@ void ProcessPacket::MonthlyUpdate(sf::Packet& packet, const std::string& myCount
 }
 
 void ProcessPacket::BotPeaceOffer(sf::Packet& packet, std::vector<PeaceOffer>& peaceOffers,
-                                  const std::vector<std::shared_ptr<Country>>& countries, SideBarData& sideBarData, const std::shared_ptr<Country>& myCountry)
+                                  const std::vector<std::shared_ptr<Country>>& countries, SideBarData& sideBarData,
+                                  const std::shared_ptr<Country>& myCountry)
 {
     PeaceOffer peaceOffer;
     int lostProvCount, gainProvCount;
@@ -575,9 +576,9 @@ void ProcessPacket::BotPeaceOffer(sf::Packet& packet, std::vector<PeaceOffer>& p
         // std::string s, ss;
         int s, ss;
         int d;
-        packet >> s; //provid
-        packet >> ss; //ctrid (to who it goes)
-        packet >> d; // development
+        packet >> s;   // provid
+        packet >> ss;  // ctrid (to who it goes)
+        packet >> d;   // development
         peaceOffer.lostProv.emplace_back(std::make_tuple(s, ss, d));
     }
 
@@ -593,7 +594,8 @@ void ProcessPacket::BotPeaceOffer(sf::Packet& packet, std::vector<PeaceOffer>& p
     }
 
     // ohh
-    //if ((peaceOffer.lostProv.size() > 0 && std::get<1>(peaceOffer.lostProv[0]) != myCountry->GetId()) || (peaceOffer.gainProv.size() > 0 && std::get<1>(peaceOffer.gainProv[0]) != myCountry->GetId())) {
+    // if ((peaceOffer.lostProv.size() > 0 && std::get<1>(peaceOffer.lostProv[0]) != myCountry->GetId()) ||
+    // (peaceOffer.gainProv.size() > 0 && std::get<1>(peaceOffer.gainProv[0]) != myCountry->GetId())) {
     //    auto tmp = peaceOffer.lostProv;
     //    peaceOffer.lostProv = peaceOffer.gainProv;
     //    peaceOffer.gainProv = tmp;
@@ -627,46 +629,11 @@ void ProcessPacket::BotPeaceOffer(sf::Packet& packet, std::vector<PeaceOffer>& p
     // delete obj;
 }
 
-void ProcessPacket::PeaceDeclined(sf::Packet& packet)
+void ProcessPacket::PeaceDeclined(sf::Packet& packet, SideBarData& sideBarData)
 {
     std::string recipant;
     packet >> recipant;
-
-    DataObj* obj = new DataObj{"label"};
-    obj->values["position:"] = "0.0 0.0 0.1";
-    obj->values["bgColor:"] = "0 0 0 0";
-    obj->values["size:"] = "50 50";
-
-    DataObj* hoverLabel = new DataObj{"label"};
-    hoverLabel->values["position:"] = "0.0 0.0 -0.1";
-    hoverLabel->values["bgColor:"] = "0 0 0 0";
-    hoverLabel->values["size:"] = "50 50";
-    hoverLabel->values["hover:"] = "true";
-
-    DataObj* popUpLabel = new DataObj{"label"};
-    popUpLabel->values["position:"] = "-200.0 3.0 0.1";
-    popUpLabel->values["bgColor:"] = "50 15 15 200";
-    popUpLabel->values["size:"] = "205 44";
-    popUpLabel->values["contentAlign:"] = "center";
-
-    DataObj* icon = new DataObj{"icon"};
-    icon->values["position:"] = "0.0 0.0 0.1";
-    icon->values["clickEvent:"] = "eraseObj";
-    icon->values["size:"] = "50 50";
-    icon->values["texturePath:"] = "src/img/peace_declined.png";
-
-    DataObj* hoverText = new DataObj{"text"};
-    hoverText->values["position:"] = "0.0 0.0 0.1";
-    hoverText->values["bgColor:"] = "0 0 0 0";
-    hoverText->values["height:"] = "25";
-    hoverText->values["content:"] = recipant;
-
-    popUpLabel->objects.push_back(hoverText);
-    hoverLabel->objects.push_back(popUpLabel);
-    obj->objects.push_back(hoverLabel);
-    obj->objects.push_back(icon);
-
-    int idInGui = 0;  // gui.AddToList(obj, "notifications", "notificationsList");
-    delete obj;
+    sideBarData.elements.push_back(
+        SideBarData::Element{.type = SideBarData::IType::PEACE_DECLINED , .val = 0, .hoverText = recipant});
 }
 

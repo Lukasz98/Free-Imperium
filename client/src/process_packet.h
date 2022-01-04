@@ -56,5 +56,5 @@ void MonthlyUpdate(sf::Packet& packet, const std::string& myCountry,
 void BotPeaceOffer(sf::Packet& packet, std::vector<PeaceOffer>& peaceOffers,
                    const std::vector<std::shared_ptr<Country>>& countries, SideBarData& sideBarData, const std::shared_ptr<Country>& myCountry);
 
-void PeaceDeclined(sf::Packet& packet);
+void PeaceDeclined(sf::Packet& packet, SideBarData& sideBarData);
 }  // namespace ProcessPacket
