@@ -62,6 +62,7 @@ class Unit// : public Rectangle //, public Subject
     bool isInBattle = false;
     
     std::vector<Move> moves;
+    std::vector<glm::vec3> movesVec;
 
 
 public:

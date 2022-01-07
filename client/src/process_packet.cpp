@@ -204,8 +204,9 @@ void ProcessPacket::HourlyUpdate(sf::Packet& packet, std::vector<Unit>& units, s
         int movesCount = 0;
         packet >> movesCount;
 
-        std::vector<glm::vec3> moves;
-        for (int i = 0; i < movesCount; i++) {
+        units[i].movesVec.resize(movesCount);
+        //std::vector<glm::vec3> moves;
+        for (int j = 0; j < movesCount; j++) {
             glm::vec3 v;
             packet >> v.x;
             packet >> v.y;
@@ -215,7 +216,8 @@ void ProcessPacket::HourlyUpdate(sf::Packet& packet, std::vector<Unit>& units, s
             v.y *= mapChunkScale;
             //  v.x*=2;
             // v.y*=2;
-            moves.push_back(v);
+            //units[i].movesVec.push_back(v);
+            units[i].movesVec[j] = v;
         }
 
         units[i].id = id;

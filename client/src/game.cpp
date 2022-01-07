@@ -641,11 +641,65 @@ void Game::Play()
                 uinds.push_back(i);
                 ++i;
             }
-            
+
             if (openUnitId != -1) {
                 auto unit = std::find_if(units.begin(), units.end(),
                                          [id = openUnitId](const Unit &u) { return u.GetId() == id; });
                 assert(unit != units.end());
+
+                std::vector<BorderVertex> verts;
+                if (unit->movesVec.size()) {
+                    verts.push_back(BorderVertex{.pos = Vec3{unit->fakePos.x, unit->fakePos.y, unit->fakePos.z},
+                                                 .tc = Vec2{unit->fakePos.x / mapWidth, unit->fakePos.y / mapHeight}});
+                }
+                for (std::size_t i = 0; i < unit->movesVec.size(); ++i) {
+                    glm::vec3 pos = unit->movesVec[i];
+                    Log(pos.x << " " << pos.y << " " <<  pos.z);
+                    int ind = pos.x * 3 + pos.y * mapWidth * 3;
+                    if (ind > mapHeight * mapWidth * 3 - 3)
+                        ind = mapHeight * mapWidth * 3 - 3;
+                    verts.push_back(BorderVertex{.pos = Vec3{pos.x, pos.y, pos.z},
+                                                 .tc = Vec2{pos.x / mapWidth, pos.y / mapHeight}});
+                    if (i < unit->movesVec.size() - 1) {
+                    verts.push_back(BorderVertex{.pos = Vec3{pos.x, pos.y, pos.z},
+                                                 .tc = Vec2{pos.x / mapWidth, pos.y / mapHeight}});
+                    }
+                }
+                GLuint err = glGetError();
+                if (err)
+                    Log("Opengl error: " << err);
+                GLuint arrvao, arrvbo;
+                glCreateVertexArrays(1, &arrvao);
+                glBindVertexArray(arrvao);
+                glCreateBuffers(1, &arrvbo);
+                err = glGetError();
+                if (err)
+                    Log("Opengl error: " << err);
+
+            glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
+                glBindBuffer(GL_ARRAY_BUFFER, arrvbo);
+                glBufferData(GL_ARRAY_BUFFER, sizeof(BorderVertex) * verts.size(), verts.data(), GL_STATIC_DRAW);
+                err = glGetError();
+                if (err)
+                    Log("Opengl error: " << err);
+                glEnableVertexArrayAttrib(arrvao, 0);
+                glEnableVertexArrayAttrib(arrvao, 1);
+                err = glGetError();
+                if (err)
+                    Log("Opengl error: " << err);
+                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(BorderVertex), NULL);
+                glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(BorderVertex),
+                                      (const GLvoid *)(offsetof(BorderVertex, BorderVertex::tc)));
+                glUseProgram(map2->seaBorderShader.GetProgram());
+                glUniformMatrix4fv(glGetUniformLocation(map2->seaBorderShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                                   glm::value_ptr(camera.GetMat()));
+                glBindVertexArray(arrvao);
+                glBindBuffer(GL_ARRAY_BUFFER, arrvbo);
+                glDrawArrays(GL_LINES, 0, verts.size());
+                err = glGetError();
+                if (err)
+                    Log("Opengl error: " << err);
+            glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
             }
         }
         uMat.clear();
