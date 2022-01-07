@@ -100,13 +100,18 @@ struct Map2 {
     MapTextures mapTextures;
     Texture provTexture;
     Texture grassT;
+    Texture* occupiedText = nullptr;
+    std::vector<unsigned char> occupiedPix;
+    Texture* occupyingText = nullptr;
+    std::vector<unsigned char> occupyingPix;
     GLuint heightMapTextureId;
 
     Map2(const unsigned char* hpix, int mapWidth, int mapHeight, const std::vector<Color3>& provsCols, int scale, GLuint heightMapId);
+    ~Map2();
 
     void DrawForColorPick(glm::mat4 proj, float provCount);
     void DrawWater(glm::mat4 proj, glm::vec3 eye);
-    void DrawLand(glm::mat4 proj, glm::vec3 eye, float provId, float provCount, int MAPID);
+    void DrawLand(glm::mat4 proj, glm::vec3 eye, float provId, float provCount, int MAPID, float time);
     void DrawBorders(glm::mat4 proj);
 
     void ReloadShaders();

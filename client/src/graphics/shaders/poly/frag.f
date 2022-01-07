@@ -15,6 +15,7 @@ in float ProvId;
 in vec2 tc;
 in vec3 pos;
 in vec3 normal;
+uniform float time;
 
 void main()
 {
@@ -28,7 +29,21 @@ void main()
         color = texture(tex[mapTypei], vec2((ProvId +.5) / provCount, .5f));
         if (ProvId == provId && mapTypei != 22)
             color = mix(color, vec4(1.0, 1.0, 1.0, 1.0), 0.5);
-
+        
+        vec4 occupiedCol = texture(tex[3], vec2((ProvId +.5) / provCount, .5f));
+        vec4 occupyingCol = texture(tex[4], vec2((ProvId +.5) / provCount, .5f));
+        if (occupiedCol.x > 0.0f || occupiedCol.y > 0.0f || occupiedCol.z > 0.0f) {
+            if ((int(pos.x) + int(pos.y)) % 10 <= 1) {
+                color = occupiedCol;
+            }
+        }
+        else if (occupyingCol.x > 0.0f || occupyingCol.y > 0.0f || occupyingCol.z > 0.0f) {
+            if ((int(pos.x) + int(pos.y)) % 10 <= 1) {
+                color = mix(color, occupyingCol, abs(sin(time + pos.x *
+               
+                0.5f)));
+            }
+        }
         vec3 normall = vec3(0.0f, 0.0f, 1.0f);
         normall = normal;
 

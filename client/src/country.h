@@ -12,6 +12,7 @@
 
 class Country
 {
+    public:
     int id;
     Color color;
     std::string name, culture, religion;

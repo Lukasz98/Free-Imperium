@@ -302,6 +302,13 @@ Log("borders=" << landBorders.verts.size() << ", " << seaBorders.verts.size());
     }
     ReloadShaders();
 }
+Map2::~Map2()
+{
+    if (occupiedText != nullptr)
+        delete occupiedText;
+    if (occupyingText != nullptr)
+        delete occupyingText;
+}
 
 void Map2::DrawForColorPick(glm::mat4 proj, float provCount)
 {
@@ -337,7 +344,7 @@ void Map2::DrawWater(glm::mat4 proj, glm::vec3 eye)
     glDrawArrays(GL_PATCHES, 0, water.verts.size());
 }
 
-void Map2::DrawLand(glm::mat4 proj, glm::vec3 eye, float provId, float provCount, int MAPID)
+void Map2::DrawLand(glm::mat4 proj, glm::vec3 eye, float provId, float provCount, int MAPID, float time)
 {
 #if 1
     glUseProgram(landShader.GetProgram());
@@ -348,6 +355,7 @@ void Map2::DrawLand(glm::mat4 proj, glm::vec3 eye, float provId, float provCount
     glUniform1f(glGetUniformLocation(landShader.GetProgram(), "provId"), provId);
     glUniform1f(glGetUniformLocation(landShader.GetProgram(), "provCount"), provCount);
     glUniform1f(glGetUniformLocation(landShader.GetProgram(), "mapType"), MAPID);
+    glUniform1f(glGetUniformLocation(landShader.GetProgram(), "time"), time);
 
     glBindVertexArray(polyMap.vao);
     glBindBuffer(GL_ARRAY_BUFFER, polyMap.vbo);
@@ -408,6 +416,10 @@ void Map2::ActivateTextures()
     texID[0] = grassT.GetId();
     texID[1] = provTexture.GetId();
     texID[2] = heightMapTextureId;
+    if (occupiedText != nullptr)
+        texID[3] = occupiedText->GetId();
+    if (occupyingText != nullptr)
+        texID[4] = occupyingText->GetId();
     texID[20] = mapTextures.province.id;
     texID[21] = mapTextures.country.id;
     for (int i = 0; i < 32; ++i) {

@@ -528,7 +528,7 @@ void newTesMapTest(Window& window, glm::vec2 resolution, glm::vec2 windowSize)
         }
         else {
             map2.DrawWater(matrix, camera.eye);
-            map2.DrawLand(matrix, camera.eye, markedProvId, provinces.size(), map2.MAPID_COUNTRY);
+            map2.DrawLand(matrix, camera.eye, markedProvId, provinces.size(), map2.MAPID_COUNTRY, 0.0f);
         }
 
         if (drawBorders) {

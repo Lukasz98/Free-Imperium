@@ -119,8 +119,9 @@ static void f(std::vector<FontVertex> &vec, int ctrId, const std::vector<ProvDat
     int cz = 80.0f;
     {
         int ind = (cx + maxx.x) * 3 + (cy + maxx.y) * mapWidth * 3;
-        assert(ind >= 0 && ind < mapWidth * mapHeight * 3);
-        cz = h[ind];
+        if (ind >= 0 && ind < mapWidth * mapHeight * 3)
+            cz = h[ind];
+
         // Log("cz="<<cz);
     }
     // textml.translate(Vec3{center.x * scale, center.y * scale, 0.0f});
@@ -193,6 +194,58 @@ static void f(std::vector<FontVertex> &vec, int ctrId, const std::vector<ProvDat
         //  Log(rPos.x << " " << rPos.y << " "<<rPos.z);
     }
     //}
+}
+
+void Game::makeCountryNames(const unsigned char *h)
+//        int mapWidth, int mapHeight, const unsigned char* h, int scale)
+// makeCountryNames(fontVerts, fontCtrVao, fontCtrVbo, ctrsData, provsData, ctrProvs, mapWidth, mapHeight, h,
+// scale);
+{
+    Log("makecountrynames");
+    ctrProvs.clear();
+    fontVerts.clear();
+    for (std::size_t i = 0; i < ctrsData.size(); ++i) ctrProvs.push_back(std::vector<int>{});
+    for (auto &pd : provsData) {
+        if (pd.ctrId == -1)
+            continue;
+        ctrProvs[pd.ctrId].push_back(pd.id);
+    }
+    for (std::size_t i = 0; i < ctrsData.size(); ++i) {
+        f(fontVerts, ctrsData[i].id, provsData, ctrProvs, mapWidth, mapHeight, scale, h);
+    }
+    Log("fontVerts.size = " << fontVerts.size());
+    glCreateVertexArrays(1, &fontCtrVao);
+    glBindVertexArray(fontCtrVao);
+    glCreateBuffers(1, &fontCtrVbo);
+
+    glBindBuffer(GL_ARRAY_BUFFER, fontCtrVbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(FontVertex) * fontVerts.size(), fontVerts.data(), GL_STATIC_DRAW);
+    glEnableVertexArrayAttrib(fontCtrVao, 0);
+    glEnableVertexArrayAttrib(fontCtrVao, 1);
+    glEnableVertexArrayAttrib(fontCtrVao, 2);
+    glEnableVertexArrayAttrib(fontCtrVao, 3);
+    glEnableVertexArrayAttrib(fontCtrVao, 4);
+    glEnableVertexArrayAttrib(fontCtrVao, 5);
+    glEnableVertexArrayAttrib(fontCtrVao, 6);
+    glEnableVertexArrayAttrib(fontCtrVao, 7);
+    GLuint err = glGetError();
+    if (err)
+        Log("Opengl error: " << err);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex), NULL);  //(const GLvoid*)0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                          (const GLvoid *)(offsetof(FontVertex, FontVertex::tc)));
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                          (const GLvoid *)(offsetof(FontVertex, FontVertex::color)));
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                          (const GLvoid *)(offsetof(FontVertex, FontVertex::tid)));
+    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                          (const GLvoid *)(offsetof(FontVertex, FontVertex::ml)));
+    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                          (const GLvoid *)(offsetof(FontVertex, FontVertex::ml) + 4 * 4));
+    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                          (const GLvoid *)(offsetof(FontVertex, FontVertex::ml) + 8 * 4));
+    glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                          (const GLvoid *)(offsetof(FontVertex, FontVertex::ml) + 12 * 4));
 }
 
 Game::Game(Window &win, sf::TcpSocket &sock, std::string countryName, glm::vec2 res,
@@ -320,9 +373,6 @@ void Game::Play()
     }
 
     // saveProvinceFromImg(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
-    std::vector<ProvData> provsData;
-    std::vector<std::vector<int>> ctrProvs;
-    std::map<unsigned int, int> colorToId;
     std::map<int, Node> nodes;
     loadProvData(provsData, colorToId);
     loadCountriesData(ctrsData);
@@ -346,53 +396,7 @@ void Game::Play()
     }
 
     const unsigned char *h = heightMap->GetPixels();
-
-    std::vector<FontVertex> fontVerts;
-    GLuint fontCtrVao, fontCtrVbo;
-    {
-        for (std::size_t i = 0; i < ctrsData.size(); ++i) ctrProvs.push_back(std::vector<int>{});
-        for (auto &pd : provsData) {
-            if (pd.ctrId == -1)
-                continue;
-            ctrProvs[pd.ctrId].push_back(pd.id);
-        }
-        for (std::size_t i = 0; i < ctrsData.size(); ++i) {
-            f(fontVerts, ctrsData[i].id, provsData, ctrProvs, mapWidth, mapHeight, scale, h);
-        }
-        Log("fontVerts.size = " << fontVerts.size());
-        glCreateVertexArrays(1, &fontCtrVao);
-        glBindVertexArray(fontCtrVao);
-        glCreateBuffers(1, &fontCtrVbo);
-
-        glBindBuffer(GL_ARRAY_BUFFER, fontCtrVbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(FontVertex) * fontVerts.size(), fontVerts.data(), GL_STATIC_DRAW);
-        glEnableVertexArrayAttrib(fontCtrVao, 0);
-        glEnableVertexArrayAttrib(fontCtrVao, 1);
-        glEnableVertexArrayAttrib(fontCtrVao, 2);
-        glEnableVertexArrayAttrib(fontCtrVao, 3);
-        glEnableVertexArrayAttrib(fontCtrVao, 4);
-        glEnableVertexArrayAttrib(fontCtrVao, 5);
-        glEnableVertexArrayAttrib(fontCtrVao, 6);
-        glEnableVertexArrayAttrib(fontCtrVao, 7);
-        GLuint err = glGetError();
-        if (err)
-            Log("Opengl error: " << err);
-        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex), NULL);  //(const GLvoid*)0);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                              (const GLvoid *)(offsetof(FontVertex, FontVertex::tc)));
-        glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                              (const GLvoid *)(offsetof(FontVertex, FontVertex::color)));
-        glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                              (const GLvoid *)(offsetof(FontVertex, FontVertex::tid)));
-        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                              (const GLvoid *)(offsetof(FontVertex, FontVertex::ml)));
-        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                              (const GLvoid *)(offsetof(FontVertex, FontVertex::ml) + 4 * 4));
-        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                              (const GLvoid *)(offsetof(FontVertex, FontVertex::ml) + 8 * 4));
-        glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                              (const GLvoid *)(offsetof(FontVertex, FontVertex::ml) + 12 * 4));
-    }
+    makeCountryNames(h);
 
     err = glGetError();
     if (err)
@@ -539,7 +543,7 @@ void Game::Play()
         else {
             map2->DrawWater(matrix, camera.eye);
             if (openPeaceOfferId == -1) {
-                map2->DrawLand(matrix, camera.eye, markedProvId, provinces.size(), map2->MAPID_COUNTRY);
+                map2->DrawLand(matrix, camera.eye, markedProvId, provinces.size(), map2->MAPID_COUNTRY, waterTime);
             }
             else {  // open offering peace mode
                     // Log("peace mode");
@@ -597,7 +601,7 @@ void Game::Play()
                 // delete [] pix;
                 map2->texID[(int)(map2->MAPID_PEACE_OFFER + 0.5f)] = newtex.GetId();
                 map2->ActivateTextures();
-                map2->DrawLand(matrix, camera.eye, markedProvId, provinces.size(), map2->MAPID_PEACE_OFFER);
+                map2->DrawLand(matrix, camera.eye, markedProvId, provinces.size(), map2->MAPID_PEACE_OFFER, 0.0f);
             }
         }
 
@@ -645,61 +649,63 @@ void Game::Play()
             if (openUnitId != -1) {
                 auto unit = std::find_if(units.begin(), units.end(),
                                          [id = openUnitId](const Unit &u) { return u.GetId() == id; });
-                assert(unit != units.end());
-
-                std::vector<BorderVertex> verts;
-                if (unit->movesVec.size()) {
-                    verts.push_back(BorderVertex{.pos = Vec3{unit->fakePos.x, unit->fakePos.y, unit->fakePos.z},
-                                                 .tc = Vec2{unit->fakePos.x / mapWidth, unit->fakePos.y / mapHeight}});
-                }
-                for (std::size_t i = 0; i < unit->movesVec.size(); ++i) {
-                    glm::vec3 pos = unit->movesVec[i];
-                    Log(pos.x << " " << pos.y << " " <<  pos.z);
-                    int ind = pos.x * 3 + pos.y * mapWidth * 3;
-                    if (ind > mapHeight * mapWidth * 3 - 3)
-                        ind = mapHeight * mapWidth * 3 - 3;
-                    verts.push_back(BorderVertex{.pos = Vec3{pos.x, pos.y, pos.z},
-                                                 .tc = Vec2{pos.x / mapWidth, pos.y / mapHeight}});
-                    if (i < unit->movesVec.size() - 1) {
-                    verts.push_back(BorderVertex{.pos = Vec3{pos.x, pos.y, pos.z},
-                                                 .tc = Vec2{pos.x / mapWidth, pos.y / mapHeight}});
+                if (unit != units.end()) {
+                    std::vector<BorderVertex> verts;
+                    if (unit->movesVec.size()) {
+                        verts.push_back(
+                            BorderVertex{.pos = Vec3{unit->fakePos.x, unit->fakePos.y, unit->fakePos.z},
+                                         .tc = Vec2{unit->fakePos.x / mapWidth, unit->fakePos.y / mapHeight}});
                     }
-                }
-                GLuint err = glGetError();
-                if (err)
-                    Log("Opengl error: " << err);
-                GLuint arrvao, arrvbo;
-                glCreateVertexArrays(1, &arrvao);
-                glBindVertexArray(arrvao);
-                glCreateBuffers(1, &arrvbo);
-                err = glGetError();
-                if (err)
-                    Log("Opengl error: " << err);
+                    for (std::size_t i = 0; i < unit->movesVec.size(); ++i) {
+                        glm::vec3 pos = unit->movesVec[i];
+                        Log(pos.x << " " << pos.y << " " << pos.z);
+                        int ind = pos.x * 3 + pos.y * mapWidth * 3;
+                        if (ind > mapHeight * mapWidth * 3 - 3)
+                            ind = mapHeight * mapWidth * 3 - 3;
+                        verts.push_back(BorderVertex{.pos = Vec3{pos.x, pos.y, pos.z},
+                                                     .tc = Vec2{pos.x / mapWidth, pos.y / mapHeight}});
+                        if (i < unit->movesVec.size() - 1) {
+                            verts.push_back(BorderVertex{.pos = Vec3{pos.x, pos.y, pos.z},
+                                                         .tc = Vec2{pos.x / mapWidth, pos.y / mapHeight}});
+                        }
+                    }
+                    GLuint err = 0;  // glGetError();
+                    // if (err)
+                    //     Log("Opengl error: " << err);
+                    GLuint arrvao, arrvbo;
+                    glCreateVertexArrays(1, &arrvao);
+                    glBindVertexArray(arrvao);
+                    glCreateBuffers(1, &arrvbo);
+                    err = glGetError();
+                    if (err)
+                        Log("Opengl error: " << err);
 
-            glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
-                glBindBuffer(GL_ARRAY_BUFFER, arrvbo);
-                glBufferData(GL_ARRAY_BUFFER, sizeof(BorderVertex) * verts.size(), verts.data(), GL_STATIC_DRAW);
-                err = glGetError();
-                if (err)
-                    Log("Opengl error: " << err);
-                glEnableVertexArrayAttrib(arrvao, 0);
-                glEnableVertexArrayAttrib(arrvao, 1);
-                err = glGetError();
-                if (err)
-                    Log("Opengl error: " << err);
-                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(BorderVertex), NULL);
-                glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(BorderVertex),
-                                      (const GLvoid *)(offsetof(BorderVertex, BorderVertex::tc)));
-                glUseProgram(map2->seaBorderShader.GetProgram());
-                glUniformMatrix4fv(glGetUniformLocation(map2->seaBorderShader.GetProgram(), "matrix"), 1, GL_FALSE,
-                                   glm::value_ptr(camera.GetMat()));
-                glBindVertexArray(arrvao);
-                glBindBuffer(GL_ARRAY_BUFFER, arrvbo);
-                glDrawArrays(GL_LINES, 0, verts.size());
-                err = glGetError();
-                if (err)
-                    Log("Opengl error: " << err);
-            glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
+                    glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
+                    glBindBuffer(GL_ARRAY_BUFFER, arrvbo);
+                    glBufferData(GL_ARRAY_BUFFER, sizeof(BorderVertex) * verts.size(), verts.data(),
+                                 GL_STATIC_DRAW);
+                    err = glGetError();
+                    if (err)
+                        Log("Opengl error: " << err);
+                    glEnableVertexArrayAttrib(arrvao, 0);
+                    glEnableVertexArrayAttrib(arrvao, 1);
+                    err = glGetError();
+                    if (err)
+                        Log("Opengl error: " << err);
+                    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(BorderVertex), NULL);
+                    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(BorderVertex),
+                                          (const GLvoid *)(offsetof(BorderVertex, BorderVertex::tc)));
+                    glUseProgram(map2->seaBorderShader.GetProgram());
+                    glUniformMatrix4fv(glGetUniformLocation(map2->seaBorderShader.GetProgram(), "matrix"), 1,
+                                       GL_FALSE, glm::value_ptr(camera.GetMat()));
+                    glBindVertexArray(arrvao);
+                    glBindBuffer(GL_ARRAY_BUFFER, arrvbo);
+                    glDrawArrays(GL_LINES, 0, verts.size());
+                    err = glGetError();
+                    if (err)
+                        Log("Opengl error: " << err);
+                    glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
+                }
             }
         }
         uMat.clear();
@@ -1013,6 +1019,7 @@ void Game::guiDraw()
                         packet << std::get<0>(peaceOffers[peaceind].gainProv[i]);
                         packet << std::get<1>(peaceOffers[peaceind].gainProv[i]);
                     }
+                    peaceOffers.erase(peaceOffers.begin() + peaceind);
                     packets.push_back(packet);
                 }
                 else if (peaceOffers[peaceind].peaceId != -1) {
@@ -1020,6 +1027,15 @@ void Game::guiDraw()
                     packet << "AcceptPeace";
                     packet << peaceOffers[peaceind].peaceId;
                     packets.push_back(packet);
+                    for (std::size_t ind = 0; ind < sideBarData.elements.size(); ++ind) {
+                        if (sideBarData.elements[ind].type == SideBarData::IType::WAR &&
+                            sideBarData.elements[ind].val == peaceOffers[peaceind].warId)
+                        {
+                            sideBarData.elements.erase(sideBarData.elements.begin() + ind);
+                            break;
+                        }
+                    }
+                    peaceOffers.erase(peaceOffers.begin() + peaceind);
                 }
                 resetGuiWindows();
                 break;
@@ -1070,7 +1086,7 @@ void Game::processPacket(sf::Packet packet)
     packet >> type;
     // Log(type);
     if (type == "daily") {
-        ProcessPacket::DailyUpdate(packet, wars, provinces, countries, map, topBarData);
+        ProcessPacket::DailyUpdate(packet, wars, provinces, countries, map, topBarData, map2.get());
     }
     else if (type == "NewUnit") {
         // ProcessPacket::NewUnit(packet, units, countries, myCountry->GetName());
@@ -1091,10 +1107,12 @@ void Game::processPacket(sf::Packet packet)
         // ProcessPacket::NewUnitInBattle(packet, units, battles);
     }
     else if (type == "PeaceAccepted") {
-        int warId = ProcessPacket::PeaceAccepted(packet, provinces, countries, wars, map, sideBarData);
+        int warId = ProcessPacket::PeaceAccepted(packet, provinces, countries, wars, map, sideBarData, provsData);
         editCountryMap2(&map2->mapTextures.country);
         // map.Unbright();
         // setCountryMap();
+        const unsigned char *h = heightMap->GetPixels();
+        makeCountryNames(h);
         if (openedProvId >= 0) {
             assert(openedProvId < (int)provinces.size());
             // map.BrightenProv(provinces[openedProvId]->GetColor());

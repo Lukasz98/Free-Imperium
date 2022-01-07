@@ -14,17 +14,18 @@
 #include "province.h"
 #include "unit.h"
 #include "war.h"
+#include "map2.h"
 
 namespace ProcessPacket {
 
 void DailyUpdate(sf::Packet& packet, std::vector<War>& wars, std::vector<std::unique_ptr<Province>>& provinces,
-                 std::vector<std::shared_ptr<Country>>& countries, Map& map, TopBarData& topBarData);
+                 std::vector<std::shared_ptr<Country>>& countries, Map& map, TopBarData& topBarData, Map2* map2);
 
 void HourlyUpdate(sf::Packet& packet, std::vector<Unit>& units,
                   std::vector<Battle>& battles, float mapChunkScale, const unsigned char* height, int mapWidth);
 
 int PeaceAccepted(sf::Packet& packet, std::vector<std::unique_ptr<Province>>& provinces,
-                  std::vector<std::shared_ptr<Country>>& countries, std::vector<War>& wars, Map& map, SideBarData& sideBarData);
+                  std::vector<std::shared_ptr<Country>>& countries, std::vector<War>& wars, Map& map, SideBarData& sideBarData, std::vector<ProvData>& provsData);
 
 void NewWar(sf::Packet& packet, std::vector<War>& wars, int myCountryId,
             std::vector<std::shared_ptr<Country>>& countries, SideBarData& sideBarData);

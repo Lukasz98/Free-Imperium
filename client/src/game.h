@@ -3,8 +3,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <memory>
 #include <map>
+#include <memory>
 
 #include "map.h"
 //#include "graphics/window.h"
@@ -15,6 +15,10 @@
 #include "country_loader.h"
 //#include "gui/gui_bridge.h"
 //#include "gui_aid.h"
+#include "font_batch.h"
+#include "gui/gui_structs.h"
+#include "gui_last.h"
+#include "map2.h"
 #include "peace_offer.h"
 #include "process_packet.h"
 #include "province.h"
@@ -22,16 +26,13 @@
 #include "scene.h"
 #include "unit.h"
 #include "war.h"
-#include "map2.h"
-#include "gui_last.h"
-#include "gui/gui_structs.h"
 
 class Game : public Scene {
     sf::TcpSocket& socket;
     Shader pickModelShader;
     Model3D model3d;
     std::vector<glm::mat4> uMat;
-    std::vector<int> pids; // chyba trzyma id prowincji na ktorych sa unity
+    std::vector<int> pids;  // chyba trzyma id prowincji na ktorych sa unity
     std::map<unsigned int, int> colorToId;
     // Shader shader;
     // Window & window;
@@ -46,31 +47,35 @@ class Game : public Scene {
     std::unique_ptr<Texture> heightMap;
     int mapWidth = 5632, mapHeight = 2048;
     GuiLast::GuiEv ctype;
-bool openMyCountry = false;
-int openCountryId = -1;
-int openProvId = -1;
-int openBattleId = -1;
-int openUnitId = -1;
-int openWarId = -1;
-int openPeaceOfferId = -1;
-bool openUnitsList = false;
-std::vector<int> clickedUnits;
-SideBarData sideBarData;
-void resetGuiWindows();
+    bool openMyCountry = false;
+    int openCountryId = -1;
+    int openProvId = -1;
+    int openBattleId = -1;
+    int openUnitId = -1;
+    int openWarId = -1;
+    int openPeaceOfferId = -1;
+    bool openUnitsList = false;
+    std::vector<int> clickedUnits;
+    SideBarData sideBarData;
+    void resetGuiWindows();
     // Camera camera;
     // Gui gui;
     glm::vec2 windowSize, resolution;
     float dt = 0.0f, drawDt = 0.0f;
 
+    std::vector<ProvData> provsData;
     std::vector<sf::Packet> toSend;
     std::shared_ptr<Country> myCountry;
     std::vector<std::shared_ptr<Country>> countries;
     std::vector<std::unique_ptr<Province>> provinces;
-    //std::vector<std::shared_ptr<Unit>> units;
+    // std::vector<std::shared_ptr<Unit>> units;
     std::vector<Unit> units;
     std::vector<War> wars;
     std::vector<Battle> battles;
     std::vector<PeaceOffer> peaceOffers;
+    std::vector<FontVertex> fontVerts;
+    GLuint fontCtrVao, fontCtrVbo;
+    std::vector<std::vector<int>> ctrProvs;
 
     std::vector<CountryData> ctrsData;
     void editCountryMap2(MapTexture* mt);
@@ -85,7 +90,8 @@ void resetGuiWindows();
     void sendPackets();
     void updateBattles();
     void updateGui();
-    
+    void makeCountryNames(const unsigned char* h);
+
     void guiDraw();
 
    public:

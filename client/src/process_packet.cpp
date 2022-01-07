@@ -5,7 +5,8 @@
 
 void ProcessPacket::DailyUpdate(sf::Packet& packet, std::vector<War>& wars,
                                 std::vector<std::unique_ptr<Province>>& provinces,
-                                std::vector<std::shared_ptr<Country>>& countries, Map& map, TopBarData& topBarData)
+                                std::vector<std::shared_ptr<Country>>& countries, Map& map, TopBarData& topBarData,
+                                Map2* map2)
 {
     std::unordered_map<std::string, std::string> values;
     std::string strData;
@@ -14,7 +15,7 @@ void ProcessPacket::DailyUpdate(sf::Packet& packet, std::vector<War>& wars,
     int countryCounter = 0;
     packet >> countryCounter;
 
-    for (int i = 0; i < countryCounter; i++) {
+    for (int z = 0; z < countryCounter; z++) {
         std::vector<GuiStruct> vals;
 
         packet >> strData;
@@ -129,6 +130,10 @@ void ProcessPacket::DailyUpdate(sf::Packet& packet, std::vector<War>& wars,
         int siegedProvincesCount;
         packet >> siegedProvincesCount;
 
+        map2->occupiedPix.resize(provinces.size() * 4);
+        map2->occupyingPix.resize(provinces.size() * 4);
+        std::memset(&map2->occupiedPix[0], 0, map2->occupiedPix.size());
+        std::memset(&map2->occupyingPix[0], 0, map2->occupyingPix.size());
         for (int i = 0; i < siegedProvincesCount; i++) {
             int provId, siegeCountryId;
             int sieged, siegeSoldiers;
@@ -145,17 +150,32 @@ void ProcessPacket::DailyUpdate(sf::Packet& packet, std::vector<War>& wars,
             // if (provIt != provinces.end()) {
             assert(siegeCountryId >= 0 && siegeCountryId < countries.size());
             auto sctr = countries.at(siegeCountryId);
-            if (sieged == 100 && prov->GetSieged() != 100) {
-                // auto scIt = std::find_if(countries.begin(), countries.end(),
-                // [siegeCountry](std::shared_ptr<Country> & ccc) {
-                //              return ccc->GetName() == siegeCountry;
-                //             });
-                // if (scIt != countries.end())
-                // map.DrawSieged(prov->GetColor(), sctr->GetColor());
+            if (sieged == 100) {  // && prov->GetSieged() != 100) {
+                                  // auto scIt = std::find_if(countries.begin(), countries.end(),
+                                  // [siegeCountry](std::shared_ptr<Country> & ccc) {
+                                  //              return ccc->GetName() == siegeCountry;
+                                  //             });
+                                  // if (scIt != countries.end())
+                                  // map.DrawSieged(prov->GetColor(), sctr->GetColor());
+                map2->occupiedPix[provId * 4] = countries[siegeCountryId]->color.r;
+                map2->occupiedPix[provId * 4 + 1] = countries[siegeCountryId]->color.g;
+                map2->occupiedPix[provId * 4 + 2] = countries[siegeCountryId]->color.b;
+                map2->occupiedPix[provId * 4 + 3] = countries[siegeCountryId]->color.a;
             }
+            map2->occupyingPix[provId * 4] = countries[siegeCountryId]->color.r;
+            map2->occupyingPix[provId * 4 + 1] = countries[siegeCountryId]->color.g;
+            map2->occupyingPix[provId * 4 + 2] = countries[siegeCountryId]->color.b;
+            map2->occupyingPix[provId * 4 + 3] = countries[siegeCountryId]->color.a;
             prov->Sieging(sctr->GetName(), siegeCountryId, sieged, siegeSoldiers);
+            //Log("siege " << provId << " " << siegeCountryId);
             //}/
         }
+        if (map2->occupiedText != nullptr)
+            delete map2->occupiedText;
+        map2->occupiedText = new Texture(&map2->occupiedPix[0], provinces.size(), 1);
+        if (map2->occupyingText != nullptr)
+            delete map2->occupyingText;
+        map2->occupyingText = new Texture(&map2->occupyingPix[0], provinces.size(), 1);
 
         for (auto& prov : provinces) {
             if (!prov->WasSiegeUpdated()) {
@@ -205,7 +225,7 @@ void ProcessPacket::HourlyUpdate(sf::Packet& packet, std::vector<Unit>& units, s
         packet >> movesCount;
 
         units[i].movesVec.resize(movesCount);
-        //std::vector<glm::vec3> moves;
+        // std::vector<glm::vec3> moves;
         for (int j = 0; j < movesCount; j++) {
             glm::vec3 v;
             packet >> v.x;
@@ -216,7 +236,7 @@ void ProcessPacket::HourlyUpdate(sf::Packet& packet, std::vector<Unit>& units, s
             v.y *= mapChunkScale;
             //  v.x*=2;
             // v.y*=2;
-            //units[i].movesVec.push_back(v);
+            // units[i].movesVec.push_back(v);
             units[i].movesVec[j] = v;
         }
 
@@ -252,18 +272,18 @@ void ProcessPacket::HourlyUpdate(sf::Packet& packet, std::vector<Unit>& units, s
         packet >> defCount;
         battles[i].attackers.resize(attCount);
         battles[i].defenders.resize(defCount);
-        for (int i = 0; i < attCount; i++) {
-            packet >> battles[i].attackers[i];
+        for (int j = 0; j < attCount; j++) {
+            packet >> battles[i].attackers[j];
         }
-        for (int i = 0; i < defCount; i++) {
-            packet >> battles[i].defenders[i];
+        for (int j = 0; j < defCount; j++) {
+            packet >> battles[i].defenders[j];
         }
     }
 }
 
 int ProcessPacket::PeaceAccepted(sf::Packet& packet, std::vector<std::unique_ptr<Province>>& provinces,
                                  std::vector<std::shared_ptr<Country>>& countries, std::vector<War>& wars,
-                                 Map& map, SideBarData& sideBarData)
+                                 Map& map, SideBarData& sideBarData, std::vector<ProvData>& provsData)
 {
     int provinceCount;
     packet >> provinceCount;
@@ -277,6 +297,7 @@ int ProcessPacket::PeaceAccepted(sf::Packet& packet, std::vector<std::unique_ptr
         assert(provId >= 0 && provId < provinces.size());
         auto& prov = provinces.at(provId);
         prov->SetOwner(ctr->GetName(), ctrId);
+        provsData[provId].ctrId = ctrId;
         // map.ScrapSiegeColor(prov->GetColor());
         //  auto provIt = std::find_if(provinces.begin(), provinces.end(), [name](const std::unique_ptr<Province> &
         //  prov){
@@ -636,6 +657,6 @@ void ProcessPacket::PeaceDeclined(sf::Packet& packet, SideBarData& sideBarData)
     std::string recipant;
     packet >> recipant;
     sideBarData.elements.push_back(
-        SideBarData::Element{.type = SideBarData::IType::PEACE_DECLINED , .val = 0, .hoverText = recipant});
+        SideBarData::Element{.type = SideBarData::IType::PEACE_DECLINED, .val = 0, .hoverText = recipant});
 }
 
