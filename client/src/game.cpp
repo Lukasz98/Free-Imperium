@@ -196,6 +196,90 @@ static void f(std::vector<FontVertex> &vec, int ctrId, const std::vector<ProvDat
     //}
 }
 
+void labelText(const glm::vec3 &pos, const glm::vec2 &size, const glm::vec4 &col, const std::string &text,
+               AM::FontSize fontSize, std::vector<Vertex> &labelVerts)
+{
+    glm::vec3 textPos = pos;
+    // GLuint tid = AM::atlasTexture[AM::FontSize::PX32]->GetId();
+    // GLuint tid = (int)fontSize;
+    // AM::FontSize fontSize = AM::FontSize::PX16;
+    // GLuint tid = AM::atlasTexture[fontSize]->GetId();
+    GLuint tid = (GLuint)fontSize;
+    // GLuint tid = AM::atlasTexture[AM::FontSize::PX16]->GetId();
+    float spaceWidth = 10.0f;
+    float padding = 5.0f;
+    float off = 0.0f, betweenWidth = 1.0f;
+
+    float widthSum = 0.0f, maxY = 0.0f;
+    for (int i = 0; i < text.size(); ++i) {
+        // for (int i = 0; i < text.size() && i < max; ++i) {
+        if (AM::atlasInfo[fontSize][text[i]].set) {
+            widthSum += AM::atlasInfo[fontSize][text[i]].width + betweenWidth;
+            if (maxY < AM::atlasInfo[fontSize][text[i]].height)
+                maxY = AM::atlasInfo[fontSize][text[i]].height;
+        }
+        else
+            widthSum += spaceWidth;
+    }
+    textPos.x = (textPos.x + size.x * 0.5f) - widthSum * 0.5f;
+    // if (flags & TEXT_CENTER)  // centered
+    //     textPos.x = (textPos.x + size.x * 0.5f) - widthSum * 0.5f;
+    // else if (flags & TEXT_RIGHT)  // aligned to right
+    //     textPos.x = (textPos.x + size.x) - widthSum - padding;
+    // else {  // aligned left
+    //     textPos.x += padding;
+    // }
+    textPos.y = (textPos.y + size.y * 0.5f) - maxY * 0.5f;
+
+    for (int i = 0; i < text.size(); ++i) {
+        // for (int i = 0; i < text.size() && i < max; ++i) {
+        glm::vec3 rPos;
+        glm::vec2 rSize, rLBTC, tcLen;
+        if (AM::atlasInfo[fontSize][text[i]].set) {
+            rPos = {textPos.x + off, textPos.y + AM::atlasInfo[fontSize][text[i]].yPos, textPos.z};
+            // this 2 if's are walkaround around bug. If we draw char at x or y with floating point
+            // it gets more blury the closer it gets to .5f, at .0f it looks fine
+            if (rPos.x > (((float)((int)rPos.x))))
+                rPos.x = ((int)(rPos.x + 0.5f));
+            if (rPos.y > (((float)((int)rPos.y))))
+                rPos.y = ((int)(rPos.y + 0.5f));
+            rSize = {AM::atlasInfo[fontSize][text[i]].width, AM::atlasInfo[fontSize][text[i]].height};
+            // rLBTC = {(float)AM::atlasInfo[fontSize][text[i]].tcX, (float)AM::atlasInfo[fontSize][text[i]].tcY};
+            // tcLen = {(float)AM::atlasInfo[fontSize][text[i]].tcWidth,
+            // (float)AM::atlasInfo[fontSize][text[i]].tcHeight};
+            rLBTC = {AM::atlasInfo[fontSize][text[i]].tcX, AM::atlasInfo[fontSize][text[i]].tcY};
+            tcLen = {AM::atlasInfo[fontSize][text[i]].tcWidth, AM::atlasInfo[fontSize][text[i]].tcHeight};
+            off += rSize.x + betweenWidth;
+
+            labelVerts.push_back(
+                Vertex{.pos = rPos, .color = col, .tc = glm::vec2{rLBTC.x, rLBTC.y}, .textureId = (float)tid});
+            labelVerts.push_back(Vertex{.pos = glm::vec3{rPos.x, rPos.y + rSize.y, rPos.z},
+                                        .color = col,
+                                        .tc = glm::vec2{rLBTC.x, rLBTC.y + tcLen.y},
+                                        .textureId = (float)tid});
+            labelVerts.push_back(Vertex{.pos = glm::vec3{rPos.x + rSize.x, rPos.y + rSize.y, rPos.z},
+                                        .color = col,
+                                        .tc = glm::vec2{rLBTC.x + tcLen.x, rLBTC.y + tcLen.y},
+                                        .textureId = (float)tid});
+            labelVerts.push_back(labelVerts.back());
+            labelVerts.push_back(Vertex{.pos = glm::vec3{rPos.x + rSize.x, rPos.y, rPos.z},
+                                        .color = col,
+                                        .tc = glm::vec2{rLBTC.x + tcLen.x, rLBTC.y},
+                                        .textureId = (float)tid});
+            labelVerts.push_back(
+                Vertex{.pos = rPos, .color = col, .tc = glm::vec2{rLBTC.x, rLBTC.y}, .textureId = (float)tid});
+            // labelVerts.push_back(v);
+        }
+        else {
+            rPos = {textPos.x + off, textPos.y, textPos.z};
+            rSize = {spaceWidth, 10.0};
+            rLBTC = {0, 0};
+            tcLen = {0, 0};
+            off += rSize.x;
+        }
+        //  Log(rPos.x << " " << rPos.y << " "<<rPos.z);
+    }
+}
 void Game::makeCountryNames(const unsigned char *h)
 //        int mapWidth, int mapHeight, const unsigned char* h, int scale)
 // makeCountryNames(fontVerts, fontCtrVao, fontCtrVbo, ctrsData, provsData, ctrProvs, mapWidth, mapHeight, h,
@@ -608,14 +692,13 @@ void Game::Play()
             glm::mat4 rotate = glm::mat4{1.0f};
             rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
 
-            int i = 0;
-            for (auto &unit : units) {
-                if (abs(unit.GetFakePos().x - camera.eye.x) > 400)
+            for (std::size_t i = 0; i < units.size(); ++i) {
+                if (abs(units[i].GetFakePos().x - camera.eye.x) > 400)
                     continue;
-                if (abs(unit.GetFakePos().y - camera.eye.y) > 200)
+                if (abs(units[i].GetFakePos().y - camera.eye.y) > 200)
                     continue;
                 glm::mat4 unitModel = glm::mat4(1.0);
-                unitModel = glm::translate(unitModel, unit.GetFakePos());
+                unitModel = glm::translate(unitModel, units[i].GetFakePos());
                 // unitModel = glm::translate(unitModel, unitPos);
 
                 unitModel = unitModel * rotate;
@@ -629,7 +712,6 @@ void Game::Play()
                 glUniform1iv(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"), 32, tex);
                 model3d.Draw();
                 uinds.push_back(i);
-                ++i;
             }
 
             if (openUnitId != -1) {
@@ -696,8 +778,9 @@ void Game::Play()
             {                              // print unit labels;
                 glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
 
-                std::vector<FontVertex> labelVerts;
-                for (std::size_t i = 0; i < uinds.size(); ++i) {
+                std::vector<Vertex> labelVerts;
+                //for (std::size_t i = 0; i < uinds.size(); ++i) {
+                for (std::size_t i: uinds) {
                     // for (auto &unit : units) {
                     //     if (abs(unit.GetFakePos().x - camera.eye.x) > 400)
                     //         continue;
@@ -711,17 +794,17 @@ void Game::Play()
 
                     int fontSize = 2;
                     float ww = 70.0f, hh = 25.0f;
-                    FontVertex fv{
-                        .pos = Vec3{asd.x - ww * 0.6f, asd.y - hh - 8.0f, asd.z},
+                    Vertex fv{
+                        .pos = glm::vec3{asd.x - ww * 0.6f, asd.y - hh - 8.0f, asd.z},
                         //.pos = Vec3{-1.5f, -1.5f, 0.0f},
-                        .tc = Vec2{0.0f, 0.0f},
-                        .color = Vec4{1.0f, 0.0f, 0.0f, 1.0f},
-                        .tid = (int)22,
+                        .color = glm::vec4{1.0f, 0.0f, 0.0f, 1.0f},
+                        .tc = glm::vec2{0.0f, 0.0f},
+                        .textureId = (int)22,
                     };
-                    auto *mlptr = glm::value_ptr(unitModel);
-                    for (int i = 0; i < 16; ++i) {
-                        fv.ml[i] = *(mlptr + i);
-                    }
+                    // auto *mlptr = glm::value_ptr(unitModel);
+                    // for (int i = 0; i < 16; ++i) {
+                    //     fv.ml[i] = *(mlptr + i);
+                    // }
                     labelVerts.push_back(fv);
                     fv.pos.y += hh;
                     labelVerts.push_back(fv);
@@ -732,6 +815,20 @@ void Game::Play()
                     labelVerts.push_back(fv);
                     fv.pos.x -= ww;
                     labelVerts.push_back(fv);
+
+                    fv.pos.z += 1.0f;
+                    int aa = units[i].soldiers % 1000;
+                    int bb = units[i].soldiers / 1000;
+                    int cc = aa / 100;
+                    std::string labtext;
+                    if (bb >= 1) {
+                        labtext = std::to_string(bb) + "." + std::to_string(cc) + "k";
+                    }
+                    else {
+                        labtext = std::to_string(units[i].soldiers);
+                    }
+                    labelText(fv.pos, glm::vec2{ww, hh}, glm::vec4{0.0f, 1.0f, 0.0f, 1.0f},
+                              labtext, AM::FontSize::PX32, labelVerts);
                 }
                 glUseProgram(labelShader.GetProgram());
                 for (int i = 0; i <= (int)AM::FontSize::PX160; ++i) {
@@ -749,34 +846,34 @@ void Game::Play()
                 glCreateBuffers(1, &labelVbo);
 
                 glBindBuffer(GL_ARRAY_BUFFER, labelVbo);
-                glBufferData(GL_ARRAY_BUFFER, sizeof(FontVertex) * labelVerts.size(), labelVerts.data(),
+                glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * labelVerts.size(), labelVerts.data(),
                              GL_STATIC_DRAW);
                 glEnableVertexArrayAttrib(labelVao, 0);
                 glEnableVertexArrayAttrib(labelVao, 1);
                 glEnableVertexArrayAttrib(labelVao, 2);
                 glEnableVertexArrayAttrib(labelVao, 3);
-                glEnableVertexArrayAttrib(labelVao, 4);
-                glEnableVertexArrayAttrib(labelVao, 5);
-                glEnableVertexArrayAttrib(labelVao, 6);
-                glEnableVertexArrayAttrib(labelVao, 7);
+                // glEnableVertexArrayAttrib(labelVao, 4);
+                // glEnableVertexArrayAttrib(labelVao, 5);
+                // glEnableVertexArrayAttrib(labelVao, 6);
+                // glEnableVertexArrayAttrib(labelVao, 7);
                 GLuint err = glGetError();
                 if (err)
                     Log("Opengl error: " << err);
-                glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex), NULL);  //(const GLvoid*)0);
-                glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                                      (const GLvoid *)(offsetof(FontVertex, FontVertex::tc)));
-                glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                                      (const GLvoid *)(offsetof(FontVertex, FontVertex::color)));
-                glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                                      (const GLvoid *)(offsetof(FontVertex, FontVertex::tid)));
-                glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                                      (const GLvoid *)(offsetof(FontVertex, FontVertex::ml)));
-                glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                                      (const GLvoid *)(offsetof(FontVertex, FontVertex::ml) + 4 * 4));
-                glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                                      (const GLvoid *)(offsetof(FontVertex, FontVertex::ml) + 8 * 4));
-                glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                                      (const GLvoid *)(offsetof(FontVertex, FontVertex::ml) + 12 * 4));
+                glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), NULL);  //(const GLvoid*)0);
+                glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                                      (const GLvoid *)(offsetof(Vertex, Vertex::tc)));
+                glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                                      (const GLvoid *)(offsetof(Vertex, Vertex::color)));
+                glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                                      (const GLvoid *)(offsetof(Vertex, Vertex::textureId)));
+                // glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                //                       (const GLvoid *)(offsetof(Vertex, Vertex::ml)));
+                // glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                //                       (const GLvoid *)(offsetof(Vertex, Vertex::ml) + 4 * 4));
+                // glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                //                       (const GLvoid *)(offsetof(Vertex, Vertex::ml) + 8 * 4));
+                // glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                //                       (const GLvoid *)(offsetof(Vertex, Vertex::ml) + 12 * 4));
 
                 glBindVertexArray(labelVao);
                 glDrawArrays(GL_TRIANGLES, 0, labelVerts.size());
