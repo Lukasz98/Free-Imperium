@@ -34,6 +34,7 @@ enum class ClickEventType {
     SIDEBAR_LEFTC = 24,
     ROOM_PICK_COUNTRY = 25,
     ROOM_START_GAME = 26,
+    MERGE_UNITS = 26,
 
     CLOSE_WINDOW
 };

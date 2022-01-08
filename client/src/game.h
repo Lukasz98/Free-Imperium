@@ -30,6 +30,7 @@
 class Game : public Scene {
     sf::TcpSocket& socket;
     Shader pickModelShader;
+    Shader labelShader;
     Model3D model3d;
     std::vector<glm::mat4> uMat;
     std::vector<int> pids;  // chyba trzyma id prowincji na ktorych sa unity

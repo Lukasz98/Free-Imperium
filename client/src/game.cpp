@@ -256,13 +256,6 @@ Game::Game(Window &win, sf::TcpSocket &sock, std::string countryName, glm::vec2 
       countries(countries),
       model3d("src/img/DudeDonePosefix.obj", glm::vec3{0.0, 0.0, 0.1})
 {
-    // gui.AddWin("src/gui/top_bar.txt");
-    // gui.AddWin("src/gui/notifications.txt");
-    // topBarData.subject.AddObserver(Gui::TopBar::Open(std::vector<std::string>{}, resolution));
-    // Gui::SideBar::Open(resolution);
-    // Gui::SideBar::Add(resolution);
-    // Gui::SideBar::Add(resolution);
-
     windowSize = window.GetSize();
 
     provinces = ProvinceLoader::Load(colorToId);
@@ -295,7 +288,6 @@ Game::Game(Window &win, sf::TcpSocket &sock, std::string countryName, glm::vec2 
     sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText = "test 3"});
     sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText = "test 4"});
     sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText = "test 5"});
-
     //
 
     ctype = ClickEventType::MISS;
@@ -317,16 +309,8 @@ void Game::setCountryMap()
 {
     std::unordered_map<Color, Color, CCC::Hash> provCToCountryC;
     for (auto &p : provinces) {
-        // if (p->GetSieged() != 0)
-        //    continue;
-
         provCToCountryC[p->GetColor()] = countries[p->GetCountryId()]->GetColor();
     }
-
-    // Log("buckets="<<provCToCountryC.bucket_count());
-    // for (int i = 0; i < provCToCountryC.bucket_count(); i++) {
-    //    Log(provCToCountryC.bucket_size(i));
-    //}
 
     map.DrawCountries(provCToCountryC);
 
@@ -353,6 +337,7 @@ void Game::Play()
     Shader fontShader{"src/graphics/shaders/fonts.vert", "src/graphics/shaders/fonts.frag", "", ""};
     pickModelShader =
         Shader{"src/graphics/shaders/pick_model/vert.v", "src/graphics/shaders/pick_model/frag.f", "", ""};
+    labelShader = Shader{"src/graphics/shaders/label/vert.v", "src/graphics/shaders/label/frag.f", "", ""};
     glPatchParameteri(GL_PATCH_VERTICES, 3);
     float trCount = 150;
     int err = glGetError();
@@ -496,6 +481,7 @@ void Game::Play()
 
         if (window.keys['M']) {
             map2->ReloadShaders();
+            labelShader = Shader{"src/graphics/shaders/label/vert.v", "src/graphics/shaders/label/frag.f", "", ""};
             fontShader = Shader{"src/graphics/shaders/fonts.vert", "src/graphics/shaders/fonts.frag", "", ""};
             pickModelShader =
                 Shader{"src/graphics/shaders/pick_model/vert.v", "src/graphics/shaders/pick_model/frag.f", "", ""};
@@ -706,6 +692,96 @@ void Game::Play()
                         Log("Opengl error: " << err);
                     glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
                 }
+            }
+            {                              // print unit labels;
+                glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
+
+                std::vector<FontVertex> labelVerts;
+                for (std::size_t i = 0; i < uinds.size(); ++i) {
+                    // for (auto &unit : units) {
+                    //     if (abs(unit.GetFakePos().x - camera.eye.x) > 400)
+                    //         continue;
+                    //     if (abs(unit.GetFakePos().y - camera.eye.y) > 200)
+                    //         continue;
+                    glm::mat4 unitModel = glm::mat4(1.0);
+                    unitModel = glm::translate(unitModel, units[i].GetFakePos());
+                    auto asd = units[i].GetFakePos();
+                    // unitModel = unitModel * rotate;
+                    unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
+
+                    int fontSize = 2;
+                    float ww = 70.0f, hh = 25.0f;
+                    FontVertex fv{
+                        .pos = Vec3{asd.x - ww * 0.6f, asd.y - hh - 8.0f, asd.z},
+                        //.pos = Vec3{-1.5f, -1.5f, 0.0f},
+                        .tc = Vec2{0.0f, 0.0f},
+                        .color = Vec4{1.0f, 0.0f, 0.0f, 1.0f},
+                        .tid = (int)22,
+                    };
+                    auto *mlptr = glm::value_ptr(unitModel);
+                    for (int i = 0; i < 16; ++i) {
+                        fv.ml[i] = *(mlptr + i);
+                    }
+                    labelVerts.push_back(fv);
+                    fv.pos.y += hh;
+                    labelVerts.push_back(fv);
+                    fv.pos.x += ww;
+                    labelVerts.push_back(fv);
+                    labelVerts.push_back(fv);
+                    fv.pos.y -= hh;
+                    labelVerts.push_back(fv);
+                    fv.pos.x -= ww;
+                    labelVerts.push_back(fv);
+                }
+                glUseProgram(labelShader.GetProgram());
+                for (int i = 0; i <= (int)AM::FontSize::PX160; ++i) {
+                    glActiveTexture(GL_TEXTURE0 + i);
+                    glBindTexture(GL_TEXTURE_2D, (GLuint)fontTexID[i]);
+                }
+                glUniformMatrix4fv(glGetUniformLocation(labelShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                                   glm::value_ptr(matrix));
+                // glUniformMatrix4fv(glGetUniformLocation(labelShader->GetProgram(), "ml"), 1, GL_FALSE,
+                //                    glm::value_ptr(unitModel));
+                glUniform1iv(glGetUniformLocation(labelShader.GetProgram(), "tex"), 32, tex);
+                GLuint labelVao, labelVbo;
+                glCreateVertexArrays(1, &labelVao);
+                glBindVertexArray(labelVao);
+                glCreateBuffers(1, &labelVbo);
+
+                glBindBuffer(GL_ARRAY_BUFFER, labelVbo);
+                glBufferData(GL_ARRAY_BUFFER, sizeof(FontVertex) * labelVerts.size(), labelVerts.data(),
+                             GL_STATIC_DRAW);
+                glEnableVertexArrayAttrib(labelVao, 0);
+                glEnableVertexArrayAttrib(labelVao, 1);
+                glEnableVertexArrayAttrib(labelVao, 2);
+                glEnableVertexArrayAttrib(labelVao, 3);
+                glEnableVertexArrayAttrib(labelVao, 4);
+                glEnableVertexArrayAttrib(labelVao, 5);
+                glEnableVertexArrayAttrib(labelVao, 6);
+                glEnableVertexArrayAttrib(labelVao, 7);
+                GLuint err = glGetError();
+                if (err)
+                    Log("Opengl error: " << err);
+                glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex), NULL);  //(const GLvoid*)0);
+                glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                                      (const GLvoid *)(offsetof(FontVertex, FontVertex::tc)));
+                glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                                      (const GLvoid *)(offsetof(FontVertex, FontVertex::color)));
+                glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                                      (const GLvoid *)(offsetof(FontVertex, FontVertex::tid)));
+                glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                                      (const GLvoid *)(offsetof(FontVertex, FontVertex::ml)));
+                glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                                      (const GLvoid *)(offsetof(FontVertex, FontVertex::ml) + 4 * 4));
+                glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                                      (const GLvoid *)(offsetof(FontVertex, FontVertex::ml) + 8 * 4));
+                glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
+                                      (const GLvoid *)(offsetof(FontVertex, FontVertex::ml) + 12 * 4));
+
+                glBindVertexArray(labelVao);
+                glDrawArrays(GL_TRIANGLES, 0, labelVerts.size());
+
+                glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
             }
         }
         uMat.clear();
@@ -1063,13 +1139,33 @@ void Game::guiDraw()
                 resetGuiWindows();
                 break;
             }
+            case ClickEventType::MERGE_UNITS: {
+                if (openUnitsList != true)
+                    break;
+                std::vector<Unit *> clickedUnits_ptr;
+                for (auto uid : clickedUnits) {
+                    auto unit = std::find_if(units.begin(), units.end(),
+                                             [id = uid](const Unit &u) { return u.GetId() == id; });
+                    if (unit != units.end()) {
+                        clickedUnits_ptr.push_back(&(*unit));
+                    }
+                }
+                sf::Packet packet;
+                packet << "MergeUnits";
+                packet << (int)clickedUnits_ptr.size();
+                for (auto uptr : clickedUnits_ptr) {
+                    packet << uptr->id;
+                }
+                packets.push_back(packet);
+                break;
+            }
         };
         if (packets.size())
             toSend.insert(toSend.end(), packets.begin(), packets.end());
-    }
 
-    window.mouseLClicked = false;
-    window.mouseRClicked = false;
+        window.mouseLClicked = false;
+        window.mouseRClicked = false;
+    }
 }
 
 void Game::receivePackets()
@@ -1278,7 +1374,7 @@ void Game::input()
             }
         }
     }
-    // window.mouseRClicked = false;
+    window.mouseRClicked = false;
 }
 
 int Game::provClick(glm::vec2 mouseInWorld)

@@ -437,6 +437,12 @@ GuiLast::GuiEv GuiLast::Gui::game_unitsList(const std::vector<Unit*>& units, int
     glm::vec2 closeSize{100.0f, 40.0f};
     glm::vec3 closePos{wPos.x + wSize.x - offset.x - closeSize.x, wPos.y + offset.y, 0.2f};
     core.drawText(closePos, closeSize, greenCol, "Close", TEXT_LEFT, AM::FontSize::PX16);
+    
+    glm::vec2 mergeSize = closeSize;
+    glm::vec3 mergePos{wPos.x + offset.x, closePos.y, 0.2f};
+    core.drawText(mergePos, mergeSize, greenCol, "Merge", TEXT_LEFT, AM::FontSize::PX16);
+        if (core.isInRect(mergePos, mergeSize, mx, my))
+            ct = GuiLast::GuiEv{ClickEventType::MERGE_UNITS};
 
     glm::vec2 nameSize{100.0f, 40.0f};
     glm::vec3 namePos{wPos.x + offset.x, wPos.y + wSize.y - offset.y - nameSize.y, 0.2f};
