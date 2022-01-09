@@ -56,6 +56,7 @@ class Game : public Scene {
     int openWarId = -1;
     int openPeaceOfferId = -1;
     bool openUnitsList = false;
+    int openUnitsListProvId = 0;
     std::vector<int> clickedUnits;
     SideBarData sideBarData;
     void resetGuiWindows();

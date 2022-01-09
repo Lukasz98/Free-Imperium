@@ -52,8 +52,8 @@ struct Gui {
     GuiEv game_battle(const Battle& battle, const Province& prov, int mx, int my, bool clicked,
                       const std::vector<std::shared_ptr<Country>>& countries, const std::vector<Unit>& units);
     GuiEv game_unit(const Unit& unit, int mx, int my, bool clicked);
-    GuiEv game_unitsList(const std::vector<Unit*>& units, int mx, int my, bool clicked);
-    GuiEv game_SideBar(const SideBarData& sbData, int mx, int my, bool clicked);
+    GuiEv game_unitsList(const std::vector<Unit*>& units, int mx, int my, bool clicked, int scr, const Province* prov, std::vector<std::shared_ptr<Country>>& countries);
+    GuiEv game_SideBar(const SideBarData& sbData, int mx, int my, bool clicked, int scr);
 
     GuiEv room_playerList(const std::vector<std::string>& plarr, int mx, int my, int sc);
     GuiEv room_countryList(const std::vector<std::string>& ctrarr, int mx, int my, int scr);

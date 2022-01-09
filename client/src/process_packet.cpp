@@ -652,11 +652,13 @@ void ProcessPacket::BotPeaceOffer(sf::Packet& packet, std::vector<PeaceOffer>& p
     // delete obj;
 }
 
-void ProcessPacket::PeaceDeclined(sf::Packet& packet, SideBarData& sideBarData)
+void ProcessPacket::PeaceDeclined(sf::Packet& packet, SideBarData& sideBarData, const std::vector<std::shared_ptr<Country>>& countries)
 {
-    std::string recipant;
-    packet >> recipant;
+    int recipantid;
+    packet >> recipantid;
+    assert(recipantid >= 0 && recipantid < countries.size());
+    
     sideBarData.elements.push_back(
-        SideBarData::Element{.type = SideBarData::IType::PEACE_DECLINED, .val = 0, .hoverText = recipant});
+        SideBarData::Element{.type = SideBarData::IType::PEACE_DECLINED, .val = 0, .hoverText = countries[recipantid]->GetName()});
 }
 

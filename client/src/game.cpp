@@ -5,6 +5,7 @@
 #include "load_data.h"
 #include "prov_data.h"
 #include "save_borders.h"
+#include "int_to_string.h"
 
 struct OfferPeaceData {
     struct pair {
@@ -367,11 +368,20 @@ Game::Game(Window &win, sf::TcpSocket &sock, std::string countryName, glm::vec2 
         Log("There is no country for you ;(");
 
     // sidebar
-    sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText = "test 1"});
-    sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText = "test 2"});
-    sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText = "test 3"});
-    sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText = "test 4"});
-    sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText = "test 5"});
+    // sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText = "test
+    // 1"}); sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText =
+    // "test 2"}); sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText
+    // = "test 3"}); sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR,
+    // .hoverText = "test 4"}); sideBarData.elements.push_back(SideBarData::Element{.type =
+    // SideBarData::IType::WAR, .hoverText = "test 5"}); sideBarData.elements.push_back(SideBarData::Element{.type
+    // = SideBarData::IType::WAR, .hoverText = "test 6"});
+    // sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText = "test
+    // 7"}); sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText =
+    // "test 8"}); sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText
+    // = "test 9"}); sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR,
+    // .hoverText = "test 10"}); sideBarData.elements.push_back(SideBarData::Element{.type =
+    // SideBarData::IType::WAR, .hoverText = "test 11"}); sideBarData.elements.push_back(SideBarData::Element{.type
+    // = SideBarData::IType::WAR, .hoverText = "test 12"});
     //
 
     ctype = ClickEventType::MISS;
@@ -624,54 +634,57 @@ void Game::Play()
                 Color red{229, 0, 0, 255};
                 Color neutral{160, 160, 160, 255};
                 Color *col = &neutral;
-                int peaceind;
+                int peaceind = -1;
                 for (std::size_t i = 0; i < peaceOffers.size(); ++i) {
                     if (peaceOffers[i].peaceId == openPeaceOfferId) {
                         peaceind = i;
                         break;
                     }
                 }
-                assert(peaceind >= 0 && peaceind < peaceOffers.size());
-                for (int i = 0; i < provinces.size(); ++i) {
-                    if (std::find_if(peaceOffers[peaceind].lostProv.begin(), peaceOffers[peaceind].lostProv.end(),
-                                     [id = i](const std::tuple<int, int, int> &t) {
-                                         return std::get<0>(t) == id;
-                                     }) != peaceOffers[peaceind].lostProv.end())
-                    {
-                        col = &red;
-                    }
-                    else if (std::find_if(
-                                 peaceOffers[peaceind].gainProv.begin(), peaceOffers[peaceind].gainProv.end(),
-                                 [id = i](const std::tuple<int, int, int> &t) { return std::get<0>(t) == id; }) !=
-                             peaceOffers[peaceind].gainProv.end())
-                    {
-                        col = &green;
-                    }
-                    else if (peaceOffers[peaceind].offeredBy == provinces[i]->GetCountryId() ||
-                             peaceOffers[peaceind].recipant == provinces[i]->GetCountryId())
-                    {
-                        if (peaceOffers[peaceind].offeredBy == provinces[i]->GetCountryId())
-                            col = &lightBlue;
-                        else
-                            col = &lightRed;
-                    }
-                    else {
-                        col = &neutral;
-                    }
-                    if (i == 3018) {
-                        // Log((int)col->r << " " << (int)col->g << " " << (int)col->b);
-                    }
+                if (peaceind >= 0 && peaceind < peaceOffers.size()) {
+                    for (int i = 0; i < provinces.size(); ++i) {
+                        if (std::find_if(
+                                peaceOffers[peaceind].lostProv.begin(), peaceOffers[peaceind].lostProv.end(),
+                                [id = i](const std::tuple<int, int, int> &t) { return std::get<0>(t) == id; }) !=
+                            peaceOffers[peaceind].lostProv.end())
+                        {
+                            col = &red;
+                        }
+                        else if (std::find_if(peaceOffers[peaceind].gainProv.begin(),
+                                              peaceOffers[peaceind].gainProv.end(),
+                                              [id = i](const std::tuple<int, int, int> &t) {
+                                                  return std::get<0>(t) == id;
+                                              }) != peaceOffers[peaceind].gainProv.end())
+                        {
+                            col = &green;
+                        }
+                        else if (peaceOffers[peaceind].offeredBy == provinces[i]->GetCountryId() ||
+                                 peaceOffers[peaceind].recipant == provinces[i]->GetCountryId())
+                        {
+                            if (peaceOffers[peaceind].offeredBy == provinces[i]->GetCountryId())
+                                col = &lightBlue;
+                            else
+                                col = &lightRed;
+                        }
+                        else {
+                            col = &neutral;
+                        }
+                        if (i == 3018) {
+                            // Log((int)col->r << " " << (int)col->g << " " << (int)col->b);
+                        }
 
-                    nexpix[i * 4] = col->r;
-                    nexpix[i * 4 + 1] = col->g;
-                    nexpix[i * 4 + 2] = col->b;
-                    nexpix[i * 4 + 3] = col->a;
+                        nexpix[i * 4] = col->r;
+                        nexpix[i * 4 + 1] = col->g;
+                        nexpix[i * 4 + 2] = col->b;
+                        nexpix[i * 4 + 3] = col->a;
+                    }
+                    Texture newtex = Texture(nexpix, provinces.size(), 1);
+                    // delete [] pix;
+                    map2->texID[(int)(map2->MAPID_PEACE_OFFER + 0.5f)] = newtex.GetId();
+                    map2->ActivateTextures();
+                    map2->DrawLand(matrix, camera.eye, markedProvId, provinces.size(), map2->MAPID_PEACE_OFFER,
+                                   0.0f);
                 }
-                Texture newtex = Texture(nexpix, provinces.size(), 1);
-                // delete [] pix;
-                map2->texID[(int)(map2->MAPID_PEACE_OFFER + 0.5f)] = newtex.GetId();
-                map2->ActivateTextures();
-                map2->DrawLand(matrix, camera.eye, markedProvId, provinces.size(), map2->MAPID_PEACE_OFFER, 0.0f);
             }
         }
 
@@ -779,8 +792,8 @@ void Game::Play()
                 glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
 
                 std::vector<Vertex> labelVerts;
-                //for (std::size_t i = 0; i < uinds.size(); ++i) {
-                for (std::size_t i: uinds) {
+                // for (std::size_t i = 0; i < uinds.size(); ++i) {
+                for (std::size_t i : uinds) {
                     // for (auto &unit : units) {
                     //     if (abs(unit.GetFakePos().x - camera.eye.x) > 400)
                     //         continue;
@@ -817,18 +830,9 @@ void Game::Play()
                     labelVerts.push_back(fv);
 
                     fv.pos.z += 1.0f;
-                    int aa = units[i].soldiers % 1000;
-                    int bb = units[i].soldiers / 1000;
-                    int cc = aa / 100;
-                    std::string labtext;
-                    if (bb >= 1) {
-                        labtext = std::to_string(bb) + "." + std::to_string(cc) + "k";
-                    }
-                    else {
-                        labtext = std::to_string(units[i].soldiers);
-                    }
-                    labelText(fv.pos, glm::vec2{ww, hh}, glm::vec4{0.0f, 1.0f, 0.0f, 1.0f},
-                              labtext, AM::FontSize::PX32, labelVerts);
+                    std::string labtext = int_to_string(units[i].soldiers);
+                    labelText(fv.pos, glm::vec2{ww, hh}, glm::vec4{0.0f, 1.0f, 0.0f, 1.0f}, labtext,
+                              AM::FontSize::PX32, labelVerts);
                 }
                 glUseProgram(labelShader.GetProgram());
                 for (int i = 0; i <= (int)AM::FontSize::PX160; ++i) {
@@ -965,7 +969,7 @@ void Game::guiDraw()
     if (tmpctype.ct != ClickEventType::MISS)
         ctype = tmpctype;
 
-    tmpctype = guiLast.game_SideBar(sideBarData, mp.x, mp.y, window.mouseLClicked);
+    tmpctype = guiLast.game_SideBar(sideBarData, mp.x, mp.y, window.mouseLClicked, window.scrollOffset);
     if (tmpctype.ct != ClickEventType::MISS)
         ctype = tmpctype;
 
@@ -1039,7 +1043,7 @@ void Game::guiDraw()
                 clickedUnits_ptr.push_back(&(*unit));
             }
         }
-        tmpctype = guiLast.game_unitsList(clickedUnits_ptr, mp.x, mp.y, window.mouseLClicked);
+        tmpctype = guiLast.game_unitsList(clickedUnits_ptr, mp.x, mp.y, window.mouseLClicked, window.scrollOffset, provinces[openUnitsListProvId].get(), countries);
         if (window.mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
             openUnitsList = false;
         else if (tmpctype.ct != ClickEventType::MISS)
@@ -1074,6 +1078,11 @@ void Game::guiDraw()
             case ClickEventType::OPEN_COUNTRY: {
                 resetGuiWindows();
                 openCountryId = ctype.val;
+                break;
+            }
+            case ClickEventType::OPEN_PROV: {
+                resetGuiWindows();
+                openProvId = ctype.val;
                 break;
             }
             case ClickEventType::OPEN_COUNTRY_FROM_PROV: {
@@ -1256,6 +1265,15 @@ void Game::guiDraw()
                 packets.push_back(packet);
                 break;
             }
+            case ClickEventType::DEL_FROM_UNITS_LIST: {
+                for (std::size_t i = 0; i < clickedUnits.size(); ++i) {
+                    if (clickedUnits[i] == ctype.val) {
+                        clickedUnits.erase(clickedUnits.begin() + i);
+                        break;
+                    }
+                }
+                break;
+            }
         };
         if (packets.size())
             toSend.insert(toSend.end(), packets.begin(), packets.end());
@@ -1342,7 +1360,7 @@ void Game::processPacket(sf::Packet packet)
         ProcessPacket::BotPeaceOffer(packet, peaceOffers, countries, sideBarData, myCountry);
     }
     else if (type == "PeaceDeclined") {
-        ProcessPacket::PeaceDeclined(packet, sideBarData);
+        ProcessPacket::PeaceDeclined(packet, sideBarData, countries);
     }
 }
 
@@ -1587,6 +1605,7 @@ bool Game::unitClick(glm::vec2 mouseInWorld)
             // openMyCountry = false;
             openUnitsList = true;
         }
+        openUnitsListProvId = provId;
         return true;
     }
     else {
