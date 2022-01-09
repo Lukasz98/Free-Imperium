@@ -2,10 +2,10 @@
 
 #include "ctr_data.h"
 #include "font_batch.h"
+#include "int_to_string.h"
 #include "load_data.h"
 #include "prov_data.h"
 #include "save_borders.h"
-#include "int_to_string.h"
 
 struct OfferPeaceData {
     struct pair {
@@ -697,35 +697,6 @@ void Game::Play()
         std::vector<std::size_t> uinds;
         float zPoint = 1500.0f;
         if (camera.eye.z < zPoint && !window.keys['U']) {
-            for (int i = 0; i < 32; ++i) {
-                glActiveTexture(GL_TEXTURE0 + i);
-                glBindTexture(GL_TEXTURE_2D, otherTexID[i]);
-            }
-            float rotateX = 60.0f * 3.1459265f / 180.0f, yScale = 10.0f;
-            glm::mat4 rotate = glm::mat4{1.0f};
-            rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
-
-            for (std::size_t i = 0; i < units.size(); ++i) {
-                if (abs(units[i].GetFakePos().x - camera.eye.x) > 400)
-                    continue;
-                if (abs(units[i].GetFakePos().y - camera.eye.y) > 200)
-                    continue;
-                glm::mat4 unitModel = glm::mat4(1.0);
-                unitModel = glm::translate(unitModel, units[i].GetFakePos());
-                // unitModel = glm::translate(unitModel, unitPos);
-
-                unitModel = unitModel * rotate;
-                unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
-
-                glUseProgram(AM::am.shader->GetProgram());
-                glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "matrix"), 1, GL_FALSE,
-                                   glm::value_ptr(matrix));
-                glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE,
-                                   glm::value_ptr(unitModel));
-                glUniform1iv(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"), 32, tex);
-                model3d.Draw();
-                uinds.push_back(i);
-            }
 
             if (openUnitId != -1) {
                 auto unit = std::find_if(units.begin(), units.end(),
@@ -788,6 +759,17 @@ void Game::Play()
                     glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
                 }
             }
+            float rotateX = 60.0f * 3.1459265f / 180.0f, yScale = 10.0f;
+            glm::mat4 rotate = glm::mat4{1.0f};
+            rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
+            for (std::size_t i = 0; i < units.size(); ++i) {
+                if (abs(units[i].GetFakePos().x - camera.eye.x) > 400)
+                    continue;
+                if (abs(units[i].GetFakePos().y - camera.eye.y) > 200)
+                    continue;
+                uinds.push_back(i);
+            }
+
             {                              // print unit labels;
                 glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
 
@@ -883,6 +865,32 @@ void Game::Play()
                 glDrawArrays(GL_TRIANGLES, 0, labelVerts.size());
 
                 glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
+            }
+            for (int i = 0; i < 32; ++i) {
+                glActiveTexture(GL_TEXTURE0 + i);
+                glBindTexture(GL_TEXTURE_2D, otherTexID[i]);
+            }
+            for (auto i : uinds) {
+                //for (std::size_t i = 0; i < units.size(); ++i) {
+                if (abs(units[i].GetFakePos().x - camera.eye.x) > 400)
+                    continue;
+                if (abs(units[i].GetFakePos().y - camera.eye.y) > 200)
+                    continue;
+                glm::mat4 unitModel = glm::mat4(1.0);
+                unitModel = glm::translate(unitModel, units[i].GetFakePos());
+                // unitModel = glm::translate(unitModel, unitPos);
+
+                unitModel = unitModel * rotate;
+                unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
+
+                glUseProgram(AM::am.shader->GetProgram());
+                glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "matrix"), 1, GL_FALSE,
+                                   glm::value_ptr(matrix));
+                glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE,
+                                   glm::value_ptr(unitModel));
+                glUniform1iv(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"), 32, tex);
+                model3d.Draw();
+                //uinds.push_back(i);
             }
         }
         uMat.clear();
@@ -1001,7 +1009,7 @@ void Game::guiDraw()
     }
 
     if (openCountryId != -1) {
-        tmpctype = guiLast.game_country(*countries[openCountryId], mp.x, mp.y);
+        tmpctype = guiLast.game_country(countries[openCountryId].get(), myCountry.get(), wars, mp.x, mp.y);
         if (window.mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
             openCountryId = -1;
         else if (tmpctype.ct != ClickEventType::MISS)
@@ -1012,7 +1020,7 @@ void Game::guiDraw()
         auto unit =
             std::find_if(units.begin(), units.end(), [id = openUnitId](const Unit &u) { return u.GetId() == id; });
         assert(unit != units.end());
-        tmpctype = guiLast.game_unit((*unit), mp.x, mp.y, window.mouseLClicked);
+        tmpctype = guiLast.game_unit((*unit), mp.x, mp.y, window.mouseLClicked, countries);
         if (window.mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
             openUnitId = -1;
         else if (tmpctype.ct != ClickEventType::MISS)
@@ -1043,7 +1051,8 @@ void Game::guiDraw()
                 clickedUnits_ptr.push_back(&(*unit));
             }
         }
-        tmpctype = guiLast.game_unitsList(clickedUnits_ptr, mp.x, mp.y, window.mouseLClicked, window.scrollOffset, provinces[openUnitsListProvId].get(), countries);
+        tmpctype = guiLast.game_unitsList(clickedUnits_ptr, mp.x, mp.y, window.mouseLClicked, window.scrollOffset,
+                                          provinces[openUnitsListProvId].get(), countries);
         if (window.mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
             openUnitsList = false;
         else if (tmpctype.ct != ClickEventType::MISS)
@@ -1061,8 +1070,9 @@ void Game::guiDraw()
         assert(peaceind >= 0 && peaceind < peaceOffers.size());
         tmpctype = guiLast.game_peaceOffer(&peaceOffers[peaceind], mp.x, mp.y, myCountry->GetId(), provinces,
                                            countries, window.mouseLClicked, window.scrollOffset);
-        if (window.mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
+        if (window.mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW) {
             openPeaceOfferId = -1;
+        }
         else if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
     }
@@ -1154,9 +1164,14 @@ void Game::guiDraw()
                 // openPeaceOfferId = ctype.val;
                 Log(openPeaceOfferId);
                 if (openPeaceOfferId == -1) {
-                    int warind;
+                    int warind; 
+                    for (int i = peaceOffers.size() - 1; i >= 0; --i) {
+                        if (peaceOffers[i].peaceId == -2) {
+                            peaceOffers.erase(peaceOffers.begin() + i);
+                        }
+                    }
                     for (std::size_t i = 0; i < wars.size(); ++i) {
-                        if (wars[i].id == openWarId) {
+                        if ((openWarId != -1 && wars[i].id == openWarId) || (openWarId == -1 && wars[i].id == ctype.val)) {
                             warind = i;
                             break;
                         }

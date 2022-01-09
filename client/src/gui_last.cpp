@@ -162,7 +162,7 @@ GuiLast::GuiEv GuiLast::Gui::game_myCountry(const Country& ctr, int mx, int my)
     return GuiLast::GuiEv{ClickEventType::MISS};
 }
 
-GuiLast::GuiEv GuiLast::Gui::game_country(const Country& ctr, int mx, int my)
+GuiLast::GuiEv GuiLast::Gui::game_country(const Country* ctr, const Country* myCountry, const std::vector<War>& wars, int mx, int my)
 {
     GuiLast::GuiEv ct{ClickEventType::MISS};
     glm::vec2 offset{5.0f, 2.5f};
@@ -181,16 +181,33 @@ GuiLast::GuiEv GuiLast::Gui::game_country(const Country& ctr, int mx, int my)
 
     glm::vec2 valueSize{100.0f, 40.0f};
     glm::vec3 valuePos{namePos.x + nameSize.x + offset.x, namePos.y, namePos.z};
-    core.drawText(valuePos, valueSize, greenCol, ctr.GetName(), TEXT_LEFT, AM::FontSize::PX16);
+    core.drawText(valuePos, valueSize, greenCol, ctr->GetName(), TEXT_LEFT, AM::FontSize::PX16);
+
+    bool atWar = false;
+    int warid = 0;
+    for (auto& war : wars) {
+        if (war.ShouldTheyFight(ctr->GetId(), myCountry->GetId())) {
+            atWar = true;
+            warid = war.id;
+            break;
+        }
+    }
 
     namePos.y -= nameSize.y - offset.y;
     valuePos.y -= valueSize.y - offset.y;
     core.drawRect(namePos, nameSize, weirdBrown);
     namePos.z += 0.1;
-    core.drawText(namePos, nameSize, greenCol, "Declare war", TEXT_LEFT, AM::FontSize::PX16);
+    if (atWar) {
+        core.drawText(namePos, nameSize, greenCol, "Offer peace", TEXT_LEFT, AM::FontSize::PX16);
+        if (core.isInRect(namePos, nameSize, mx, my))
+            ct = GuiLast::GuiEv{ClickEventType::OPEN_OFFER_PEACE , warid};
+    }
+    else {
+        core.drawText(namePos, nameSize, greenCol, "Declare war", TEXT_LEFT, AM::FontSize::PX16);
+        if (core.isInRect(namePos, nameSize, mx, my))
+            ct = GuiLast::GuiEv{ClickEventType::DECLARE_WAR, ctr->GetId()};
+    }
     namePos.z -= 0.1;
-    if (core.isInRect(namePos, nameSize, mx, my))
-        ct = GuiLast::GuiEv{ClickEventType::DECLARE_WAR, ctr.GetId()};
 
     if (ct.ct != ClickEventType::MISS)
         return ct;
@@ -333,7 +350,8 @@ GuiLast::GuiEv GuiLast::Gui::game_battle(const Battle& battle, const Province& p
         return GuiLast::GuiEv{ClickEventType::NONE};
     return GuiLast::GuiEv{ClickEventType::MISS};
 }
-GuiLast::GuiEv GuiLast::Gui::game_unit(const Unit& unit, int mx, int my, bool clicked)
+GuiLast::GuiEv GuiLast::Gui::game_unit(const Unit& unit, int mx, int my, bool clicked,
+                                       std::vector<std::shared_ptr<Country>>& countries)
 {
     GuiLast::GuiEv ct{ClickEventType::MISS};
     glm::vec2 offset{5.0f, 2.5f};
@@ -356,7 +374,8 @@ GuiLast::GuiEv GuiLast::Gui::game_unit(const Unit& unit, int mx, int my, bool cl
     namePos.y -= nameSize.y - offset.y;
     core.drawText(namePos, nameSize, greenCol, "Country: ", TEXT_LEFT, AM::FontSize::PX16);
     valuePos.y -= valueSize.y - offset.y;
-    core.drawText(valuePos, valueSize, greenCol, unit.GetCountry(), TEXT_LEFT, AM::FontSize::PX16);
+    core.drawText(valuePos, valueSize, greenCol, countries[unit.countryId]->GetName(), TEXT_LEFT,
+                  AM::FontSize::PX16);
     if (core.isInRect(valuePos, valueSize, mx, my))
         ct = GuiLast::GuiEv{ClickEventType::OPEN_COUNTRY, unit.GetCountryId()};
 
@@ -492,11 +511,14 @@ GuiLast::GuiEv GuiLast::Gui::game_unitsList(const std::vector<Unit*>& units, int
             erasePos = startPos;
             erasePos.x = listPos.x + listSize.x - offset.x * 2.0f - eraseSize.x;
             for (auto& unit : units) {
-                //core.drawText(startPos, elSize, greenCol, "name: ", TEXT_LEFT, AM::FontSize::PX16);
+                // core.drawText(startPos, elSize, greenCol, "name: ", TEXT_LEFT, AM::FontSize::PX16);
                 Color rectcol = countries[unit->countryId]->color;
-                glm::vec4 r2col{(float)rectcol.r/255.0f, (float)rectcol.g/255.0f, (float)rectcol.b/255.0f, (float)rectcol.a/255.0f};
+                glm::vec4 r2col{(float)rectcol.r / 255.0f, (float)rectcol.g / 255.0f, (float)rectcol.b / 255.0f,
+                                (float)rectcol.a / 255.0f};
                 core.drawRect(startPos, rectSize, r2col);
-                core.drawText(valuePos, elSize, greenCol, unit->GetName() + std::string{", size: "} + int_to_string(unit->soldiers), TEXT_LEFT, AM::FontSize::PX16);
+                core.drawText(valuePos, elSize, greenCol,
+                              unit->GetName() + std::string{", size: "} + int_to_string(unit->soldiers), TEXT_LEFT,
+                              AM::FontSize::PX16);
                 core.drawIcon(erasePos, eraseSize, 4);
 
                 if (core.isInRect(valuePos, elSize, mx, my))
