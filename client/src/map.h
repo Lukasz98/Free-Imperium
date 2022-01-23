@@ -1,4 +1,5 @@
 #pragma once
+#if 0 
 #include <vector>
 #include <memory>
 #include <unordered_map>
@@ -73,4 +74,6 @@ public:
     float GetChunkScale() { return chunkScale; }
     const unsigned char * GetProvsPixels() { return provsMap.GetPixels(); } 
     const unsigned char * GetHeightTerrain() { return heightMap.GetPixels(); }
-};
+}
+;
+#endif

@@ -6,6 +6,7 @@
 #include "load_data.h"
 #include "prov_data.h"
 #include "save_borders.h"
+#include "prepare_packet.h"
 
 struct OfferPeaceData {
     struct pair {
@@ -29,7 +30,6 @@ static void f(std::vector<FontVertex> &vec, int ctrId, const std::vector<ProvDat
     glm::vec2 maxx{-1.0f, 0.0f}, minx{10000.0f, 0.0f};
     glm::vec2 maxy{0.0f, -1.0f}, miny{0.0f, 10000.0f};
     {
-        // float minx 10000.0f, maxx = -1.0f, miny = 10000.0f, maxy = -1.0f;
         for (int i = 0; i < ctrProvs[ctrId].size(); ++i) {
             float x = provinces[ctrProvs[ctrId][i]].x;
             float y = provinces[ctrProvs[ctrId][i]].y;
@@ -65,7 +65,6 @@ static void f(std::vector<FontVertex> &vec, int ctrId, const std::vector<ProvDat
     }
 
     glm::mat4 textml{1.0f};
-    // Mat4 textml;
     glm::vec2 center{(maxx.x + minx.x) * 0.5f, (maxx.y + minx.y) * 0.5f};
     textml = glm::translate(textml, glm::vec3{center.x * scale, center.y * scale, 0.0f});
     float rotateText = atan((maxx.y - minx.y) / abs(maxx.x - minx.x));  // * 180.0f * 3.1456f;
@@ -94,7 +93,6 @@ static void f(std::vector<FontVertex> &vec, int ctrId, const std::vector<ProvDat
         }
         fontSize = (AM::FontSize)(fontSize + 1);
     }
-    // Log("fontSize=" << (int)fontSize);
     if (fontSize > AM::FontSize::PX160)
         fontSize = AM::FontSize::PX160;
     if (len > dist * scale * 0.75f && fontSize > 0)
@@ -113,29 +111,16 @@ static void f(std::vector<FontVertex> &vec, int ctrId, const std::vector<ProvDat
             hei += 10;
         }
     }
-    // Log("fontSize=" << (int)fontSize);
     hei = hei / text.size();
     int cx = -len / 2, cy = -hei / 2;
-    // textml = glm::rotate(textml, abs(sin(waterTime)) * 90.0f, glm::vec3{0.0f, 1.0f, 0.0f});
     int cz = 80.0f;
     {
         int ind = (cx + maxx.x) * 3 + (cy + maxx.y) * mapWidth * 3;
         if (ind >= 0 && ind < mapWidth * mapHeight * 3)
             cz = h[ind];
-
-        // Log("cz="<<cz);
     }
-    // textml.translate(Vec3{center.x * scale, center.y * scale, 0.0f});
 
-    // if (window.keys['Y'])
-    //    rotateText = sin(waterTime) * 90.0f;
     textml = glm::rotate(textml, rotateText, glm::vec3{0.0f, 0.0f, 1.0f});
-    // const float pi = 3.14159f;
-    // rotateText = 0.5f * pi;
-    // rotateText = pi;
-    // textml.rotate(Vec3{0.0f, 0.0f, 1.0f}, rotateText);
-    // glUniformMatrix4fv(glGetUniformLocation(fontShader.GetProgram(), "ml"), 1, GL_FALSE,
-    // glm::value_ptr(textml));
     int off = 0.0f;
     Vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
     float ml[16];
@@ -148,7 +133,6 @@ static void f(std::vector<FontVertex> &vec, int ctrId, const std::vector<ProvDat
         glm::vec2 rSize, rLBTC, tcLen;
         if (AM::atlasInfo[fontSize][c].set) {
             rPos = {cx + off, cy + AM::atlasInfo[fontSize][c].yPos, cz};
-            // rPos = textml * glm::vec4{rPos, 1.0f};
             rSize = {(float)AM::atlasInfo[fontSize][c].width, (float)AM::atlasInfo[fontSize][c].height};
             rLBTC = {AM::atlasInfo[fontSize][c].tcX, AM::atlasInfo[fontSize][c].tcY};
             tcLen = {AM::atlasInfo[fontSize][c].tcWidth, AM::atlasInfo[fontSize][c].tcHeight};
@@ -164,7 +148,6 @@ static void f(std::vector<FontVertex> &vec, int ctrId, const std::vector<ProvDat
             for (int i = 0; i < 16; ++i) {
                 fv.ml[i] = ml[i];
             }
-            // FontVertex fvv = fv;
             vec.push_back(fv);
 
             fv.pos.y += rSize.y;
@@ -192,28 +175,20 @@ static void f(std::vector<FontVertex> &vec, int ctrId, const std::vector<ProvDat
             tcLen = {0, 0};
             off += rSize.x;
         }
-        //  Log(rPos.x << " " << rPos.y << " "<<rPos.z);
     }
-    //}
 }
 
 void labelText(const glm::vec3 &pos, const glm::vec2 &size, const glm::vec4 &col, const std::string &text,
                AM::FontSize fontSize, std::vector<Vertex> &labelVerts)
 {
     glm::vec3 textPos = pos;
-    // GLuint tid = AM::atlasTexture[AM::FontSize::PX32]->GetId();
-    // GLuint tid = (int)fontSize;
-    // AM::FontSize fontSize = AM::FontSize::PX16;
-    // GLuint tid = AM::atlasTexture[fontSize]->GetId();
     GLuint tid = (GLuint)fontSize;
-    // GLuint tid = AM::atlasTexture[AM::FontSize::PX16]->GetId();
     float spaceWidth = 10.0f;
     float padding = 5.0f;
     float off = 0.0f, betweenWidth = 1.0f;
 
     float widthSum = 0.0f, maxY = 0.0f;
     for (int i = 0; i < text.size(); ++i) {
-        // for (int i = 0; i < text.size() && i < max; ++i) {
         if (AM::atlasInfo[fontSize][text[i]].set) {
             widthSum += AM::atlasInfo[fontSize][text[i]].width + betweenWidth;
             if (maxY < AM::atlasInfo[fontSize][text[i]].height)
@@ -223,13 +198,6 @@ void labelText(const glm::vec3 &pos, const glm::vec2 &size, const glm::vec4 &col
             widthSum += spaceWidth;
     }
     textPos.x = (textPos.x + size.x * 0.5f) - widthSum * 0.5f;
-    // if (flags & TEXT_CENTER)  // centered
-    //     textPos.x = (textPos.x + size.x * 0.5f) - widthSum * 0.5f;
-    // else if (flags & TEXT_RIGHT)  // aligned to right
-    //     textPos.x = (textPos.x + size.x) - widthSum - padding;
-    // else {  // aligned left
-    //     textPos.x += padding;
-    // }
     textPos.y = (textPos.y + size.y * 0.5f) - maxY * 0.5f;
 
     for (int i = 0; i < text.size(); ++i) {
@@ -245,9 +213,6 @@ void labelText(const glm::vec3 &pos, const glm::vec2 &size, const glm::vec4 &col
             if (rPos.y > (((float)((int)rPos.y))))
                 rPos.y = ((int)(rPos.y + 0.5f));
             rSize = {AM::atlasInfo[fontSize][text[i]].width, AM::atlasInfo[fontSize][text[i]].height};
-            // rLBTC = {(float)AM::atlasInfo[fontSize][text[i]].tcX, (float)AM::atlasInfo[fontSize][text[i]].tcY};
-            // tcLen = {(float)AM::atlasInfo[fontSize][text[i]].tcWidth,
-            // (float)AM::atlasInfo[fontSize][text[i]].tcHeight};
             rLBTC = {AM::atlasInfo[fontSize][text[i]].tcX, AM::atlasInfo[fontSize][text[i]].tcY};
             tcLen = {AM::atlasInfo[fontSize][text[i]].tcWidth, AM::atlasInfo[fontSize][text[i]].tcHeight};
             off += rSize.x + betweenWidth;
@@ -269,7 +234,6 @@ void labelText(const glm::vec3 &pos, const glm::vec2 &size, const glm::vec4 &col
                                         .textureId = (float)tid});
             labelVerts.push_back(
                 Vertex{.pos = rPos, .color = col, .tc = glm::vec2{rLBTC.x, rLBTC.y}, .textureId = (float)tid});
-            // labelVerts.push_back(v);
         }
         else {
             rPos = {textPos.x + off, textPos.y, textPos.z};
@@ -278,13 +242,9 @@ void labelText(const glm::vec3 &pos, const glm::vec2 &size, const glm::vec4 &col
             tcLen = {0, 0};
             off += rSize.x;
         }
-        //  Log(rPos.x << " " << rPos.y << " "<<rPos.z);
     }
 }
 void Game::makeCountryNames(const unsigned char *h)
-//        int mapWidth, int mapHeight, const unsigned char* h, int scale)
-// makeCountryNames(fontVerts, fontCtrVao, fontCtrVbo, ctrsData, provsData, ctrProvs, mapWidth, mapHeight, h,
-// scale);
 {
     Log("makecountrynames");
     ctrProvs.clear();
@@ -367,23 +327,6 @@ Game::Game(Window &win, sf::TcpSocket &sock, std::string countryName, glm::vec2 
     else
         Log("There is no country for you ;(");
 
-    // sidebar
-    // sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText = "test
-    // 1"}); sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText =
-    // "test 2"}); sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText
-    // = "test 3"}); sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR,
-    // .hoverText = "test 4"}); sideBarData.elements.push_back(SideBarData::Element{.type =
-    // SideBarData::IType::WAR, .hoverText = "test 5"}); sideBarData.elements.push_back(SideBarData::Element{.type
-    // = SideBarData::IType::WAR, .hoverText = "test 6"});
-    // sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText = "test
-    // 7"}); sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText =
-    // "test 8"}); sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR, .hoverText
-    // = "test 9"}); sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::WAR,
-    // .hoverText = "test 10"}); sideBarData.elements.push_back(SideBarData::Element{.type =
-    // SideBarData::IType::WAR, .hoverText = "test 11"}); sideBarData.elements.push_back(SideBarData::Element{.type
-    // = SideBarData::IType::WAR, .hoverText = "test 12"});
-    //
-
     ctype = ClickEventType::MISS;
 }
 
@@ -401,32 +344,29 @@ void Game::editCountryMap2(MapTexture *mt)
 
 void Game::setCountryMap()
 {
-    std::unordered_map<Color, Color, CCC::Hash> provCToCountryC;
-    for (auto &p : provinces) {
-        provCToCountryC[p->GetColor()] = countries[p->GetCountryId()]->GetColor();
-    }
+    //std::unordered_map<Color, Color, CCC::Hash> provCToCountryC;
+    //for (auto &p : provinces) {
+    //    provCToCountryC[p->GetColor()] = countries[p->GetCountryId()]->GetColor();
+    //}
 
-    map.DrawCountries(provCToCountryC);
+    //map.DrawCountries(provCToCountryC);
 
-    for (auto &prov : provinces) {
-        if (prov->GetSieged() == 100) {
-            assert(prov->GetSiegeCountryId() >= 0 && prov->GetSiegeCountryId() < (int)countries.size());
-            auto siegeCountry = countries.at(prov->GetSiegeCountryId());
-            map.DrawSieged(prov->GetColor(), siegeCountry->GetColor());
-        }
-    }
+    //for (auto &prov : provinces) {
+    //    if (prov->GetSieged() == 100) {
+    //        assert(prov->GetSiegeCountryId() >= 0 && prov->GetSiegeCountryId() < (int)countries.size());
+    //        auto siegeCountry = countries.at(prov->GetSiegeCountryId());
+    //        map.DrawSieged(prov->GetColor(), siegeCountry->GetColor());
+    //    }
+    //}
 }
 
 void Game::Play()
 {
-    // float lastTime = glfwGetTime();
     float currTime = 0.0f;
     float displayTime = 0.0f;
     float framesTime = 0.0f;
     bool display = true;
     int frames = 0;
-    // Rectangle testRect = Rectangle{glm::vec3{1000.0, 900.0, 10.0}, glm::vec2{200.0, 200},
-    // glm::vec4{1.0,0.0,0.0,1.0}};
 
     Shader fontShader{"src/graphics/shaders/fonts.vert", "src/graphics/shaders/fonts.frag", "", ""};
     pickModelShader =
@@ -441,9 +381,6 @@ void Game::Play()
     Texture terrainTexture{"src/img/terrain_map.png", mapWidth, mapHeight};
     Texture waterMap{"src/img/Blank_map.png", mapWidth, mapHeight};
     heightMap = std::make_unique<Texture>("src/img/Heightmap.png", mapWidth, mapHeight);
-    // Texture stoneT{"../shared/smoothstone.png", 64, 64, GL_REPEAT};
-    // Texture waterT{"../shared/water1.png", 64, 64, GL_REPEAT};
-    // Texture sandT{"src/img/Sand_1.png", 32, 32, GL_REPEAT};
     Texture ctrsText{"src/img/countries_map.png", mapWidth, mapHeight};
 
     GLint tex[32];
@@ -451,17 +388,11 @@ void Game::Play()
         tex[i] = i;
     }
 
-    // saveProvinceFromImg(provTexture.GetPixels(), waterMap.GetPixels(), mapWidth, mapHeight);
     std::map<int, Node> nodes;
     loadProvData(provsData, colorToId);
     loadCountriesData(ctrsData);
     ctrProvs.reserve(ctrsData.size());
 
-    // saveBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces, nodes);
-    // saveSeaBorders(provTexture.GetPixels(), mapWidth, mapHeight, provinces, nodes, colorToId);
-    // createSaveProvPoints(provTexture.GetPixels(), mapWidth, mapHeight, provinces, colorToId);
-    // saveBordersTriangles(mapWidth, mapHeight, scale, heightMap->GetPixels());
-    // return;
     err = glGetError();
     if (err)
         Log("Opengl error: " << err);
@@ -533,9 +464,7 @@ void Game::Play()
         glBindVertexArray(model3d.vao);
         glGenBuffers(1, &unitBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, unitBuffer);
-        // glBufferData(GL_ARRAY_BUFFER, amount * 1 * sizeof(glm::mat4), uMat.data(), GL_STATIC_DRAW);
         glBufferData(GL_ARRAY_BUFFER, maxUMatSize, NULL, GL_DYNAMIC_DRAW);
-        // glBufferData(GL_ARRAY_BUFFER, maxUMatSize, NULL, GL_DYNAMIC_DRAW);
 
         glEnableVertexAttribArray(3);
         glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)0);
@@ -554,7 +483,6 @@ void Game::Play()
 
     bool drawBorders = true;
     float tesLevel = 32.0f;
-    // float dt = 0.0f;
     float waterTime = 0.0f;
     float ctrNamesFade = 0.0f, ctrNamesFadeIn = 0.0f;
     float time = glfwGetTime();
@@ -566,8 +494,6 @@ void Game::Play()
         updateGui();
         sendPackets();
         updateBattles();
-        // Gui::Base::UpdateVals();
-        //
 
         glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
         glDepthFunc(GL_LESS);
@@ -581,7 +507,6 @@ void Game::Play()
                 Shader{"src/graphics/shaders/pick_model/vert.v", "src/graphics/shaders/pick_model/frag.f", "", ""};
         }
 
-        // camera.Update(window.xMouse, windowSize.y - window.yMouse, pix);
         glm::mat4 matrix = camera.GetMat();
 
         map2->ActivateTextures();
@@ -598,7 +523,6 @@ void Game::Play()
 
             unitModel = unitModel * rotate;
             unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
-            // unitModel = glm::scale(unitModel, glm::vec3{80.0, 50.0f, 80.0});
             uMat.push_back(unitModel);
             pids.push_back(unit.GetProvId());
         }
@@ -679,7 +603,7 @@ void Game::Play()
                         nexpix[i * 4 + 3] = col->a;
                     }
                     Texture newtex = Texture(nexpix, provinces.size(), 1);
-                    // delete [] pix;
+                    delete [] nexpix;
                     map2->texID[(int)(map2->MAPID_PEACE_OFFER + 0.5f)] = newtex.GetId();
                     map2->ActivateTextures();
                     map2->DrawLand(matrix, camera.eye, markedProvId, provinces.size(), map2->MAPID_PEACE_OFFER,
@@ -691,8 +615,6 @@ void Game::Play()
         if (drawBorders) {
             map2->DrawBorders(matrix);
         }
-        // Gui::Base::Hover(glm::vec2{window.xMouse * resolution.x / windowSize.x,
-        //                           (windowSize.y - window.yMouse) * (resolution.y / windowSize.y)});
 
         std::vector<std::size_t> uinds;
         float zPoint = 1500.0f;
@@ -721,7 +643,8 @@ void Game::Play()
                                                          .tc = Vec2{pos.x / mapWidth, pos.y / mapHeight}});
                         }
                     }
-                    GLuint err = 0;  // glGetError();
+                    GLuint err = 0;
+                    // glGetError();
                     // if (err)
                     //     Log("Opengl error: " << err);
                     GLuint arrvao, arrvbo;
@@ -823,8 +746,6 @@ void Game::Play()
                 }
                 glUniformMatrix4fv(glGetUniformLocation(labelShader.GetProgram(), "matrix"), 1, GL_FALSE,
                                    glm::value_ptr(matrix));
-                // glUniformMatrix4fv(glGetUniformLocation(labelShader->GetProgram(), "ml"), 1, GL_FALSE,
-                //                    glm::value_ptr(unitModel));
                 glUniform1iv(glGetUniformLocation(labelShader.GetProgram(), "tex"), 32, tex);
                 GLuint labelVao, labelVbo;
                 glCreateVertexArrays(1, &labelVao);
@@ -838,10 +759,6 @@ void Game::Play()
                 glEnableVertexArrayAttrib(labelVao, 1);
                 glEnableVertexArrayAttrib(labelVao, 2);
                 glEnableVertexArrayAttrib(labelVao, 3);
-                // glEnableVertexArrayAttrib(labelVao, 4);
-                // glEnableVertexArrayAttrib(labelVao, 5);
-                // glEnableVertexArrayAttrib(labelVao, 6);
-                // glEnableVertexArrayAttrib(labelVao, 7);
                 GLuint err = glGetError();
                 if (err)
                     Log("Opengl error: " << err);
@@ -852,14 +769,6 @@ void Game::Play()
                                       (const GLvoid *)(offsetof(Vertex, Vertex::color)));
                 glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                                       (const GLvoid *)(offsetof(Vertex, Vertex::textureId)));
-                // glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                //                       (const GLvoid *)(offsetof(Vertex, Vertex::ml)));
-                // glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                //                       (const GLvoid *)(offsetof(Vertex, Vertex::ml) + 4 * 4));
-                // glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                //                       (const GLvoid *)(offsetof(Vertex, Vertex::ml) + 8 * 4));
-                // glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                //                       (const GLvoid *)(offsetof(Vertex, Vertex::ml) + 12 * 4));
 
                 glBindVertexArray(labelVao);
                 glDrawArrays(GL_TRIANGLES, 0, labelVerts.size());
@@ -871,14 +780,12 @@ void Game::Play()
                 glBindTexture(GL_TEXTURE_2D, otherTexID[i]);
             }
             for (auto i : uinds) {
-                //for (std::size_t i = 0; i < units.size(); ++i) {
                 if (abs(units[i].GetFakePos().x - camera.eye.x) > 400)
                     continue;
                 if (abs(units[i].GetFakePos().y - camera.eye.y) > 200)
                     continue;
                 glm::mat4 unitModel = glm::mat4(1.0);
                 unitModel = glm::translate(unitModel, units[i].GetFakePos());
-                // unitModel = glm::translate(unitModel, unitPos);
 
                 unitModel = unitModel * rotate;
                 unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
@@ -890,7 +797,6 @@ void Game::Play()
                                    glm::value_ptr(unitModel));
                 glUniform1iv(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"), 32, tex);
                 model3d.Draw();
-                //uinds.push_back(i);
             }
         }
         uMat.clear();
@@ -936,15 +842,6 @@ void Game::Play()
         GLuint ts[] = {0};
         glBindTextures(ts[0], 1, ts);
         glActiveTexture(GL_TEXTURE0);
-        /*
-                if (uinds.size()) {
-                    guiLast.start(camera.GetMat());
-                    for (auto i : uinds) {
-                        guiLast.game_drawUnitBar(units[i]);
-                    }
-                    guiLast.flush();
-                }
-        */
         guiLast.start();
 
         guiDraw();
@@ -961,7 +858,6 @@ void Game::Play()
         ctrNamesFadeIn -= dt;
         if (ctrNamesFadeIn > 0.0f)
             ctrNamesFadeIn = -10.0f;
-        // Log(dt);
         time = glfwGetTime();
     }
 }
@@ -1118,15 +1014,6 @@ void Game::guiDraw()
                 int ind = ctype.val;
                 assert(ind >= 0 && ind < sideBarData.elements.size());
                 if (sideBarData.elements[ind].type == SideBarData::IType::PEACE_OFFER) {
-                    // sideBarData.elements.erase(sideBarData.elements.begin() + ind);
-                    // int peaceind;
-                    // for (std::size_t i = 0; i < peaceOffers.size(); ++i) {
-                    //     if (peaceOffers[i].peaceId == ctype.val) {
-                    //         peaceind = i;
-                    //         break;
-                    //     }
-                    // }
-                    // assert(peaceind >= 0 && peaceind < peaceOffers.size());
                     resetGuiWindows();
                     openPeaceOfferId = sideBarData.elements[ind].val;  // ctype.val;
                 }
@@ -1136,13 +1023,6 @@ void Game::guiDraw()
                 }
                 else {
                     sideBarData.elements.erase(sideBarData.elements.begin() + ind);
-                    // for (std::size_t i = 0; i < wars.size(); ++i) {
-                    //     if (wars[i].id == sideBarData.elements[ind].val) {
-                    //         resetGuiWindows();
-                    //         openWarInd = i;
-                    //         break;
-                    //     }
-                    // }
                 }
                 break;
             }
@@ -1153,15 +1033,8 @@ void Game::guiDraw()
             case ClickEventType::OPEN_WAR_WINDOW: {
                 resetGuiWindows();
                 openWarId = ctype.val;
-                // for (std::size_t i = 0; i < wars.size(); ++i)
-                //     if (wars[i].id == ctype.val) {
-                //         openWarInd = i;
-                //         break;
-                //     }
-                // break;
             }
             case ClickEventType::OPEN_OFFER_PEACE: {
-                // openPeaceOfferId = ctype.val;
                 Log(openPeaceOfferId);
                 if (openPeaceOfferId == -1) {
                     int warind; 
@@ -1312,49 +1185,19 @@ void Game::processPacket(sf::Packet packet)
     packet >> type;
     // Log(type);
     if (type == "daily") {
-        ProcessPacket::DailyUpdate(packet, wars, provinces, countries, map, topBarData, map2.get());
-    }
-    else if (type == "NewUnit") {
-        // ProcessPacket::NewUnit(packet, units, countries, myCountry->GetName());
+        ProcessPacket::DailyUpdate(packet, wars, provinces, countries, topBarData, map2.get());
     }
     else if (type == "hourly") {
         ProcessPacket::HourlyUpdate(packet, units, battles, scale, heightMap->GetPixels(), mapWidth);
     }
-    else if (type == "NewBattle") {
-        // ProcessPacket::NewBattle(packet, units, battles, provinces);
-    }
-    else if (type == "EndBattle") {
-        // rocessPacket::EndBattle(packet, battles);
-    }
-    else if (type == "DeleteUnit") {
-        // ProcessPacket::DeleteUnit(packet, units);
-    }
-    else if (type == "NewUnitInBattle") {
-        // ProcessPacket::NewUnitInBattle(packet, units, battles);
-    }
     else if (type == "PeaceAccepted") {
-        int warId = ProcessPacket::PeaceAccepted(packet, provinces, countries, wars, map, sideBarData, provsData);
+        int warId = ProcessPacket::PeaceAccepted(packet, provinces, countries, wars, sideBarData, provsData);
         editCountryMap2(&map2->mapTextures.country);
-        // map.Unbright();
-        // setCountryMap();
         const unsigned char *h = heightMap->GetPixels();
         makeCountryNames(h);
         if (openedProvId >= 0) {
             assert(openedProvId < (int)provinces.size());
-            // map.BrightenProv(provinces[openedProvId]->GetColor());
         }
-        // Gui::SideBar::DeleteWarIcon(warId);
-        if (warId == Gui::OfferPeace::IsOpened()) {
-            //    Gui::OfferPeace::Close();
-        }
-        else if (warId >= 0) {  // means that some peace offer window is opened, but not related to this peace
-                                // for (auto pair : offerPeaceData.provs) {
-                                //     map.BrightenProv(provinces[pair.provId]->GetColor());
-                                // }
-        }
-    }
-    else if (type == "MergeUnits") {
-        // ProcessPacket::MergeUnits(packet, units);
     }
     else if (type == "ProvincePopulation") {
         ProcessPacket::ProvincePopulation(packet, provinces);
@@ -1403,9 +1246,6 @@ void Game::input()
         camera.MoveVer(-1, dt);
     if (window.keys['R']) {
         window.keys['R'] = false;
-        // gui.Reload();
-        // gui.AddWin("src/gui/top_bar.txt");
-        // gui.AddWin("src/gui/notifications.txt");
     }
     if (window.keys['P']) {
         window.keys['P'] = false;
@@ -1420,16 +1260,10 @@ void Game::input()
     if (window.keys['G'])
         camera.Reset();
 
-    // map.getheightterrain() do poprawy
-    camera.Update(window.xMouse, windowSize.y - window.yMouse, map.GetHeightTerrain());
+    //camera.Update(window.xMouse, windowSize.y - window.yMouse, map.GetHeightTerrain());
+    camera.Update(window.xMouse, windowSize.y - window.yMouse, heightMap->GetPixels());
 
     if (window.scrollOffset && ctype.ct == ClickEventType::MISS) {
-        // if (!Gui::Base::Scroll(window.scrollOffset, glm::vec2{window.xMouse * resolution.x /
-        // window.GetSize().x,
-        //                                                     (window.GetSize().y - window.yMouse) *
-        //                                                     resolution.y
-        //                                                     /
-        //                                                         window.GetSize().y}))
         camera.Scroll(window.scrollOffset);
     }
 
@@ -1454,7 +1288,6 @@ void Game::input()
 
                         if (!foundBattle) {
                             openProvId = pid;
-                            //&& provinces[pid]->GetSieged() == 0) {
                         }
                     }
                     else {  // offer peace view mode
@@ -1521,15 +1354,6 @@ int Game::provClick(glm::vec2 mouseInWorld)
     if (colorToId.find(clickedProviPhash) != colorToId.end()) {
         int pid = colorToId[clickedProviPhash];
         markedProvId = (float)pid;
-        // Log(provinces[pid].id << ", water: " << provinces[pid].water << ", " << provinces[pid].name
-        //                      << ", col: " << provinces[pid].r << ", " << provinces[pid].g << ", "
-        //                      << provinces[pid].b);
-        // std::cout << "Neighb: ";
-        // for (auto i : provinces[pid].neighb) std::cout << i << " ";
-        // std::cout << "\n";
-        // std::cout << "NeighbSea: ";
-        // for (auto i : provinces[pid].neighbSea) std::cout << i << " ";
-        // std::cout << "\n";
         unitPos.x = provinces[pid]->GetUnitPos().x * scale;
         unitPos.y = provinces[pid]->GetUnitPos().y * scale;
         unitPos.z = heightMap->GetPixels()[(int)(provinces[pid]->GetUnitPos().x * 3 +
@@ -1538,19 +1362,7 @@ int Game::provClick(glm::vec2 mouseInWorld)
         openedProvId = markedProvId;
 
         return pid;
-        // auto battleIt = std::find_if(battles.begin(), battles.end(),
-        //                              [pId = openedProvId](const Battle &b) { return (b.GetProvId()
-        //                              == pId); });
-
-        // if (battleIt != battles.end()) {
-        //     // GuiAid::OpenBattle(gui, battleIt, provIt);
-        //     return true;
-        // }
     }
-    /// Log("prov click");
-    /// std::cout << "R: " << (int)pixel[0] << "< ";
-    /// std::cout << "G: " << (int)pixel[1] << "< ";
-    /// std::cout << "B: " << (int)pixel[2] << "< \n";
     return -1;
 }
 
@@ -1587,16 +1399,7 @@ bool Game::unitClick(glm::vec2 mouseInWorld)
 
     if (colorToId.find(clickedUnitPhash) != colorToId.end()) {
         Log("Unit click");
-        // std::cout << "R: " << (int)pixel[0] << "< ";
-        // std::cout << "G: " << (int)pixel[1] << "< ";
-        // std::cout << "B: " << (int)pixel[2] << "< \n";
-        //
-        //        std::vector<std::shared_ptr<Unit>> clickedUnits;
         auto provId = colorToId[clickedUnitPhash];
-        // for (auto &unit : units) {
-        //    if (unit->GetProvId() == provId)
-        //        clickedUnits.push_back(unit);
-        //}
         clickedUnits.clear();
         for (auto &u : units) {
             if (u.GetProvId() == provId)
@@ -1605,19 +1408,9 @@ bool Game::unitClick(glm::vec2 mouseInWorld)
         if (clickedUnits.size() == 1) {
             resetGuiWindows();
             openUnitId = clickedUnits[0];
-            // openProvId = -1;
-            // openCountryId = -1;
-            // openMyCountry = false;
-            // openUnitsList = false;
-            //  clickedUnits[0]->subject.AddObserver(Gui::Unit::Open(resolution));
-            //  clickedUnits[0]->UpdateGuiWin();
         }
         else if (clickedUnits.size() > 1) {
             resetGuiWindows();
-            // openUnitId = clickedUnits[0];
-            // openProvId = -1;
-            // openCountryId = -1;
-            // openMyCountry = false;
             openUnitsList = true;
         }
         openUnitsListProvId = provId;
@@ -1626,147 +1419,30 @@ bool Game::unitClick(glm::vec2 mouseInWorld)
     else {
         return false;
     }
-    /*
-    // std::vector<std::unordered_map<std::string,std::string>> data;
-    // Subject * unitForObserver = nullptr;
-    for (auto &u : units) {
-        // if (u->GetCountry() == "Poland")
-        // if (u->Click(mouseInWorld.x, mouseInWorld.y)) {
-        if (u->Click(camera.GetMouseRay(), camera.GetEye())) {
-            clickedUnits.push_back(u);
-            // auto d = u->GetValues();
-            // data.push_back(d);
-            // unitForObserver = u.get();
-        }
-    }
-    if (clickedUnits.size() == 1) {
-        Log("uClick2");
-        // gui.AddWin("src/gui/unit.txt");
-        // gui.ObservationOfLastWin(unitForObserver);
-        // gui.Update(data[0], "unit");
-        clickedUnits[0]->subject.AddObserver(Gui::Unit::Open(resolution));
-        clickedUnits[0]->UpdateGuiWin();
-        return true;
-    }
-    else if (clickedUnits.size() > 1) {
-        //gui.AddWin("src/gui/units.txt");
-        //for (auto & d : data) {
-        //    DataObj * dobj = new DataObj{"label"};
-        //    dobj->objects.push_back(new DataObj{"text"});
-        //    dobj->objects.back()->values["valueName:"] = "unitName";
-        //    dobj->objects.back()->values["content:"] = "";
-        //    for (auto & val : d) {
-        //        if (val.first == "id") {
-        //            //dobj->values["unitId"] = val.second;// + " ";
-        //            dobj->objects.back()->values["unitId"] = val.second;// + " ";
-        //            dobj->objects.back()->values["content:"] += val.second + " ";
-        //        }
-        //        else if (val.first == "name")
-        //            dobj->objects.back()->values["content:"] += val.second + " ";
-        //    }
-        //    dobj->objects.back()->values["clickEvent:"] = "openUnit";
-
-        //    dobj->objects.push_back(new DataObj{"icon"});
-        //    dobj->objects.back()->values["clickEvent:"] = "eraseObj";
-        //    dobj->objects.back()->values["size:"] = "30 30";
-        //    dobj->objects.back()->values["texturePath:"] = "src/img/plus.png";
-
-        //    gui.AddToList(dobj, "units", "units");
-        //    delete dobj;
-        //}
-        return true;
-    }
-    */
     return false;
 }
 
 void Game::unitMove(std::unordered_map<std::string, std::string> &values, glm::vec2 mouseInWorld)
 {
-    // Color provinceColor = map.ClickOnProvince(mouseInWorld.x /4, mouseInWorld.y /4);
-    Color provinceColor = map.ClickOnProvince(mouseInWorld.x, mouseInWorld.y);
-    // auto it = std::find(provinces.begin(), provinces.end(), provinceColor);
-    auto it = std::find_if(provinces.begin(), provinces.end(), [provinceColor](std::unique_ptr<Province> &p) {
-        return p->GetColor() == provinceColor;
-    });
-    if (it != provinces.end()) {
-        auto idIt = values.find("id");
-        if (idIt == values.end())
-            return;
-        sf::Packet packet;
-        packet << "UnitMove";
-        packet << std::stoi(idIt->second);
-        /*
-               for (auto & val : values)
-                   if (val.first == "id") {
-                       packet << std::stoi(val.second);
-                       break;
-                   }
-       */
-        packet << (*it)->GetId();
+    //Color provinceColor = map.ClickOnProvince(mouseInWorld.x, mouseInWorld.y);
+    //auto it = std::find_if(provinces.begin(), provinces.end(), [provinceColor](std::unique_ptr<Province> &p) {
+    //    return p->GetColor() == provinceColor;
+    //});
+    //if (it != provinces.end()) {
+    //    auto idIt = values.find("id");
+    //    if (idIt == values.end())
+    //        return;
+    //    sf::Packet packet;
+    //    packet << "UnitMove";
+    //    packet << std::stoi(idIt->second);
+    //    packet << (*it)->GetId();
 
-        toSend.push_back(packet);
-    }
+    //    toSend.push_back(packet);
+    //}
 }
 
 void Game::processGuiEvent()
 {
-    std::vector<sf::Packet> packets;
-    // std::string evType = click.GetEventName();
-    /*
-    if (evType == "openCountry") {
-        GuiAid::OpenCountry(gui, countries, myCountry, wars, click);
-    }
-    else if (evType == "newUnit") {
-        GuiAid::NewUnit(click, provinces, packets);
-    }
-    else if (evType == "decreaseValue") {
-        GuiAid::DecreaseValue(gui, click);
-    }
-    else if (evType == "increaseValue") {
-        GuiAid::IncreaseValue(gui, click);
-    }
-    else if (evType == "openUnit") {
-        GuiAid::OpenUnit(gui, click, units);
-    }
-    else if (evType == "eraseObj") {
-        GuiAid::EraseObj(gui, click);
-    }
-    else if (evType == "mergeUnits") {
-        GuiAid::MergeUnits(gui, click, packets);
-    }
-    else if (evType == "declareWar") {
-        GuiAid::DeclareWar(click, countries, packets);
-    }
-    else if (evType == "offerPeace") {
-        GuiAid::OfferPeace(gui, wars, click, myCountry->GetName());
-    }
-    else if (evType == "sendPeaceOffer") {
-        GuiAid::SendPeaceOffer(gui, wars, countries, provinces, click, packets);
-    }
-    else if (evType == "dateSpeed") {
-        GuiAid::DateSpeed(click, packets);
-    }
-    else if (evType == "startImprRel") {
-        GuiAid::StartImprRel(click, myCountry, countries, packets);
-    }
-    else if (evType == "stopImprRel") {
-        GuiAid::StopImprRel(click, myCountry, countries, packets);
-    }
-    else if (evType == "openWar") {
-        GuiAid::OpenWar(gui, click, wars);
-    }
-    else if (evType == "botPeaceOffer") {
-        GuiAid::BotPeaceOffer(click, gui, peaceOffers, countries, provinces);
-    }
-    else if (evType == "acceptPeace") {
-        GuiAid::AcceptPeace(click, gui, peaceOffers, packets);
-    }
-    else if (evType == "declinePeace") {
-        GuiAid::DeclinePeace(click, gui, peaceOffers, packets);
-    }
-*/
-    if (packets.size())
-        toSend.insert(toSend.end(), packets.begin(), packets.end());
 }
 
 void Game::sendPackets()
@@ -1779,247 +1455,9 @@ void Game::sendPackets()
 
 void Game::updateBattles()
 {
-    // for (auto &b : battles) {
-    //     b->Update();
-    // }
 }
 
 void Game::updateGui()
 {
-    /*
-    SiegedProvWinD sprwD;
-    try {
-        sprwD = std::any_cast<SiegedProvWinD>(gui.GetWinData(WinType::sieged_prov_win));
-        int id = sprwD.id;
-        auto provIt = std::find_if(provinces.begin(), provinces.end(), [id](const Province & prov){
-                return prov.GetId() == id;
-            });
-        if (provIt != provinces.end()) {
-            GA_UpdateSiegedProv(gui, provIt);
-        }
-    }
-    catch(std::exception e) {
-    }
-    */
 }
 
-//      ClickEventType cType =
-//          Gui::Base::Click(glm::vec2{window.xMouse * resolution.x / window.GetSize().x,
-//                                     (window.GetSize().y - window.yMouse) * resolution.y /
-//                                     window.GetSize().y});
-/*
-        Log("uClick " << (int)cType);
-        if (cType == ClickEventType::MISS) {
-            Log("uClick");
-            if (Gui::OfferPeace::IsOpened() >= 0) {
-                Color provinceColor = map.ClickOnProvince(mouseInWorld.x, mouseInWorld.y);
-                auto provIt = std::find_if(
-                    provinces.begin(), provinces.end(),
-                    [provinceColor](std::unique_ptr<Province> &p) { return p->GetColor() ==
-   provinceColor;
-   }); if (provIt != provinces.end()) { int provId = (*provIt)->GetId(); auto it =
-   std::find_if(offerPeaceData.provs.begin(), offerPeaceData.provs.end(), [provId](const
-   OfferPeaceData::pair p) { return p.provId == provId; }); if (it != offerPeaceData.provs.end()) {
-                        Gui::OfferPeace::DeleteProvince(provId);
-                        map.Unbright();
-                        offerPeaceData.provs.erase(it);
-                        for (auto p : offerPeaceData.provs) {
-                            map.BrightenProv(provinces[p.provId]->GetColor());
-                        }
-                    }
-                    else {
-                        int receiverId = (*provIt)->GetSiegeCountryId();
-                        if (receiverId == -1) {
-                            receiverId = myCountry->GetId();
-                        }
-                        std::string receiver = countries[receiverId]->GetName();
-                        Gui::OfferPeace::AddProvince((*provIt)->GetName(), receiver, provId,
-   receiverId); map.BrightenProv((*provIt)->GetColor()); offerPeaceData.provs.push_back({provId,
-   receiverId});
-                    }
-                }
-            }
-            else if (!unitClick(mouseInWorld)) {
-                provClick(mouseInWorld);
-            }
-        }
-        else if (cType == ClickEventType::PROV_SWITCH_TAB) {
-            Log("switch tab");
-            Gui::Prov::SwitchTab();
-            Gui::Base::ResetClick();
-        }
-        else if (cType == ClickEventType::OPEN_COUNTRY) {
-            int ctrId = Gui::Base::GetHiddenValue();
-            assert(ctrId >= 0 && ctrId < (int)countries.size());
-            if (ctrId != myCountry->GetId()) {
-                bool atWarWith = false;
-                for (auto &war : wars) {
-                    if (war.ShouldTheyFight(countries[ctrId]->GetId(), myCountry->GetId())) {
-                        atWarWith = true;
-                        break;
-                    }
-                }
-                countries[ctrId]->subject.AddObserver(Gui::Country::Open(resolution, ctrId,
-   atWarWith)); countries[ctrId]->UpdateGuiWin();
-            }
-            else {
-                myCountry->subjectOfMyCountry.AddObserver(Gui::MyCountry::Open(resolution));
-                myCountry->UpdateMyCountryGuiWin();
-            }
-            Gui::Base::ResetClick();
-        }
-        else if (cType == ClickEventType::DECLARE_WAR) {
-            sf::Packet packet;
-            packet << "DeclareWar";
-            packet << Gui::Country::GetId();
-            toSend.push_back(packet);
-        }
-        else if (cType == ClickEventType::OPEN_OFFER_PEACE) {
-            offerPeaceData.provs.clear();
-            map.Unbright();
-            int rivalId = Gui::Country::GetId();
-            bool rivalIsDefender = false;
-            int warscore = 0;
-            int myId = myCountry->GetId();
-            if (rivalId != -1) {
-                bool ok = false;
-                for (auto &w : wars) {
-                    if (!w.ShouldTheyFight(myId, rivalId))
-                        continue;
-                    int wAtt = w.GetAttacker();
-                    int wDef = w.GetDefender();
-                    if (myId == wAtt || myId == wDef) {
-                        offerPeaceData.warId = w.GetId();
-                        warscore = w.GetAttackerWarScore();
-                        rivalIsDefender = rivalId == wDef;
-                        ok = true;
-                        break;
-                    }
-                    if (rivalId == wAtt || rivalId == wDef) {
-                        offerPeaceData.warId = w.GetId();
-                        rivalIsDefender = rivalId == wDef;
-                        warscore = w.GetAttackerWarScore();
-                        ok = true;
-                        break;
-                    }
-                }
-                offerPeaceData.recipantId = rivalId;
-                if (ok) {
-                    assert(rivalId >= 0 && rivalId < (int)countries.size());
-                    if (rivalIsDefender)
-                        Gui::OfferPeace::Open(resolution, countries[rivalId]->GetName(),
-   myCountry->GetName(), offerPeaceData.warId, warscore, myId, rivalId); else
-                        Gui::OfferPeace::Open(resolution, myCountry->GetName(),
-   countries[rivalId]->GetName(), offerPeaceData.warId, warscore, rivalId, myId);
-                }
-            }
-            else if (Gui::War::IsOpen()) {
-                int warId = Gui::War::GetId();
-                int warscore = 0, rivalId = -1;
-                int myId = myCountry->GetId();
-                bool rivalIsDefender = false;
-                for (auto &w : wars) {
-                    if (w.GetId() != warId)
-                        continue;
-                    int wAtt = w.GetAttacker();
-                    int wDef = w.GetDefender();
-                    if (wDef == myId) {
-                        rivalId = wAtt;
-                        warscore = w.GetAttackerWarScore();
-                        break;
-                    }
-                    if (wAtt == myId) {
-                        rivalId = wDef;
-                        rivalIsDefender = true;
-                        warscore = w.GetAttackerWarScore();
-                        break;
-                    }
-                }
-                if (rivalId != -1) {
-                    if (rivalIsDefender)
-                        Gui::OfferPeace::Open(resolution, countries[rivalId]->GetName(),
-   myCountry->GetName(), offerPeaceData.warId, warscore, myId, rivalId); else
-                        Gui::OfferPeace::Open(resolution, myCountry->GetName(),
-   countries[rivalId]->GetName(), offerPeaceData.warId, warscore, rivalId, myId);
-                }
-            }
-        }
-        else if (cType == ClickEventType::OPEN_WAR_WINDOW) {
-            int warId = Gui::Base::GetHiddenValue();
-            auto warIt =
-                std::find_if(wars.begin(), wars.end(), [warId](const War &war) { return warId ==
-   war.GetId(); }); assert(warIt != wars.end()); warIt->subject.AddObserver(Gui::War::Open(resolution,
-   warIt->GetId())); auto attackers = warIt->GetAttackers(); for (auto &a : attackers)
-   Gui::War::AddAttacker(a); auto defenders = warIt->GetDefenders(); for (auto &d : defenders)
-   Gui::War::AddDefender(d);
-        }
-        else if (cType == ClickEventType::SEND_PEACE_OFFER) {
-            Log("send peace offer");
-            Log("war id=" << offerPeaceData.warId);
-            for (auto pair : offerPeaceData.provs) {
-                if (pair.provId >= 0 && pair.provId < (int)provinces.size())
-                    Log(provinces[pair.provId]->GetName());
-            }
-            sf::Packet packet;
-            packet << "PeaceOffer";
-            packet << offerPeaceData.warId;
-            packet << offerPeaceData.recipantId;
-            packet << (int)offerPeaceData.provs.size();
-            for (auto pair : offerPeaceData.provs) {
-                packet << pair.provId;
-                packet << pair.recipantId;
-            }
-            toSend.push_back(packet);
-        }
-        else if (cType == ClickEventType::CLOSE_WINDOW) {
-            Gui::Base::CloseWindowFromClick();
-        }
-        else if (cType == ClickEventType::DELETE_PROV_FROM_PEACE) {
-            int provId = Gui::Base::GetHiddenValue();
-            Log("delete prov from peace " << provId);
-            if (provId >= 0 && provId < (int)provinces.size()) {
-                Log(provinces[provId]->GetName());
-                for (auto it = offerPeaceData.provs.begin(); it != offerPeaceData.provs.end(); ++it) {
-                    if (provId == it->provId) {
-                        Gui::OfferPeace::DeleteProvince(provId);
-                        map.Unbright();
-                        offerPeaceData.provs.erase(it);
-                        for (auto pair : offerPeaceData.provs) {
-                            map.BrightenProv(provinces[pair.provId]->GetColor());
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-        else if (cType == ClickEventType::OPEN_PEACE_OFFERT) {
-            int peaceId = Gui::Base::GetHiddenValue();
-            for (auto it = peaceOffers.begin(); it != peaceOffers.end(); ++it) {
-                if (it->peaceId == peaceId) {
-                    it->recipant =
-                        myCountry
-                            ->GetId();  // it->recipant nie jest nigdzie indziej ustawiane xd; ale jest
-   oczywiste assert(it->recipant >= 0 && it->recipant < (int)countries.size()); assert(it->offeredBy >=
-   0
-   && it->offeredBy < (int)countries.size()); Gui::PeaceOffert::Open(resolution, it->peaceId,
-   countries[it->recipant]->GetName(), countries[it->offeredBy]->GetName(), it->offeredBy,
-   it->recipant); for (auto &prov : it->lostProv) { int provId = std::get<0>(prov); int ctrId =
-   std::get<1>(prov); assert(provId >= 0 && provId < (int)provinces.size()); assert(ctrId >= 0 && ctrId
-   < (int)countries.size()); Gui::PeaceOffert::AddProv(provinces[provId]->GetName(),
-   countries[ctrId]->GetName());
-                    }
-                    for (auto &prov : it->gainProv) {
-                        int provId = std::get<0>(prov);
-                        int ctrId = std::get<1>(prov);
-                        assert(provId >= 0 && provId < (int)provinces.size());
-                        assert(ctrId >= 0 && ctrId < (int)countries.size());
-                        Gui::PeaceOffert::AddProv(provinces[provId]->GetName(),
-   countries[ctrId]->GetName());
-                    }
-                    break;
-                }
-            }
-        }
-Gui::Base::ResetClick();
-*/
-//}

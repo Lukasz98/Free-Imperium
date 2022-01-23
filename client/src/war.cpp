@@ -101,13 +101,4 @@ bool War::IsDefender(int ctrId) const
     return false;
 }
 
-void War::UpdateWinValues()
-{
-    std::vector<GuiStruct> vals;
-    vals.push_back({1, 2, attackers[0]});
-    vals.push_back({2, 2, defenders[0]});
-    vals.push_back({3, 2, itos(attackerWarScore)});
-    
-    subject.Notify(vals);
-}
 

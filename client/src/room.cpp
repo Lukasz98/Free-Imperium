@@ -3,8 +3,6 @@
 Room::Room(Window& window, Settings& s, std::vector<std::shared_ptr<Country>>& countries)
     : Scene(window, s.resolution), settings(s), countries(countries)
 {
-    //Gui::Room::Open(resolution);
-    // gui.AddWin("src/gui/room.txt");
 }
 
 Room::~Room() {}
@@ -32,7 +30,6 @@ void Room::Play(bool localhost)
     bool play = false;
     loop(play, country);
 
-    Gui::Room::Close();
 
     if (play) {
         Game game(window, socket, country, settings.resolution, countries);
@@ -73,7 +70,6 @@ void Room::loop(bool& play, std::string& country)
             else if (messg == "Players") {
                 int playersCount = 0;
                 packet >> playersCount;
-                // Gui::Room::ClearPlayersList();
                 plarr.clear();
                 for (int i = 0; i < playersCount; i++) {
                     packet >> messg;
@@ -130,49 +126,11 @@ void Room::loop(bool& play, std::string& country)
         window.mouseRClicked = false;
         window.scrollOffset = 0;
 
-        /*
-        if (tmpctype.ct != ClickEventType::MISS)
-            ctype = tmpctype;
-            if (window.mouseLClicked && !window.mouseRClicked) {
-                ClickEventType cType = Gui::Base::Click(glm::vec2{window.xMouse * resolution.x /
-        window.GetSize().x, (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
-        if (cType == ClickEventType::PICK_COUNTRY) { auto ctrName = Gui::Room::GetPickedCountry(); sf::Packet packet; packet
-        << "country"; packet << ctrName; toSend.emplace_back(packet); Gui::Base::ResetClick();
-                }
-                else if (cType == ClickEventType::START_GAME) {
-                    sf::Packet packet;
-                    packet << "Start";
-                    toSend.emplace_back(packet);
-                    Gui::Base::ResetClick();
-                }
-            }
-
-            window.mouseLClicked = false;
-            window.mouseRClicked = false;
-            if (window.mouseL) {
-                Gui::Base::Drag(glm::vec2{window.xMouse * resolution.x / window.GetSize().x,
-                                    (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y}, dt);
-            }
-            if (window.mouseR) {
-            }
-            if (window.scrollOffset) {
-                Gui::Base::Scroll(window.scrollOffset, glm::vec2{window.xMouse * resolution.x / window.GetSize().x,
-                            (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
-                window.scrollOffset = 0;
-            }
-
-            Gui::Base::Hover(glm::vec2{window.xMouse * resolution.x / window.GetSize().x,
-                                 (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
-
-    */
-
         for (auto& pct : toSend) {
             socket.send(pct);
         }
 
         toSend.clear();
-        // Gui::Base::Draw();
-        // DrawGui();
         window.Update();
 
         if (play) {
@@ -183,16 +141,4 @@ void Room::loop(bool& play, std::string& country)
 
 void Room::processGuiEvent(std::vector<sf::Packet>& toSend, bool& play)
 {
-    std::vector<sf::Packet> packets;
-    // std::string evType = click.GetEventName();
-
-    // if (evType == "play") {
-    //    GuiAid::StartGame(packets);
-    //}
-    // else if (evType == "setCountry") {
-    //     GuiAid::SetCountry(click, packets);
-    //}
-
-    if (packets.size())
-        toSend.insert(toSend.end(), packets.begin(), packets.end());
 }

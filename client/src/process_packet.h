@@ -6,10 +6,8 @@
 
 #include "battle.h"
 #include "country.h"
-#include "gui/gui_structs.h"
-#include "gui_aid.h"
+#include "gui_structs.h"
 #include "log.h"
-#include "map.h"
 #include "peace_offer.h"
 #include "province.h"
 #include "unit.h"
@@ -19,31 +17,17 @@
 namespace ProcessPacket {
 
 void DailyUpdate(sf::Packet& packet, std::vector<War>& wars, std::vector<std::unique_ptr<Province>>& provinces,
-                 std::vector<std::shared_ptr<Country>>& countries, Map& map, TopBarData& topBarData, Map2* map2);
+                 std::vector<std::shared_ptr<Country>>& countries, TopBarData& topBarData, Map2* map2);
 
 void HourlyUpdate(sf::Packet& packet, std::vector<Unit>& units,
                   std::vector<Battle>& battles, float mapChunkScale, const unsigned char* height, int mapWidth);
 
 int PeaceAccepted(sf::Packet& packet, std::vector<std::unique_ptr<Province>>& provinces,
-                  std::vector<std::shared_ptr<Country>>& countries, std::vector<War>& wars, Map& map, SideBarData& sideBarData, std::vector<ProvData>& provsData);
+                  std::vector<std::shared_ptr<Country>>& countries, std::vector<War>& wars, SideBarData& sideBarData, std::vector<ProvData>& provsData);
 
 void NewWar(sf::Packet& packet, std::vector<War>& wars, int myCountryId,
             std::vector<std::shared_ptr<Country>>& countries, SideBarData& sideBarData);
 
-//void NewUnit(sf::Packet& packet, std::vector<std::shared_ptr<Unit>>& units,
-//             std::vector<std::shared_ptr<Country>>& countries, const std::string& countryName);
-/*
-void NewBattle(sf::Packet& packet, std::vector<Unit>& units,
-               std::vector<std::unique_ptr<Battle>>& battles, std::vector<std::unique_ptr<Province>>& provinces);
-
-void EndBattle(sf::Packet& packet, std::vector<std::unique_ptr<Battle>>& battles);
-*/
-//void DeleteUnit(sf::Packet& packet, std::vector<std::shared_ptr<Unit>>& units);
-
-//void NewUnitInBattle(sf::Packet& packet, std::vector<Unit>& units,
-//                     std::vector<std::unique_ptr<Battle>>& battles);
-
-//void MergeUnits(sf::Packet& packet, std::vector<std::shared_ptr<Unit>>& units);
 
 void ProvincePopulation(sf::Packet& packet, std::vector<std::unique_ptr<Province>>& provinces);
 

@@ -1,6 +1,6 @@
 #include "gui_core_last.h"
 
-#include "../gui/gui_structs.h"
+#include "../gui_structs.h"
 
 std::vector<List2> lists;
 
@@ -154,12 +154,7 @@ void GuiCore::drawText(const glm::vec3& pos, const glm::vec2& size, const glm::v
               int flags, AM::FontSize fontSize)
 {
     glm::vec3 textPos = pos;
-    // GLuint tid = AM::atlasTexture[AM::FontSize::PX32]->GetId();
-    // GLuint tid = (int)fontSize;
-    // AM::FontSize fontSize = AM::FontSize::PX16;
-    // GLuint tid = AM::atlasTexture[fontSize]->GetId();
     GLuint tid = (GLuint)fontSize;
-    // GLuint tid = AM::atlasTexture[AM::FontSize::PX16]->GetId();
     float spaceWidth = 10.0f;
     float padding = 5.0f;
     float off = 0.0f, betweenWidth = 1.0f;
@@ -185,7 +180,6 @@ void GuiCore::drawText(const glm::vec3& pos, const glm::vec2& size, const glm::v
     textPos.y = (textPos.y + size.y * 0.5f) - maxY * 0.5f;
 
     for (int i = 0; i < text.size(); ++i) {
-        // for (int i = 0; i < text.size() && i < max; ++i) {
         glm::vec3 rPos;
         glm::vec2 rSize, rLBTC, tcLen;
         if (AM::atlasInfo[fontSize][text[i]].set) {
@@ -197,9 +191,6 @@ void GuiCore::drawText(const glm::vec3& pos, const glm::vec2& size, const glm::v
             if (rPos.y > (((float)((int)rPos.y))))
                 rPos.y = ((int)(rPos.y + 0.5f));
             rSize = {AM::atlasInfo[fontSize][text[i]].width, AM::atlasInfo[fontSize][text[i]].height};
-            // rLBTC = {(float)AM::atlasInfo[fontSize][text[i]].tcX, (float)AM::atlasInfo[fontSize][text[i]].tcY};
-            // tcLen = {(float)AM::atlasInfo[fontSize][text[i]].tcWidth,
-            // (float)AM::atlasInfo[fontSize][text[i]].tcHeight};
             rLBTC = {AM::atlasInfo[fontSize][text[i]].tcX, AM::atlasInfo[fontSize][text[i]].tcY};
             tcLen = {AM::atlasInfo[fontSize][text[i]].tcWidth, AM::atlasInfo[fontSize][text[i]].tcHeight};
             off += rSize.x + betweenWidth;
@@ -227,7 +218,6 @@ void GuiCore::drawText(const glm::vec3& pos, const glm::vec2& size, const glm::v
             tcLen = {0, 0};
             off += rSize.x;
         }
-        //  Log(rPos.x << " " << rPos.y << " "<<rPos.z);
     }
 }
 

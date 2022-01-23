@@ -3,11 +3,13 @@
 #include "scene.h"
 #include "settings.h"
 #include "room.h"
+#include "gui_last.h"
 
 class Menu : public Scene
 {
     Settings settings;
     std::vector<std::shared_ptr<Country>> & countries;
+    GuiLast::Gui guiLast;
 
     bool startGame = false, quit = false;
     void loop();

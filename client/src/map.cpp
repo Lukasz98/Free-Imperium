@@ -1,4 +1,5 @@
-#include "map.h"
+#if 0
+ * #include "map.h"
 
 Map::Map()
     : Rectangle(glm::vec3(0.0, 0, -.5), glm::vec2(1920*4, 1080*4)),
@@ -452,3 +453,4 @@ void Map::Unbright()
 }
 
 
+#endif

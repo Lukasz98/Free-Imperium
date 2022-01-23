@@ -1,8 +1,10 @@
 #include "window.h"
 
 Window::Window(glm::vec2 size, std::string title)
-    : bgColor{ 0.5f, 0.5f, 0.5f, 1.0f }, title{title}
+   // : bgColor{ 0.5f, 0.5f, 0.5f, 1.0f }, title{title}
+    : bgColor{0.294, 0.227, 0.223, 1.0}, title{title}
 {
+
     //glewExperimental=GL_TRUE;
     int code = glfwInit();
     if (!code) {

@@ -1,5 +1,5 @@
 #include "observer.h"
-
+/*
 Subject::~Subject()
 {
     for (auto o : observers) {
@@ -56,3 +56,4 @@ void Observer::Notification(const std::vector<GuiStruct> & vals)
 }
 
 
+*/

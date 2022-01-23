@@ -6,7 +6,7 @@
 #include "color.h"
 #include "month_cash.h"
 #include "data_object.h"
-#include "observer.h"
+//#include "observer.h"
 #include "ctr_data.h"
 
 
@@ -33,10 +33,6 @@ public:
     Country(DataObj * obj);
     ~Country();
 
-    Subject subject, subjectOfMyCountry; // for gui windows
-
-    void UpdateGuiWin();
-    void UpdateMyCountryGuiWin();
 
     bool Apply(/*PeaceOffer offer*/);
     

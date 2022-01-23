@@ -2,27 +2,23 @@
 
 #include "asset_manager.h"
 #include "int_to_string.h"
-// using namespace GuiLast;
 static glm::vec4 brownCol{56.0f / 255.0f, 31.0f / 255.0f, 19.0f / 255.0f, 1.0f};
 static glm::vec4 greenCol{0.0f / 255.0f, 255.0f / 255.0f, 0.0f / 255.0f, 1.0f};
 static glm::vec4 darkBrown{0.294, 0.227, 0.223, 1.0};
 static glm::vec4 brown{0.388, 0.298, 0.290, 1.0};
 static glm::vec4 lightBrown{0.568, 0.435, 0.427, 1.0};
 static glm::vec4 weirdBrown{.333, .258, 0.258, 1.0};
+static glm::vec4 whiteCol{1.0, 1.0, 1.0, 1.0};
 
-// Camera camera;
 
-// Batch batch;
 void GuiLast::Gui::init(Window* win, glm::vec2 resolution, glm::vec2 windowSize)
 {
-    // camera = Camera{window.GetSize()};
     res = resolution;
     winSize = windowSize;
     window = win;
     shader = Shader("src/graphics/shaders/gui_batch/a.vert", "src/graphics/shaders/gui_batch/a.frag", "", "");
 
     core.guiBatchInit();
-    // batch.Init();
 }
 
 static void listDraw(GuiLast::Gui& gui, glm::vec3 listPos, glm::vec2 listSize, glm::vec2 offset,
@@ -56,6 +52,8 @@ static void listDraw(GuiLast::Gui& gui, glm::vec3 listPos, glm::vec2 listSize, g
         itemPos.y += sc;
         lasty += sc;
         {  // draw bar
+            glm::vec4 barCol = {200.0f/255.0f, 200.0f/255.0f, 200.0f/255.0f, 1.0f};
+            glm::vec4 barBgCol{86.0f/255.0f, 69.0f/255.0f, 55.0f/255.0f, 1.0f};
             float firsty = itemPos.y;
             float totalh = firsty - lasty;
             glm::vec2 rsize = glm::vec2{listSize.x * 0.05f, (listSize.y / totalh) * listSize.y};
@@ -72,15 +70,44 @@ static void listDraw(GuiLast::Gui& gui, glm::vec3 listPos, glm::vec2 listSize, g
                 rpos.y = listPos.y + offset.y + listSize.y - rsize.y - offset.y;
             glm::vec4 rcol{1.0f, 0.0f, 0.0f, 1.0f};
             gui.core.drawRect(glm::vec3{rpos.x, listPos.y, listPos.z + 0.5f}, glm::vec2{rsize.x, listSize.y},
-                              greenCol);
-            gui.core.drawRect(rpos, rsize, rcol);
+                              barBgCol);
+            gui.core.drawRect(rpos, rsize, barCol);
         }
     }
 }
 
+
 void GuiLast::Gui::reloadShader()
 {
     shader = Shader("src/graphics/shaders/gui_batch/a.vert", "src/graphics/shaders/gui_batch/a.frag", "", "");
+}
+
+GuiLast::GuiEv GuiLast::Gui::start_menu(int mx, int my)
+{
+    GuiLast::GuiEv ct{ClickEventType::MISS};
+    glm::vec2 offset{5.0f, 5.5f};
+    glm::vec2 itemSize{res.x * 0.5f, 80.0f};
+    glm::vec3 itemPos{50.0f, res.y * 0.7f, 0.0f};
+    
+    
+    core.drawRect(itemPos, itemSize, weirdBrown);
+    core.drawText(itemPos, itemSize, whiteCol, "Free Imperium", TEXT_LEFT, AM::FontSize::PX64);
+    itemSize.y = 40.0f;
+    itemSize.x = res.x * 0.3f;
+    itemPos.y -= itemSize.y + offset.y * 4.0f;
+
+    core.drawRect(itemPos, itemSize, weirdBrown);
+    core.drawText(itemPos, itemSize, whiteCol, "Play", TEXT_LEFT, AM::FontSize::PX32);
+    if (core.isInRect(itemPos, itemSize, mx, my))
+        ct = GuiLast::GuiEv{ClickEventType::START_ROOM};
+    itemPos.y -= itemSize.y + offset.y;
+    
+    core.drawRect(itemPos, itemSize, weirdBrown);
+    core.drawText(itemPos, itemSize, whiteCol, "Quit", TEXT_LEFT, AM::FontSize::PX32);
+    if (core.isInRect(itemPos, itemSize, mx, my))
+        ct = GuiLast::GuiEv{ClickEventType::QUIT_GAME};
+
+    return ct;
 }
 
 GuiLast::GuiEv GuiLast::Gui::game_topBar(const TopBarData& td, int mx, int my)
@@ -712,9 +739,9 @@ GuiLast::GuiEv GuiLast::Gui::room_startButton(int mx, int my)
     glm::vec2 wSize{150, 100.0f};
     glm::vec3 wPos{res.x - wSize.x - offset.x, 50.0f, 0.1f};
 
-    core.drawRect(wPos, wSize, darkBrown);
-    core.drawText(glm::vec3{wPos.x, wPos.y, wPos.z + 0.1f}, glm::vec2{wSize.x, wSize.y}, greenCol, "Start",
-                  TEXT_CENTER, AM::FontSize::PX16);
+    core.drawRect(wPos, wSize, weirdBrown);
+    core.drawText(glm::vec3{wPos.x, wPos.y, wPos.z + 0.1f}, glm::vec2{wSize.x, wSize.y}, whiteCol, "Start",
+                  TEXT_CENTER, AM::FontSize::PX32);
     if (core.isInRect(wPos, wSize, mx, my))
         ct = GuiLast::GuiEv{ClickEventType::ROOM_START_GAME};
 
@@ -732,13 +759,13 @@ GuiLast::GuiEv GuiLast::Gui::room_countryList(const std::vector<std::string>& ct
     glm::vec2 wSize{res.x * 0.3f, res.y * 0.7f};
     glm::vec3 wPos{offset.x * 2 + wSize.y, 50.0f, 0.1f};
 
-    core.drawRect(wPos, wSize, darkBrown);
+    core.drawRect(wPos, wSize, weirdBrown);
     core.drawText(glm::vec3{wPos.x, wPos.y + wSize.y * 0.9f, wPos.z + 0.2f}, glm::vec2{wSize.x, wSize.y * 0.1f},
-                  greenCol, "Countries", TEXT_CENTER, AM::FontSize::PX16);
+                  whiteCol, "Countries", TEXT_CENTER, AM::FontSize::PX32);
 
     glm::vec2 listSize{wSize.x, wSize.y * 0.9f};
     glm::vec3 listPos{wPos.x, wPos.y, wPos.z + 0.1f};
-    core.drawRect(listPos, listSize, brown);
+    core.drawRect(listPos, listSize, weirdBrown);
     glm::vec2 nameSize{listSize.x, 50.0f};
     glm::vec3 namePos{listPos.x + offset.x, listPos.y + listSize.y - offset.y - nameSize.y, listPos.z + 0.1f};
     {  // list
@@ -747,10 +774,11 @@ GuiLast::GuiEv GuiLast::Gui::room_countryList(const std::vector<std::string>& ct
             scr = 0;
         listDraw(*this, listPos, listSize, offset, namePos, nameSize, sc, scr, ctrarr.size());
         for (std::size_t i = 0; i < ctrarr.size(); ++i) {
-            core.drawText(namePos, nameSize, greenCol, ctrarr[i], TEXT_LEFT, AM::FontSize::PX16);
+            core.drawRect(namePos, nameSize, brown);
+            core.drawText(namePos, nameSize, whiteCol, ctrarr[i], TEXT_LEFT, AM::FontSize::PX16);
             if (core.isInRect(namePos, nameSize, mx, my))
                 ct = GuiLast::GuiEv{ClickEventType::ROOM_PICK_COUNTRY, i};
-            namePos.y -= nameSize.y - offset.y;
+            namePos.y = namePos.y - nameSize.y - offset.y;
         }
         flush();
         glScissor(0.0f, 0.0f, res.x, res.y);
@@ -770,13 +798,13 @@ GuiLast::GuiEv GuiLast::Gui::room_playerList(const std::vector<std::string>& pla
     glm::vec2 wSize{res.x * 0.3f, res.y * 0.7f};
     glm::vec3 wPos{offset.x, 50.0f, 0.1f};
 
-    core.drawRect(wPos, wSize, darkBrown);
+    core.drawRect(wPos, wSize, weirdBrown);
     core.drawText(glm::vec3{wPos.x, wPos.y + wSize.y * 0.9f, wPos.z + 0.2f}, glm::vec2{wSize.x, wSize.y * 0.1f},
-                  greenCol, "Players list", TEXT_CENTER, AM::FontSize::PX16);
+                  whiteCol, "Players list", TEXT_CENTER, AM::FontSize::PX32);
 
     glm::vec2 listSize{wSize.x, wSize.y * 0.9f};
     glm::vec3 listPos{wPos.x, wPos.y, wPos.z + 0.1f};
-    core.drawRect(listPos, listSize, brown);
+    core.drawRect(listPos, listSize, weirdBrown);
     glm::vec2 nameSize{listSize.x, 50.0f};
     glm::vec3 namePos{listPos.x + offset.x, listPos.y + listSize.y - offset.y - nameSize.y, 0.2f};
     {  // list
@@ -785,8 +813,9 @@ GuiLast::GuiEv GuiLast::Gui::room_playerList(const std::vector<std::string>& pla
             scr = 0;
         listDraw(*this, listPos, listSize, offset, namePos, nameSize, sc, scr, plarr.size());
         for (auto& pl : plarr) {
-            core.drawText(namePos, nameSize, greenCol, pl, TEXT_LEFT, AM::FontSize::PX16);
-            namePos.y -= nameSize.y - offset.y;
+            core.drawRect(namePos, nameSize, brown);
+            core.drawText(namePos, nameSize, whiteCol, pl, TEXT_LEFT, AM::FontSize::PX16);
+            namePos.y -= nameSize.y + offset.y;
         }
         flush();
         glScissor(0.0f, 0.0f, res.x, res.y);

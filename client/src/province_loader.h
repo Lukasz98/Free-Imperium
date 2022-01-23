@@ -19,6 +19,5 @@ class ProvinceLoader
 public:
     ProvinceLoader() = delete;
 
-    //static std::vector<std::unique_ptr<Province>> Load(const unsigned char * pixels, int width, int height);
     static std::vector<std::unique_ptr<Province>> Load(std::map<unsigned int, int>& colorToId);
 };

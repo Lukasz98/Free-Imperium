@@ -6,13 +6,11 @@
 
 #include <glm/vec2.hpp>
 
-//#include "gui/float_to_string.h"
 #include "data_object.h"
 #include "color.h"
-#include "observer.h"
 #include "log.h"
 #include "prov_data.h"
-class Province //: public Subject
+class Province
 {
     int id;
     Color color;
@@ -38,24 +36,16 @@ public:
     Province(const ProvData& pd);
     ~Province();
 
-    Subject subject, siegeSubject;
-    void UpdateGuiWin();
-    void UpdateSiegeGuiWin();
 
 
-    //void Update();
     void SetName(std::string n) { name = n; }
     void SetCountry(std::string c) { country = c; }
     void SetColor(Color c) { color = c; }
     void SetDevelopment(int d) { development = d; }
     void SetUnitPos(glm::vec2 p) { unitPosition = p; }
     
-    void SetPopulation(int p) { population = p; /*notify(GetValues());*/ }
-    void SetManpower(int m) { manpower = m; /*notify(GetValues());*/ }
-    //void SetAutonomy(int a) { autonomy = a; }
-    //void SetUnrest(int u) { unrest = u; }
-    //void SetProsperity(int p) { prosperity = p; }
-   // void SetAdministration(int a) { administration = a; }
+    void SetPopulation(int p) { population = p; }
+    void SetManpower(int m) { manpower = m; }
     void SetTreasury(float t) { treasury = t; }
     void SetMonthIncome(float i) { monthIncome = i; }
     void SetTotalMonthIncome(float i) { totalMonthIncome = i; }
@@ -71,10 +61,6 @@ public:
     int GetPopulation() const { return population; }
     int GetManpower() const { return manpower; }
     int GetDevelopment() const { return development; }
-    //float GetAutonomy() const { return autonomy; }
-    //float GetUnrest() const { return unrest; }
-    //float GetProsperity() const { return prosperity; }
-    //float GetAdministration() const { return administration; }
     float GetTreasury() const { return treasury; }
     float GetMonthIncome() const { return monthIncome; }
     float GetTotalMonthIncome() const { return totalMonthIncome; }

@@ -1,33 +1,18 @@
 #include "menu.h"
 
-Menu::Menu(Window & window, Settings & s, std::vector<std::shared_ptr<Country>> & countries)
+Menu::Menu(Window& window, Settings& s, std::vector<std::shared_ptr<Country>>& countries)
     : Scene(window, s.resolution), settings(s), countries(countries)
 {
-    Gui::Menu::Open(resolution);
-    //Gui::OfferPeace::Open(resolution, "Poland", "Russia", 0, -15, 0, 1);
-    //Gui::War::Open(resolution);
-    //gui::sidebar::open(resolution);
-    //gui::sidebar::add(resolution);
-    //gui::sidebar::add(resolution);
-    //Gui::Country::Open(resolution);    
-    //Gui::UnitsList::Open(resolution);
-    //Gui::Unit::Open(resolution);
-    //Gui::Prov::Open(resolution);    
-    //Gui::ProvSiege::Open(resolution);    
-    //Gui::TopBar::Open(std::vector<std::string>{},resolution);
-    //Gui::OpenUnitsList();
+    //    Gui::Menu::Open(resolution);
 }
 
-Menu::~Menu()
-{
-    
-}
+Menu::~Menu() {}
 
 void Menu::Play()
 {
     loop();
     if (startGame) {
-        Gui::Menu::Close();
+        //      Gui::Menu::Close();
         Room room(window, settings, countries);
         room.Play();
     }
@@ -37,56 +22,38 @@ void Menu::Play()
 
 void Menu::loop()
 {
-    while (!window.ShouldClose()) {
+    guiLast.init(&window, resolution, window.GetSize());
+    while (!window.ShouldClose() && !quit && !startGame) {
         window.Refresh();
 
+        guiLast.start();
+        glm::vec2 mp{window.xMouse * resolution.x / window.GetSize().x,
+                     (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y};
 
-        if (window.mouseLClicked && !window.mouseRClicked) {
-            ClickEventType cType = Gui::Base::Click(glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
-                                             (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
-            if (cType == ClickEventType::QUIT_GAME) {
-                Gui::Base::ResetClick();
-                quit = true;
-                break;
-            }
-            else if (cType == ClickEventType::START_ROOM) {
-                startGame = true;
-                Gui::Base::ResetClick();
-                break;
-            }
-            else if (cType == ClickEventType::PROV_SWITCH_TAB) {
-                Log("switch tab");
-                Gui::Prov::SwitchTab();
-                Gui::Base::ResetClick();
-            }
+        GuiLast::GuiEv ctype;
+        GuiLast::GuiEv tmpctype;
+        tmpctype = guiLast.start_menu(mp.x, mp.y);
+        if (tmpctype.ct != ClickEventType::MISS)
+            ctype = tmpctype;
 
-            //else if (cdata.evType == Gui::ClickEventType::DEL_FROM_UNITS_LIST) {
-            //      Gui::DelFromUnitsList(cdata);
-            //}
-            //else if (cdata.evType != Gui::ClickEventType::NONE) {
-            //    Log("gui click");
-            //}
+        guiLast.flush();
+        if (window.mouseLClicked) {
+            std::vector<sf::Packet> packets;
+            switch (ctype.ct) {
+                case ClickEventType::QUIT_GAME: {
+                    quit = true;
+                    break;
+                }
+                case ClickEventType::START_ROOM: {
+                    startGame = true;
+                    break;
+                }
+            }
         }
-
         window.mouseLClicked = false;
         window.mouseRClicked = false;
-        if (window.mouseL) {
-            Gui::Base::Drag(glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
-                                (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y}, dt);
-        }
-        if (window.mouseR) {
-        }
-        if (window.scrollOffset) {
-            Gui::Base::Scroll(window.scrollOffset, glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
-                        (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y});
-            window.scrollOffset = 0;
-        }
-
-        Gui::Base::Hover(glm::vec2{window.xMouse * resolution.x / window.GetSize().x, 
-                             (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y}); 
-        Gui::Base::Draw();
-        DrawGui();
+        window.scrollOffset = 0;
+        window.Update();
     }
 }
-
 

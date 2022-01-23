@@ -28,14 +28,6 @@ void FontBatch::Init()
                           (const GLvoid*)(offsetof(FontVertex, FontVertex::color)));
     glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, vertexSize,
                           (const GLvoid*)(offsetof(FontVertex, FontVertex::tid)));
-    //glVertexAttribPointer(
-    //    2, 1, GL_FLOAT, GL_FALSE, vertexSize,
-    //    (const GLvoid*)(offsetof(FontVertex, FontVertex::textureId)));  //(const GLvoid*)(7 * GL_FLOAT));
-    //glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, vertexSize,
-    //glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vertexSize,
-                         // (const GLvoid*)(offsetof(FontVertex, FontVertex::tc)));  //(const GLvoid*)(7 * GL_FLOAT));
-    //glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, vertexSize,
-    //                      (const GLvoid*)(offsetof(FontVertex, FontVertex::normal)));  //(const GLvoid*)(7 * GL_FLOAT));
 
     err = glGetError();
     if (err)
@@ -51,7 +43,6 @@ void FontBatch::Begin()
 }
 
 void FontBatch::Push(float x, float y, float z, float w, float h, float tcx, float tcy, float tcxLen, float tcyLen, float tid)
-//void FontBatch::Push(const FontVertex* verts)  // takes array of 4
 {
     if (vertCount + 6 >= maxSprites) {
         Flush();

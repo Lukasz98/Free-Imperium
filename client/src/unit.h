@@ -5,10 +5,7 @@
 #include <vector>
 
 #include "graphics/rectangle.h"
-//#include "gui/label.h"
-//#include "gui/float_to_string.h"
 #include "log.h"
-#include "observer.h"
 #include "asset_manager.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -31,12 +28,11 @@ struct Move
     std::shared_ptr<Arrow> arrow;
 };
 
-class Unit// : public Rectangle //, public Subject
+class Unit
 {
     public:
     glm::mat4 model, rotate;
     const float rotateX, yScale;
-    //std::unique_ptr<Label> bar;
     glm::vec3 position;
     // if those three will have different sizes
     // code will brake
@@ -66,14 +62,8 @@ class Unit// : public Rectangle //, public Subject
 
 
 public:
-    //Unit(int id, std::string name, glm::vec3 pos, int soldiers, std::string country, Color color, int ctrId, int provId);
-    //Unit(int id, std::string name, glm::vec3 pos, int soldiers, int ctrId, const std::vector<glm::vec3>& moves);
-    
-//    Unit(const Unit & u) = delete;
    Unit(); 
     ~Unit();
-    
-    Subject subject;
     
 
     void Update(glm::vec3 p, std::vector<glm::vec3> mvs, int soldiersCount);
@@ -91,14 +81,7 @@ public:
     
     void Visible(bool v) { visible = v; }
 
-    //bool Click(int x, int y);
     bool Click(glm::vec3 vv, glm::vec3 eye);
-    // { 
-    //    if (!visible) return false; 
-    //    else return false;//Rectangle::Click(x, y); 
-   // }
-
-    void UpdateGuiWin();
 
     inline int GetCountryId() const { return countryId; }
     inline int GetProvId() const { return provId; }
@@ -115,5 +98,4 @@ public:
 
     int GetSiegePower() const { return siegePower; }
 
-    std::unordered_map<std::string,std::string> GetValues() const;
 };

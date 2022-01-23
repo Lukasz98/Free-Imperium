@@ -20,9 +20,9 @@ Country::Country(DataObj * obj)
 Country::Country(const CountryData& cd, const std::string& name)
     : name(name)
 {
-    id = cd.id;//std::stoi(obj->values["id:"]);
-    culture = "some culture";//obj->values["culture:"];
-    religion = "some religion";//obj->values["religion:"];
+    id = cd.id;
+    culture = "some culture";
+    religion = "some religion";
 
     color.r = cd.r;
     color.g = cd.g;
@@ -79,52 +79,8 @@ void Country::SetImprRel(const std::vector<std::string> & ir)
 
 bool Country::Apply(/*PeaceOffer offer*/)
 {
-    /*
-    //std::cout << "Apply\n";
-    if (offer.lostProv.size() && offer.warScore > -10)
-    return false;
-    if (offer.gainProv.size() && !offer.lostProv.size() && offer.warScore < -5)
-    return true;
-
-    int lostVal = 0, gainVal = 0;
-    for (auto & lost : offer.lostProv) {
-    lostVal += (float)(std::get<2>(lost)) / totalDevelopment * 100;
-    }
-    for (auto & gain : offer.gainProv) {
-    gainVal += (float)(std::get<2>(gain)) / totalDevelopment * 100;
-    }
-
-    //std::cout << "Country::ApplyOffer, lostVal="<<lostVal<<", gainVal="<<gainVal<<", warScore="<<offer.warScore<<"\n";
-
-    if (offer.warScore > 10) {
-    if (lostVal == 0)
-    if (offer.warScore >= gainVal)
-    return true;
-    }
-    if (offer.warScore < -20) {
-    if (offer.warScore <= lostVal * -1)
-    return true;
-    }
-    */
     return false;
 }
     
     
-void Country::UpdateGuiWin()
-{
-    std::vector<GuiStruct> vals;
-    vals.push_back({1, 10, name});
-
-    subject.Notify(vals);
-}
-
-void Country::UpdateMyCountryGuiWin()
-{
-    std::vector<GuiStruct> vals;
-    vals.push_back({1, 10, name});
-
-    subjectOfMyCountry.Notify(vals);
-}
-
-
 

@@ -10,7 +10,6 @@
 #include "graphics/window.h"
 #include "graphics/shader.h"
 #include "camera.h"
-#include "gui/gui_bridge.h"
 
 class Scene
 {
@@ -18,7 +17,6 @@ protected:
     Window & window;
     Shader shader;
     Camera camera;
-//    Gui gui;
     sf::Clock clock;
     float dt = 0.0f;
 
@@ -31,6 +29,5 @@ protected:
 public:
     virtual ~Scene();
 
-    //void Play();
     
 };

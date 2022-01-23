@@ -8,10 +8,8 @@
 
 struct AM
 {
-    //static bool init = false;
     static FT_Library ft;
     static FT_Face face;
-    //std::unique_ptr<Model3D> model;
     std::unique_ptr<Shader> shader;
     std::unique_ptr<Shader> modelInstancedShader;
     std::unique_ptr<Texture> modelTexture;
@@ -36,13 +34,7 @@ struct AM
 
     static AtlasInfo atlasInfo[6][128];
     static std::unique_ptr<Texture> atlasTexture[6];
-    //static int maxRows, widthSum;
 
-
-
-//    AM() : shader(std::make_unique<Shader>(
-  //      "src/graphics/shaders/model_3d/vert.v",
-    //    "src/graphics/shaders/model_3d/frag.f", "", "")) 
     AM()
     {
 

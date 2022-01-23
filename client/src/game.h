@@ -6,17 +6,12 @@
 #include <map>
 #include <memory>
 
-#include "map.h"
-//#include "graphics/window.h"
-//#include "graphics/shader.h"
 #include "battle.h"
 #include "camera.h"
 #include "country.h"
 #include "country_loader.h"
-//#include "gui/gui_bridge.h"
-//#include "gui_aid.h"
 #include "font_batch.h"
-#include "gui/gui_structs.h"
+#include "gui_structs.h"
 #include "gui_last.h"
 #include "map2.h"
 #include "peace_offer.h"
@@ -35,9 +30,6 @@ class Game : public Scene {
     std::vector<glm::mat4> uMat;
     std::vector<int> pids;  // chyba trzyma id prowincji na ktorych sa unity
     std::map<unsigned int, int> colorToId;
-    // Shader shader;
-    // Window & window;
-    Map map;
     std::unique_ptr<Map2> map2;
     GuiLast::Gui guiLast;
     glm::vec3 clickedProvColor;
@@ -60,8 +52,6 @@ class Game : public Scene {
     std::vector<int> clickedUnits;
     SideBarData sideBarData;
     void resetGuiWindows();
-    // Camera camera;
-    // Gui gui;
     glm::vec2 windowSize, resolution;
     float dt = 0.0f, drawDt = 0.0f;
 
@@ -70,7 +60,6 @@ class Game : public Scene {
     std::shared_ptr<Country> myCountry;
     std::vector<std::shared_ptr<Country>> countries;
     std::vector<std::unique_ptr<Province>> provinces;
-    // std::vector<std::shared_ptr<Unit>> units;
     std::vector<Unit> units;
     std::vector<War> wars;
     std::vector<Battle> battles;

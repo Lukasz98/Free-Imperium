@@ -2,17 +2,6 @@
 #include "../shared/load_countries_data.h"
 #include "load_values_from_txt.h"
 
-/*
-std::vector<std::unique_ptr<Province>> ProvinceLoader::Load(const unsigned char * pixels, int width, int height)
-{
-    std::vector<std::unique_ptr<Province>> provinces;
-    
-    loadFromFile(provinces);
-    loadFromMap(provinces, pixels, width, height);
-    
-    return provinces;
-}
-*/
 std::vector<std::unique_ptr<Province>> ProvinceLoader::Load(std::map<unsigned int, int>& colorToId)
 {
     std::vector<std::unique_ptr<Province>> provinces;
@@ -94,19 +83,6 @@ void ProvinceLoader::loadFromMap(std::vector<std::unique_ptr<Province>> & provin
             }
         }
     }
-
-#if 0
-    for (auto & prov : provinces)
-        {
-            //if (prov.GetName() != "Przemysl") continue;
-            std::cout << prov.GetName() << ", id: " << prov.GetId() << "\n";
-            std::cout << "Neighbours\n";
-            for (auto & n : prov.GetNeighbours())
-                std::cout << "- " << "" << getProvinceName(provinces, n) << "\n";
-            std::cout << "--------------------\n\n";
-        }
-    std::cout << "Num of provinces = " << provinces.size() << "\n\n";        
-#endif
 }
 
 void ProvinceLoader::loadNeighbours(std::vector<std::unique_ptr<Province>> & provinces, Color lastColor, Color currentColor, int index)

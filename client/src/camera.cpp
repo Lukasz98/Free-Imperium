@@ -9,26 +9,22 @@ Camera::Camera(glm::vec2 winSize)
     baseSpeed = 1000.0f;
     left = 0.0f, bottom = 0.0f;
     fov = 45.0f, fovMax = 46.0f, fovMin = 44.5f;
-    // fov = 45.0f, fovMax = 46.0f, fovMin = 43.5f;
 
     near = 5.1f, far = 1000.1f;
-    // near = 40.5f, far = 1000.1f;
     far = 1800.0f;
     near = 65.1f;
     far = 4800.0f;
     windowSize = winSize;
     projection = glm::perspectiveFovRH(fov, width, height, near, far);
-    // eye = glm::vec3(2000.0, 700.0, 169.0f);
     float SCale = 4.0f;
     int mapWidth = 5632, mapHeight = 2048;
 
     eye = glm::vec3(mapWidth * 1.0 * 2.0, mapHeight * 1.4f * 2.0f, 169.0f + 150.0f);
-    // eye = glm::vec3(0.0, 0.0, 169.0f);
     maxZ = 1800.0f;
     maxZ = 2800.0f;
     maxZ = far;
     up = glm::vec3(0.0f, 1.0f, 0.0f);
-    look = look_def; //glm::vec3(.0f, .0f, -0.1f);
+    look = look_def;
     setPlanes();
 }
 

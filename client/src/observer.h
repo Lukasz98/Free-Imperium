@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 //#include <any>
-#include "gui/gui_update_struct.h"
-
+//#include "gui/gui_update_struct.h"
+/*
 class Observer;
 
 class Subject
@@ -35,3 +35,4 @@ public:
     void Notification(const std::vector<GuiStruct> & vals);
     
 };
+*/

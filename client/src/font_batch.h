@@ -11,7 +11,6 @@ struct FontVertex {
     Vec4 color{1.0f, 0.0f, 0.0f, 1.0f};
     float tid;
     float ml[16];
-    //glm::mat4 ml;
 };
 
 struct FontBatch {
@@ -21,7 +20,6 @@ struct FontBatch {
 
     void Init();
     void Begin();
-    //void Push(const FontVertex* verts);  // takes array of 2
     void Push(float x, float y, float z, float w, float h, float tcx, float tcy, float tcxLen, float tcyLen, float tid);
     void Flush();
 };
