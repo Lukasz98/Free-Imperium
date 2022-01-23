@@ -983,7 +983,10 @@ void Game::guiDraw()
             }
             case ClickEventType::OPEN_COUNTRY: {
                 resetGuiWindows();
-                openCountryId = ctype.val;
+                if (myCountry->GetId() == ctype.val)
+                    openMyCountry = true;
+                else
+                    openCountryId = ctype.val;
                 break;
             }
             case ClickEventType::OPEN_PROV: {
