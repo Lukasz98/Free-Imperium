@@ -6,9 +6,7 @@ Posibility PathFinder::Find(const std::vector<std::shared_ptr<Province>>& provs,
 {
     assert(first >= 0 && first < provs.size());
     auto prov = provs.at(first);
-    // if (prov->GetId() == first) {
     std::vector<int> neighbours = prov->GetNeighbours();
-    // Log(neighbours.size());
 
     int visited[provs.size()];
     for (int i = 0; i < provs.size(); ++i) visited[i] = -1;
@@ -42,36 +40,6 @@ Posibility PathFinder::Find(const std::vector<std::shared_ptr<Province>>& provs,
     std::reverse(ps.path.begin(), ps.path.end());
     posibilities.push_back(ps);
 
-    /*
-            for (auto & n : neighbours) {
-                Posibility ps;
-                if (n == goal) {
-                    ps.path.push_back(n);
-                    ps.done = true;
-                    posibilities.push_back(ps);
-
-                    if (ps.path.size() < shortest)
-                        shortest = ps.path.size();
-
-                    break;
-                }
-                else {
-                    ps.path.push_back(n);
-                    ps.done = false;
-
-                    if (!posibilities.size() || ps.path.size() < shortest)
-                        recur(provs, n, goal, ps);
-                }
-            }
-        //}
-    */
-    // std::size_t index = 0;
-    // for (std::size_t i = 0; i < posibilities.size(); i++) {
-    //    if (posibilities[i].done)
-    //        if (posibilities[i].path.size() < posibilities[index].path.size())
-    //            index = i;
-    //}
-    // assert(posibilities.size() > 0);
     return posibilities[0];
 }
 
@@ -79,7 +47,6 @@ void PathFinder::recur(const std::vector<std::shared_ptr<Province>>& provs, int 
 {
     assert(current >= 0 && current < provs.size());
     auto prov = provs.at(current);
-    // if (prov->GetId() == current) {
     std::vector<int> neighbours = prov->GetNeighbours();
     for (auto& n : neighbours) {
         bool was = false;
@@ -109,5 +76,4 @@ void PathFinder::recur(const std::vector<std::shared_ptr<Province>>& provs, int 
                 recur(provs, n, goal, newPs);
         }
     }
-    //}
 }

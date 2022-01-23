@@ -12,7 +12,6 @@ class Battle
 
     int id, warId;
     glm::vec3 position;
-    //std::string provName;
     int provId;
     bool updated = false;
     int attackersSize = 0;

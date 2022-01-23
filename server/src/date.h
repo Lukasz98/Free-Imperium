@@ -42,7 +42,7 @@ class TimeManager : public Date
     
     void increaseDate()
     {
-        if (hour < 24) { /*std::cout << hour << "\n";*/ hour++; }
+        if (hour < 24) { hour++; }
         else if (day < 30) { hour = 0; day++; }
         else if (month < 12) { hour = 0; day = 1; month++; }
         else { hour = 0; day = 1; month = 1; year++; }
@@ -105,9 +105,6 @@ public:
 
     std::string GetDate()
     {
-        //std::cout << "date = " << std::to_string(day) << "\n";
-        //std::cout << "date = " << std::to_string(month) << "\n";
-        //std::cout << "date = " << std::to_string(year) << "\n";
         std::string result = std::to_string(day) + " " + translateM(month) + " " + std::to_string(year);
         return result;
     }  

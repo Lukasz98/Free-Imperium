@@ -9,12 +9,6 @@ Game::Game(std::vector<std::shared_ptr<Client>>& clients, std::vector<std::share
     // both provs and ctr id's have to start from 0 to n;
     // id's of provs and ctrs are used are vector indexes
     // provs and ctrs arent removed during game
-    // std::sort(countries.begin(), countries.end(), [](const std::shared_ptr<Country> & c1, const
-    // std::shared_ptr<Country> & c2){
-    //    return c1->GetId() < c2->GetId();
-    //}); //its sorted in loaderr
-
-    // provinces = ProvinceLoader::Load(map.GetPixels(), map.GetW(), map.GetH());
 
     std::map<unsigned int, int> colorToId;
     provinces = ProvinceLoader::Load(colorToId);
@@ -369,9 +363,6 @@ void Game::ai_units(std::shared_ptr<Country>& c)
     LogFunkStart;
     auto units = c->GetUnits();
     for (auto& u : units) {
-        // Log("----" <<u->GetId() << ", "<< u->GetName());
-        // Log("battle"<<u->IsInBattle() << " siege"<<u->IsSieging() << " mov"<<u->IsMoving());
-        // Log("---!");
         std::vector<int> atWarWith;
         for (auto w : wars) {
             if (w->IsAttacker(c->GetId())) {
@@ -767,10 +758,6 @@ void Game::battlesUpdate()
                 }
             }
         }
-        //Packet packet{true};
-        //packet << "EndBattle";
-        //packet << it->GetId();
-        //toSend.emplace_back(packet);
         battles.erase(it);
     }
 
@@ -788,12 +775,6 @@ void Game::battlesUpdate()
                 if (!isInFight && battle.ShouldFight(unit)) {
                     isInFight = true;
                     battle.AddUnit(unit);
-                    //Packet packet{true};
-                    //packet << "NewUnitInBattle";
-                    //packet << battle.GetId();
-                    //packet << unit->GetId();
-                    //packet << battle.IsAttacker(unit->GetId());
-                    //toSend.emplace_back(packet);
                     break;
                 }
             }
@@ -815,17 +796,6 @@ void Game::battlesUpdate()
                                                    // provincja trzyma ref do unitow. Wystarczt sprawdzac kto
                                                    // pierwszy wchodzi na prowincje
                         battles.push_back(battle);
-                        //Packet packet{true};
-                        //packet << "NewBattle";
-                        //packet << battle.GetId();
-                        //packet << war->GetId();
-                        //packet << provPos.x;
-                        //packet << provPos.y;
-                        //packet << provPos.z;
-                        //packet << province->GetId();
-                        //packet << unit->GetId();
-                        //packet << uu->GetId();
-                        //toSend.emplace_back(packet);
                         break;
                     }
                 }

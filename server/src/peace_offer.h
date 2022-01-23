@@ -9,9 +9,7 @@ struct PeaceOffer
     int peaceId;
     PeaceOffer();
     
-    //std::vector<std::tuple<std::string,std::string,int>> gainProv;
     std::vector<std::tuple<int, int, int>> gainProv;
-    //std::vector<std::tuple<std::string,std::string,int>> lostProv;
     std::vector<std::tuple<int, int, int>> lostProv;
     int warScore;
     int warId;

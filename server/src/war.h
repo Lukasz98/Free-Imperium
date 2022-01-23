@@ -3,7 +3,6 @@
 #include <vector>
 #include <algorithm>
 #include "log.h"
-//#include "country.h" // only for PeaceOffer
 
 class War
 {
@@ -27,7 +26,6 @@ public:
 
     War();
 
-    //void Peace(PeaceOffer offer);
     void AddBattleWinner(int winnerId);
 
     void Update();

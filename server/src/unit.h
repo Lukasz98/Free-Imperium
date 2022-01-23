@@ -39,7 +39,6 @@ public:
     static int FreeId;
     Unit(std::string name, glm::vec3 pos, int soldiers, std::string country, int fromProvinceId, int countryId, int provId);
     
-    //Unit(const Unit & u) = delete;
     
     ~Unit();
 
@@ -60,7 +59,6 @@ public:
     std::string GetName() const { return name; }
     std::string GetCountry() const { return country; }
     int GetMorale() const { return morale; }
-    //int GetProvinceId() const { return provinceId; }
     inline int GetCountryId() const { return countryId; }
     inline int GetProvId() const { return provId; }
     inline int GetId() const { return id; }
@@ -69,7 +67,6 @@ public:
     int GetDefense() const { return defense; }
     glm::vec3 GetFakePos() const { return fakePos; }
     glm::vec3 GetPos() const { return position; }
-    //bool IsInBattle() const { return !(fakePos == position); }
     bool IsInBattle() const { return InBattle(); }
     bool InBattle() const { return isInBattle; }
     

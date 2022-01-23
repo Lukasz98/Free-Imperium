@@ -3,26 +3,13 @@
 #include <string.h>
 #include "../shared/load_countries_data.h"
 #include "load_values_from_txt.h"
-/*
-std::vector<std::shared_ptr<Province>> ProvinceLoader::Load(const unsigned char * pixels, int width, int height)
-{
-    vec provinces;
-    
-    loadFromFile(provinces);
-    loadFromMap(provinces, pixels, width, height);
-    
-    return provinces;
-}
-*/
 
 std::vector<std::shared_ptr<Province>> ProvinceLoader::Load(std::map<unsigned int, int>& colorToId)
-//void loadProvData(std::vector<ProvData>& provinces, std::map<unsigned int, int>& colorToId)
 {
     std::vector<std::shared_ptr<Province>> provinces;
     std::vector<ProvData> provData = LoadProvincesData(colorToId);
     for (auto& pd : provData)
         provinces.emplace_back(std::make_shared<Province>(pd));
-        //provinces.emplace_back(std::make_shared<Province>(pd.id, pd.r, pd.g, pd.b, pd.x, pd.y, pd.name, pd.ctrId));
     return provinces;
 }
 void ProvinceLoader::loadFromFile(vec & provinces)

@@ -10,11 +10,6 @@ void DoTheThing::EraseUnit(std::shared_ptr<Unit> & u, std::shared_ptr<Province> 
 {
     prov->EraseUnit(u);
     country->EraseUnit(u);
-
-    //Packet packet{true};
-    //packet << "DeleteUnit";
-    //packet << u->GetId();
-    //toSend.emplace_back(packet);
 }
 
 void DoTheThing::NotifyOfDeclinedPeace(int clientCountryId, int recipantId, std::vector<Packet> & toSend)
@@ -291,17 +286,10 @@ void DoTheThing::SendNewUnitInfo(const std::shared_ptr<Unit> & unit, std::vector
 void DoTheThing::MergeUnits(std::vector<std::shared_ptr<Unit>> & unitsToErase, std::shared_ptr<Unit> & baseUnit, std::shared_ptr<Country> & country,
                              std::shared_ptr<Province> & prov, std::vector<Packet> & toSend)
 {
-    //Packet mergePacket{true};
-    //mergePacket << "MergeUnits";
-    //mergePacket << baseUnit->GetId();
-    //mergePacket << (int)unitsToErase.size();
  
     for (auto u : unitsToErase) {
-        //mergePacket << u->GetId();
         baseUnit->Add(u);
     }
-
-    //toSend.emplace_back(mergePacket);
 
     for (auto u : unitsToErase) {
         DoTheThing::EraseUnit(u, prov, country, toSend);

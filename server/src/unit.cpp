@@ -72,7 +72,6 @@ void Unit::Kill(int amount)
 
 void Unit::Battle(bool is, bool attacker)
 {
-//    Log("\n\n"<<name<< ", id="<<GetId()<<", amount="<<soldiers<<"\n");
     Log(position.x << " " << position.y << " " << position.z << "\n");
     Log(fakePos.x << " " << fakePos.y << " " << fakePos.z << "\n");
     isInBattle = is;

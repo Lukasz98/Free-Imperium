@@ -12,9 +12,7 @@
 #include "data_object.h"
 #include "unit.h"
 #include "siege.h"
-//#include "war.h"
 
-//#include "../shared/load_countries_data.h"
 #include "prov_data.h"
 class Province
 {
@@ -43,7 +41,6 @@ class Province
 public:
     Province() = delete;
     Province(int id, DataObj * data);
-    //Province(int id, int r, int g, int b, int x, int y, const std::string& name, int ctrId);
     Province(const ProvData& pd);
     ~Province();
 

@@ -10,7 +10,6 @@ class Siege
     bool done = false, unsiege = false;
     int level = 0;
     int leader = -1;
-    //std::string leader = "";
     bool stateChanged = false;
 
     std::vector<std::shared_ptr<Unit>>::iterator isUnitIn(std::shared_ptr<Unit> & u);

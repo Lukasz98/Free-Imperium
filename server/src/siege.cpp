@@ -22,7 +22,6 @@ void Siege::Update()
         if (level >= 100) {
             level = 100;
             done = true;
-            //stateChanged = true;
             break;
         }
     }

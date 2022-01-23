@@ -48,7 +48,6 @@ void War::AddProv(int provId, const int countryId)
 
 void War::DeleteProv(int provId) {
     for (auto it = attackersProvs.begin(); it < attackersProvs.end(); it++) {
-    //for (int i = 0; i < attackersProvs.size(); i++)
         if (*it == provId) {
             attackersProvs.erase(it);
             return;
