@@ -541,10 +541,11 @@ void Game::Play()
             drawBorders = !drawBorders;
         }
 
-        if (window.keys['P']) {
-            map2->DrawForColorPick(matrix, (float)provinces.size());
-        }
-        else {
+        //if (window.keys['P']) {
+        //    map2->DrawForColorPick(matrix, (float)provinces.size());
+       // }
+       // else {
+        {
             map2->DrawWater(matrix, camera.eye);
             if (openPeaceOfferId == -1) {
                 map2->DrawLand(matrix, camera.eye, markedProvId, provinces.size(), map2->MAPID_COUNTRY, waterTime);
@@ -973,6 +974,10 @@ void Game::guiDraw()
             ctype = tmpctype;
     }
 
+    if (game_paused) {
+        tmpctype = guiLast.game_drawPause();
+    }
+
     if (window.mouseLClicked) {
         std::vector<sf::Packet> packets;
         switch (ctype.ct) {
@@ -1222,6 +1227,9 @@ void Game::processPacket(sf::Packet packet)
     }
     else if (type == "PeaceDeclined") {
         ProcessPacket::PeaceDeclined(packet, sideBarData, countries);
+    }
+    else if (type == "Pause") {
+        ProcessPacket::Paused(packet, game_paused);
     }
 }
 

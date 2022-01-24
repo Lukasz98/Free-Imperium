@@ -165,6 +165,16 @@ GuiLast::GuiEv GuiLast::Gui::game_topBar(const TopBarData& td, int mx, int my)
     return GuiLast::GuiEv{ClickEventType::MISS};
 }
 
+GuiLast::GuiEv GuiLast::Gui::game_drawPause()
+{
+    glm::vec2 itemSize{res.x * 0.5f, 100.0f};
+    glm::vec3 itemPos{res.x * 0.5f - itemSize.x * 0.5f, 0.6f * res.y, 0.3f};
+    core.drawRect(itemPos, itemSize, glm::vec4{weirdBrown.x, weirdBrown.y, weirdBrown.z, 0.3f}); itemPos.z += 0.05f;
+    core.drawText(itemPos, itemSize, whiteCol, "Pause", TEXT_CENTER, AM::FontSize::PX64);
+
+    return GuiLast::GuiEv{ClickEventType::MISS};
+}
+
 GuiLast::GuiEv GuiLast::Gui::game_myCountry(const Country& ctr, int mx, int my)
 {
     glm::vec2 offset{5.0f, 2.5f};

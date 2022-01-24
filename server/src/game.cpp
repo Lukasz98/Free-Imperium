@@ -517,7 +517,8 @@ void Game::hourlyUpdate()
                         break;
                     }
                 }
-                if (cl->GetCountry()->GetName() == "Atlantyda") ok = 1;
+                if (cl->GetCountry()->GetName() == "Atlantyda")
+                    ok = 1;
             }
 
             if (ok == 0)
@@ -577,10 +578,8 @@ void Game::hourlyUpdate()
 
                     packet << (int)atts.size();
                     packet << (int)defs.size();
-                    for (auto& a : atts)
-                        packet << a->GetId();
-                    for (auto& d : defs)
-                        packet << d->GetId();
+                    for (auto& a : atts) packet << a->GetId();
+                    for (auto& d : defs) packet << d->GetId();
                     break;
                 }
             }
@@ -928,10 +927,14 @@ void Game::processPacket(std::shared_ptr<Client> client, sf::Packet& packet)
         }
     }
     else if (type == "Stop") {
+        Packet newPack{true};
+        newPack << "Pause";
         if (date.IsPaused())
             date.SetPause(false);
         else
             date.SetPause(true);
+        newPack << date.IsPaused();
+        toSend.emplace_back(newPack);
     }
     else if (type == "StartImprRel") {
         ProcessPacket::StartImprRel(packet, countries);

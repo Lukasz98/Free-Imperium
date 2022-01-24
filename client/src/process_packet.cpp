@@ -400,3 +400,9 @@ void ProcessPacket::PeaceDeclined(sf::Packet& packet, SideBarData& sideBarData,
         .type = SideBarData::IType::PEACE_DECLINED, .val = 0, .hoverText = countries[recipantid]->GetName()});
 }
 
+void ProcessPacket::Paused(sf::Packet& packet, bool& game_paused)
+{
+    Log("olaboga");
+    packet >> game_paused;
+    Log(game_paused);
+}

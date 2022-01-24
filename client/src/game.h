@@ -34,6 +34,7 @@ class Game : public Scene {
     GuiLast::Gui guiLast;
     glm::vec3 clickedProvColor;
     unsigned int clickedProviPhash;
+    bool game_paused = false;
     float markedProvId = -1.0f;
     glm::vec3 unitPos;
     float scale = 4.0f;

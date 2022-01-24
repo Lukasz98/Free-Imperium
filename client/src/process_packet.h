@@ -42,4 +42,6 @@ void BotPeaceOffer(sf::Packet& packet, std::vector<PeaceOffer>& peaceOffers,
                    const std::vector<std::shared_ptr<Country>>& countries, SideBarData& sideBarData, const std::shared_ptr<Country>& myCountry);
 
 void PeaceDeclined(sf::Packet& packet, SideBarData& sideBarData, const std::vector<std::shared_ptr<Country>>& countries);
+
+void Paused(sf::Packet& packet, bool& game_paused);
 }  // namespace ProcessPacket
