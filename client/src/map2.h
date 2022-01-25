@@ -16,6 +16,7 @@ struct LandBorders {
     GLuint vao, vbo;
     std::vector<Vec3> verts;
 
+    LandBorders() {}
     LandBorders(const unsigned char* hpix, int mapWidth, int mapHeight, int scale);
 };
 
@@ -28,6 +29,7 @@ struct SeaBorders {
     GLuint vao, vbo;
     std::vector<BorderVertex> verts;
 
+    SeaBorders() {}
     SeaBorders(const unsigned char* hpix, int mapWidth, int mapHeight, int scale);
 };
 
@@ -42,6 +44,7 @@ struct PolyMap {
     GLuint vao, vbo;
     std::vector<PolyVert> verts;
 
+    PolyMap() {}
     PolyMap(const unsigned char* hpix, int mapWidth, int mapHeight, const std::vector<Color3>& provsCols,
             int scale);
 };
@@ -80,6 +83,9 @@ struct Map2 {
     const float MAPID_COUNTRY = 21.0f;
     const float MAPID_PEACE_OFFER = 22.0f;
     
+    const int mapWidth = 5632;
+    const int mapHeight = 2048;
+
     LandBorders landBorders;
     SeaBorders seaBorders;
     PolyMap polyMap;
@@ -104,9 +110,10 @@ struct Map2 {
     std::vector<unsigned char> occupiedPix;
     Texture* occupyingText = nullptr;
     std::vector<unsigned char> occupyingPix;
-    GLuint heightMapTextureId;
+    //GLuint heightMapTextureId;
+    Texture heightMap;
 
-    Map2(const unsigned char* hpix, int mapWidth, int mapHeight, const std::vector<Color3>& provsCols, int scale, GLuint heightMapId);
+    Map2(const std::vector<Color3>& provsCols, int scale);
     ~Map2();
 
     void DrawForColorPick(glm::mat4 proj, float provCount);

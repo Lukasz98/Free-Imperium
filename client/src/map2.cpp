@@ -281,19 +281,19 @@ Water::Water(int mapWidth, int mapHeight, int scale)
                           (const GLvoid*)(offsetof(WaterVert, WaterVert::tc)));
 }
 
-Map2::Map2(const unsigned char* hpix, int mapWidth, int mapHeight, const std::vector<Color3>& provsCols, int scale, GLuint heightMapId)
-    : landBorders(hpix, mapWidth, mapHeight, scale),
-      seaBorders(hpix, mapWidth, mapHeight, scale),
-      polyMap(hpix, mapWidth, mapHeight, provsCols, scale),
-      seaProvColor(mapWidth, mapHeight, scale),
+Map2::Map2(const std::vector<Color3>& provsCols, int scale)
+    : seaProvColor(mapWidth, mapHeight, scale),
       water(mapWidth, mapHeight, scale),
       provTexture("src/img/Provinces_org.png", mapWidth, mapHeight),
       grassT("../shared/grass1.png", 64, 64, GL_REPEAT),
-      heightMapTextureId(heightMapId)
-
+    //  heightMapTextureId(heightMapId)
+      heightMap("src/img/Heightmap.png", mapWidth, mapHeight)
 {
 Log("poly count=" << polyMap.verts.size());
 Log("borders=" << landBorders.verts.size() << ", " << seaBorders.verts.size());
+    landBorders = LandBorders(heightMap.GetPixels(), mapWidth, mapHeight, scale);
+    seaBorders = SeaBorders(heightMap.GetPixels(), mapWidth, mapHeight, scale);
+    polyMap = PolyMap(heightMap.GetPixels(), mapWidth, mapHeight, provsCols, scale);
     for (GLint i = 0; i < 32; ++i) {
         tex[i] = i;
     }
@@ -415,7 +415,7 @@ void Map2::ActivateTextures()
 {
     texID[0] = grassT.GetId();
     texID[1] = provTexture.GetId();
-    texID[2] = heightMapTextureId;
+    texID[2] = heightMap.GetId();
     if (occupiedText != nullptr)
         texID[3] = occupiedText->GetId();
     if (occupyingText != nullptr)

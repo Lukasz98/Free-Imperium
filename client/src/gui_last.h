@@ -48,13 +48,13 @@ struct Gui {
     GuiEv start_menu(int mx, int my);
     GuiEv game_topBar(const TopBarData& td, int mx, int my);
     GuiEv game_drawPause();
-    GuiEv game_myCountry(const Country& ctr, int mx, int my);
+    GuiEv game_myCountry(const Country* ctr, int mx, int my);
     GuiEv game_country(const Country* ctr, const Country* myCountry, const std::vector<War>& wars, int mx, int my);
     GuiEv game_prov(const Province& prov, int mx, int my, bool clicked, bool myProv);
     GuiEv game_battle(const Battle& battle, const Province& prov, int mx, int my, bool clicked,
-                      const std::vector<std::shared_ptr<Country>>& countries, const std::vector<Unit>& units);
-    GuiEv game_unit(const Unit& unit, int mx, int my, bool clicked, std::vector<std::shared_ptr<Country>>& countries);
-    GuiEv game_unitsList(const std::vector<Unit*>& units, int mx, int my, bool clicked, int scr, const Province* prov, std::vector<std::shared_ptr<Country>>& countries);
+                      const std::vector<Country>& countries, const std::vector<Unit>& units);
+    GuiEv game_unit(const Unit& unit, int mx, int my, bool clicked, std::vector<Country>& countries);
+    GuiEv game_unitsList(const std::vector<Unit*>& units, int mx, int my, bool clicked, int scr, const Province* prov, std::vector<Country>& countries);
     GuiEv game_SideBar(const SideBarData& sbData, int mx, int my, bool clicked, int scr);
 
     GuiEv room_playerList(const std::vector<std::string>& plarr, int mx, int my, int sc);
@@ -64,8 +64,8 @@ struct Gui {
     GuiEv game_war(const War* war, int mx, int my, bool clicked);
     //    GuiEv game_peaceOffer(const PeaceOffer* offer, int mx, int my, bool clicked);
     GuiEv game_peaceOffer(const PeaceOffer* offer, int mx, int my, int myctrid,
-                          const std::vector<std::unique_ptr<Province>>& provinces,
-                          std::vector<std::shared_ptr<Country>>& countries, bool clicked, int scr);
+                          const std::vector<Province>& provinces,
+                          std::vector<Country>& countries, bool clicked, int scr);
 
     void game_drawUnitBar(const Unit& u);
 };

@@ -1,21 +1,22 @@
 #pragma once
 #include <SFML/Network.hpp>
-#include "scene.h"
 #include "settings.h"
 #include "room.h"
 #include "gui_last.h"
+#include "game_data.h"
+#include "graphics/window.h"
 
-class Menu : public Scene
+class Menu
 {
-    Settings settings;
-    std::vector<std::shared_ptr<Country>> & countries;
     GuiLast::Gui guiLast;
-
+    GameData* gd;
+    Window* window;
+        
     bool startGame = false, quit = false;
     void loop();
     
 public:
-    Menu(Window & window, Settings & s, std::vector<std::shared_ptr<Country>> & countries);
+    Menu(Window* window, GameData* gd);
     ~Menu();
 
     void Play();

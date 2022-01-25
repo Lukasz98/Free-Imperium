@@ -13,6 +13,7 @@ struct Settings
     int localPort = 55555;
     int friendPort = 55555;
     glm::vec2 resolution;
+    float scale = 4.0f;
     
     Settings()
     {

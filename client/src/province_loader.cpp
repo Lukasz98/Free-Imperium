@@ -2,16 +2,20 @@
 #include "../shared/load_countries_data.h"
 #include "load_values_from_txt.h"
 
-std::vector<std::unique_ptr<Province>> ProvinceLoader::Load(std::map<unsigned int, int>& colorToId)
+std::vector<Province> ProvinceLoader::Load(std::map<unsigned int, int>& colorToId)
 {
-    std::vector<std::unique_ptr<Province>> provinces;
+    std::vector<Province> provinces;
     std::vector<ProvData> provData = LoadProvincesData(colorToId);
     for (auto& pd : provData)
-        provinces.emplace_back(std::make_unique<Province>(pd));
+        provinces.emplace_back(Province{pd});
+    std::sort(provinces.begin(), provinces.end(),
+              [](const Province& p1, const Province& p2) {
+                  return p1.GetId() < p2.GetId();
+              });
     return provinces;
 }
 
-void ProvinceLoader::loadFromFile(std::vector<std::unique_ptr<Province>> & provinces)
+void ProvinceLoader::loadFromFile(std::vector<Province> & provinces)
 {
     bool log = false;
     namespace fs = std::experimental::filesystem;
@@ -44,7 +48,7 @@ void ProvinceLoader::loadFromFile(std::vector<std::unique_ptr<Province>> & provi
                 DataLoader loader;
                 DataObj * data = loader.LoadDataObj(file, "province");
 
-                provinces.emplace_back(std::make_unique<Province>(std::stoi(provId), data));
+                provinces.emplace_back(Province{std::stoi(provId), data});
                 delete data;
                 file.close();
             }
@@ -52,7 +56,7 @@ void ProvinceLoader::loadFromFile(std::vector<std::unique_ptr<Province>> & provi
     }
 }
 
-void ProvinceLoader::loadFromMap(std::vector<std::unique_ptr<Province>> & provinces, const unsigned char * pixels, int width, int height)
+void ProvinceLoader::loadFromMap(std::vector<Province>& provinces, const unsigned char * pixels, int width, int height)
 {
     // load horizontaly
     Color lastColor{255,255,255,255};
@@ -85,7 +89,7 @@ void ProvinceLoader::loadFromMap(std::vector<std::unique_ptr<Province>> & provin
     }
 }
 
-void ProvinceLoader::loadNeighbours(std::vector<std::unique_ptr<Province>> & provinces, Color lastColor, Color currentColor, int index)
+void ProvinceLoader::loadNeighbours(std::vector<Province> & provinces, Color lastColor, Color currentColor, int index)
 {
     const Color whiteColor{255,255,255,255};
         
@@ -94,13 +98,13 @@ void ProvinceLoader::loadNeighbours(std::vector<std::unique_ptr<Province>> & pro
 
     for (auto & prov : provinces)
     {
-        if (prov->GetColor() == currentColor)
+        if (prov.GetColor() == currentColor)
         {
-            prov->AddNeighbour(getProvinceId(provinces, lastColor));
+            prov.AddNeighbour(getProvinceId(provinces, lastColor));
             for (auto & provv : provinces)
-                if (provv->GetColor() == lastColor)
+                if (provv.GetColor() == lastColor)
                 {
-                    provv->AddNeighbour(prov->GetId());
+                    provv.AddNeighbour(prov.GetId());
                     break;
                 }
                 
@@ -109,10 +113,10 @@ void ProvinceLoader::loadNeighbours(std::vector<std::unique_ptr<Province>> & pro
     }
 }
 
-int ProvinceLoader::getProvinceId(const std::vector<std::unique_ptr<Province>> & provinces, Color color)
+int ProvinceLoader::getProvinceId(const std::vector<Province> & provinces, Color color)
 {
     for (auto & p : provinces)
-        if (p->GetColor() == color)
-            return p->GetId();
+        if (p.GetColor() == color)
+            return p.GetId();
     return -1;
 }

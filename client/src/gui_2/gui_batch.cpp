@@ -80,7 +80,8 @@ void Batch::Push(const Vertex * verts) // takes array of 4
     }
 }
 
-void Batch::Flush() {
+void Batch::Flush()
+{
     glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_SHORT, NULL);
     vertCount = 0;
     indicesCount = 0;

@@ -1,9 +1,8 @@
 #include "menu.h"
 
-Menu::Menu(Window& window, Settings& s, std::vector<std::shared_ptr<Country>>& countries)
-    : Scene(window, s.resolution), settings(s), countries(countries)
+Menu::Menu(Window* window, GameData* gd)
+    : window(window), gd(gd)
 {
-    //    Gui::Menu::Open(resolution);
 }
 
 Menu::~Menu() {}
@@ -12,8 +11,7 @@ void Menu::Play()
 {
     loop();
     if (startGame) {
-        //      Gui::Menu::Close();
-        Room room(window, settings, countries);
+        Room room(window, gd);
         room.Play();
     }
     else if (quit) {
@@ -22,13 +20,13 @@ void Menu::Play()
 
 void Menu::loop()
 {
-    guiLast.init(&window, resolution, window.GetSize());
-    while (!window.ShouldClose() && !quit && !startGame) {
-        window.Refresh();
+    guiLast.init(window, gd->settings.resolution, window->GetSize());
+    while (!window->ShouldClose() && !quit && !startGame) {
+        window->Refresh();
 
         guiLast.start();
-        glm::vec2 mp{window.xMouse * resolution.x / window.GetSize().x,
-                     (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y};
+        glm::vec2 mp{window->xMouse * gd->settings.resolution.x / window->GetSize().x,
+                     (window->GetSize().y - window->yMouse) * gd->settings.resolution.y / window->GetSize().y};
 
         GuiLast::GuiEv ctype;
         GuiLast::GuiEv tmpctype;
@@ -37,7 +35,7 @@ void Menu::loop()
             ctype = tmpctype;
 
         guiLast.flush();
-        if (window.mouseLClicked) {
+        if (window->mouseLClicked) {
             std::vector<sf::Packet> packets;
             switch (ctype.ct) {
                 case ClickEventType::QUIT_GAME: {
@@ -50,10 +48,10 @@ void Menu::loop()
                 }
             }
         }
-        window.mouseLClicked = false;
-        window.mouseRClicked = false;
-        window.scrollOffset = 0;
-        window.Update();
+        window->mouseLClicked = false;
+        window->mouseRClicked = false;
+        window->scrollOffset = 0;
+        window->Update();
     }
 }
 

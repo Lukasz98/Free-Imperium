@@ -48,6 +48,7 @@ Province::Province(const ProvData& pd)
     color.b = pd.b;
     unitPosition.x = pd.x;
     unitPosition.y = pd.y;
+    water = pd.water;
 }
 
 Province::~Province()

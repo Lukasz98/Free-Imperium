@@ -13,6 +13,6 @@
 class CountryLoader
 {
 public:
-    static std::vector<std::shared_ptr<Country>> Load();
+    static std::vector<Country> Load();
     
 };

@@ -12,6 +12,7 @@
 #include "prov_data.h"
 class Province
 {
+    public:
     int id;
     Color color;
     std::vector<int> neighbours;
@@ -25,7 +26,7 @@ class Province
     int siegeCountryId = -1;
     std::string siegeCountry;
     bool siegeUpdated = false;
-
+    bool water = false;
     int population = 0, manpower = 0;
     float autonomy = 0.0f, unrest = 0.0f, prosperity = 0.0f, administration = 0.0f, treasury = 0.0f;
     float monthIncome = 0.0f, totalMonthIncome = 0.0f;

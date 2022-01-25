@@ -175,7 +175,7 @@ GuiLast::GuiEv GuiLast::Gui::game_drawPause()
     return GuiLast::GuiEv{ClickEventType::MISS};
 }
 
-GuiLast::GuiEv GuiLast::Gui::game_myCountry(const Country& ctr, int mx, int my)
+GuiLast::GuiEv GuiLast::Gui::game_myCountry(const Country* ctr, int mx, int my)
 {
     glm::vec2 offset{5.0f, 2.5f};
     glm::vec2 wSize{res.x * 0.3f, res.y * 0.65f};
@@ -194,7 +194,7 @@ GuiLast::GuiEv GuiLast::Gui::game_myCountry(const Country& ctr, int mx, int my)
 
     glm::vec2 valueSize{100.0f, 40.0f};
     glm::vec3 valuePos{namePos.x + nameSize.x + offset.x, namePos.y, namePos.z};
-    core.drawText(valuePos, valueSize, whiteCol, ctr.GetName(), TEXT_LEFT, AM::FontSize::PX16);
+    core.drawText(valuePos, valueSize, whiteCol, ctr->GetName(), TEXT_LEFT, AM::FontSize::PX16);
 
     if (core.isInRect(closePos, closeSize, mx, my))
         return GuiLast::GuiEv{ClickEventType::CLOSE_WINDOW};
@@ -327,7 +327,7 @@ GuiLast::GuiEv GuiLast::Gui::game_prov(const Province& prov, int mx, int my, boo
 }
 
 GuiLast::GuiEv GuiLast::Gui::game_battle(const Battle& battle, const Province& prov, int mx, int my, bool clicked,
-                                         const std::vector<std::shared_ptr<Country>>& countries,
+                                         const std::vector<Country>& countries,
                                          const std::vector<Unit>& units)
 {
     GuiLast::GuiEv ct{ClickEventType::MISS};
@@ -365,7 +365,7 @@ GuiLast::GuiEv GuiLast::Gui::game_battle(const Battle& battle, const Province& p
         for (std::size_t i = 0; i < units.size(); ++i) {
             if (units[i].id == battle.attackers[0]) {
                 assert(units[i].countryId >= 0 && units[i].countryId < countries.size());
-                core.drawText(valuePos, valueSize, whiteCol, countries[units[i].countryId]->GetName(), TEXT_LEFT,
+                core.drawText(valuePos, valueSize, whiteCol, countries[units[i].countryId].GetName(), TEXT_LEFT,
                               AM::FontSize::PX16);
                 break;
             }
@@ -378,7 +378,7 @@ GuiLast::GuiEv GuiLast::Gui::game_battle(const Battle& battle, const Province& p
         for (std::size_t i = 0; i < units.size(); ++i) {
             if (units[i].id == battle.defenders[0]) {
                 assert(units[i].countryId >= 0 && units[i].countryId < countries.size());
-                core.drawText(valuePos, valueSize, whiteCol, countries[units[i].countryId]->GetName(), TEXT_LEFT,
+                core.drawText(valuePos, valueSize, whiteCol, countries[units[i].countryId].GetName(), TEXT_LEFT,
                               AM::FontSize::PX16);
                 break;
             }
@@ -407,7 +407,7 @@ GuiLast::GuiEv GuiLast::Gui::game_battle(const Battle& battle, const Province& p
 }
 
 GuiLast::GuiEv GuiLast::Gui::game_unit(const Unit& unit, int mx, int my, bool clicked,
-                                       std::vector<std::shared_ptr<Country>>& countries)
+                                       std::vector<Country>& countries)
 {
     GuiLast::GuiEv ct{ClickEventType::MISS};
     glm::vec2 offset{5.0f, 2.5f};
@@ -432,7 +432,7 @@ GuiLast::GuiEv GuiLast::Gui::game_unit(const Unit& unit, int mx, int my, bool cl
     core.drawText(namePos, nameSize, whiteCol, "Country: ", TEXT_LEFT, AM::FontSize::PX16);
     valuePos.y -= valueSize.y - offset.y;
     core.drawRect(valuePos, valueSize, weirdBrown); valuePos.z += 0.05f;
-    core.drawText(valuePos, valueSize, whiteCol, countries[unit.countryId]->GetName(), TEXT_LEFT,
+    core.drawText(valuePos, valueSize, whiteCol, countries[unit.countryId].GetName(), TEXT_LEFT,
                   AM::FontSize::PX16);
     if (core.isInRect(valuePos, valueSize, mx, my))
         ct = GuiLast::GuiEv{ClickEventType::OPEN_COUNTRY, unit.GetCountryId()};
@@ -513,7 +513,7 @@ GuiLast::GuiEv GuiLast::Gui::game_war(const War* war, int mx, int my, bool click
 }
 
 GuiLast::GuiEv GuiLast::Gui::game_unitsList(const std::vector<Unit*>& units, int mx, int my, bool clicked, int scr,
-                                            const Province* prov, std::vector<std::shared_ptr<Country>>& countries)
+                                            const Province* prov, std::vector<Country>& countries)
 {
     GuiLast::GuiEv ct{ClickEventType::MISS};
     glm::vec2 offset{5.0f, 2.5f};
@@ -565,7 +565,7 @@ GuiLast::GuiEv GuiLast::Gui::game_unitsList(const std::vector<Unit*>& units, int
             erasePos.x = valuePos.x + elSize.x + offset.x;
             for (auto& unit : units) {
                 // core.drawText(startPos, elSize, greenCol, "name: ", TEXT_LEFT, AM::FontSize::PX16);
-                Color rectcol = countries[unit->countryId]->color;
+                Color rectcol = countries[unit->countryId].color;
                 glm::vec4 r2col{(float)rectcol.r / 255.0f, (float)rectcol.g / 255.0f, (float)rectcol.b / 255.0f,
                                 (float)rectcol.a / 255.0f};
                 core.drawRect(startPos, rectSize, r2col);
@@ -601,8 +601,8 @@ GuiLast::GuiEv GuiLast::Gui::game_unitsList(const std::vector<Unit*>& units, int
 }
 
 GuiLast::GuiEv GuiLast::Gui::game_peaceOffer(const PeaceOffer* offer, int mx, int my, int myCtrId,
-                                             const std::vector<std::unique_ptr<Province>>& provinces,
-                                             std::vector<std::shared_ptr<Country>>& countries, bool clicked,
+                                             const std::vector<Province>& provinces,
+                                             std::vector<Country>& countries, bool clicked,
                                              int scr)
 {
     GuiLast::GuiEv ct{ClickEventType::MISS};
@@ -645,7 +645,7 @@ GuiLast::GuiEv GuiLast::Gui::game_peaceOffer(const PeaceOffer* offer, int mx, in
     assert(offer->offeredBy >= 0 && offer->offeredBy < countries.size());
     core.drawText(
         namePos, nameSize, whiteCol,
-        countries[offer->recipant]->GetName() + std::string(" vs ") + countries[offer->offeredBy]->GetName(),
+        countries[offer->recipant].GetName() + std::string(" vs ") + countries[offer->offeredBy].GetName(),
         TEXT_CENTER, AM::FontSize::PX16);
 
     namePos.y = namePos.y - offset.y * 7.0f - nameSize.y;
@@ -671,8 +671,8 @@ GuiLast::GuiEv GuiLast::Gui::game_peaceOffer(const PeaceOffer* offer, int mx, in
             for (std::size_t i = 0; i < lostTuples->size(); ++i) {
                 core.drawRect(glm::vec3{startPos.x, startPos.y, startPos.z - 0.05f}, elSize, brown);
                 core.drawText(startPos, elSize, whiteCol,
-                              provinces[std::get<0>((*lostTuples)[i])]->GetName() + std::string{" to "} +
-                                  countries[std::get<1>((*lostTuples)[i])]->GetName(),
+                              provinces[std::get<0>((*lostTuples)[i])].GetName() + std::string{" to "} +
+                                  countries[std::get<1>((*lostTuples)[i])].GetName(),
                               TEXT_LEFT, AM::FontSize::PX16);
 
                 startPos.y = startPos.y - elSize.y - offset.y;
@@ -698,8 +698,8 @@ GuiLast::GuiEv GuiLast::Gui::game_peaceOffer(const PeaceOffer* offer, int mx, in
             for (std::size_t i = 0; i < gainTuples->size(); ++i) {
                 core.drawRect(glm::vec3{startPos.x, startPos.y, startPos.z - 0.05f}, elSize, brown);
                 core.drawText(startPos, elSize, whiteCol,
-                              provinces[std::get<0>((*gainTuples)[i])]->GetName() + std::string{" to "} +
-                                  countries[std::get<1>((*gainTuples)[i])]->GetName(),
+                              provinces[std::get<0>((*gainTuples)[i])].GetName() + std::string{" to "} +
+                                  countries[std::get<1>((*gainTuples)[i])].GetName(),
                               TEXT_LEFT, AM::FontSize::PX16);
 
                 startPos.y = startPos.y - elSize.y - offset.y;
@@ -901,46 +901,6 @@ void GuiLast::Gui::start(const glm::mat4& matrix)
     glBindTexture(GL_TEXTURE_2D, (GLuint)fontTexID[31]);
     glUniform1iv(glGetUniformLocation(shader.GetProgram(), "tex"), 32, tex);
     core.guiBatchBegin();
-    /*
-        float dt = 0.0f, time = 0.0f;
-        while (!window->ShouldClose()) {
-            glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
-            glDepthFunc(GL_LESS);
-            glEnable(GL_SCISSOR_TEST);
-            glScissor(0, 0, winSize.x, winSize.y);
-            window->Refresh();
-            glm::vec2 mousePos{(float)window->xMouse * res.x / winSize.x,
-                               (float)(winSize.y - window->yMouse) * (res.y / winSize.y)};
-
-            if (window->keys['M']) {
-                shader =
-                    Shader("src/graphics/shaders/gui_batch/a.vert", "src/graphics/shaders/gui_batch/a.frag",
-       "",
-       "");
-            }
-
-            core.guiBatchBegin();
-            // batch.Begin();
-            glm::vec3 pos{10.0f, 135.0f, 0.0f};
-            glm::vec2 size{100.0f, 200.0f};
-
-            core.drawRect(pos, size, brownCol);
-            glm::vec3 tpos{10.0f, 10.0f, 0.1f};
-            glm::vec2 tsize{100.0f, 200.0f};
-
-            core.drawText(tpos, tsize, greenCol, "Lukasz Kadracki", TEXT_CENTER);
-
-            doTestList(window->scrollOffset, mousePos.x, mousePos.y, dt, window->mouseL,
-       window->mouseLClicked); window->scrollOffset = 0; window->mouseLClicked = false; drawLists();
-
-            core.guiBatchFlush();
-            // batch.Flush();
-
-            window->Update();
-            dt = glfwGetTime() - time;
-            time = glfwGetTime();
-        }
-        */
 }
 
 void GuiLast::Gui::flush()

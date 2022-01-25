@@ -3,8 +3,8 @@
 #include "num_to_string.h"
 
 void ProcessPacket::DailyUpdate(sf::Packet& packet, std::vector<War>& wars,
-                                std::vector<std::unique_ptr<Province>>& provinces,
-                                std::vector<std::shared_ptr<Country>>& countries, TopBarData& topBarData,
+                                std::vector<Province>& provinces,
+                                std::vector<Country>& countries, TopBarData& topBarData,
                                 Map2* map2)
 {
     std::unordered_map<std::string, std::string> values;
@@ -40,12 +40,11 @@ void ProcessPacket::DailyUpdate(sf::Packet& packet, std::vector<War>& wars,
             packet >> totalMonthIncome;
 
             assert(id >= 0 && id < provinces.size());
-            auto& prov = provinces.at(id);
-            prov->SetManpower(manpower);
-            prov->SetDevelopment(development);
-            prov->SetTreasury(treasury);
-            prov->SetMonthIncome(monthIncome);
-            prov->SetTotalMonthIncome(totalMonthIncome);
+            provinces[id].SetManpower(manpower);
+            provinces[id].SetDevelopment(development);
+            provinces[id].SetTreasury(treasury);
+            provinces[id].SetMonthIncome(monthIncome);
+            provinces[id].SetTotalMonthIncome(totalMonthIncome);
         }
 
         int warsCount = 0;
@@ -94,20 +93,18 @@ void ProcessPacket::DailyUpdate(sf::Packet& packet, std::vector<War>& wars,
             packet >> siegeCountryId;
             packet >> siegeSoldiers;
             assert(provId >= 0 && provId < provinces.size());
-            auto& prov = provinces.at(provId);
             assert(siegeCountryId >= 0 && siegeCountryId < countries.size());
-            auto sctr = countries.at(siegeCountryId);
             if (sieged == 100) {
-                map2->occupiedPix[provId * 4] = countries[siegeCountryId]->color.r;
-                map2->occupiedPix[provId * 4 + 1] = countries[siegeCountryId]->color.g;
-                map2->occupiedPix[provId * 4 + 2] = countries[siegeCountryId]->color.b;
-                map2->occupiedPix[provId * 4 + 3] = countries[siegeCountryId]->color.a;
+                map2->occupiedPix[provId * 4] = countries[siegeCountryId].color.r;
+                map2->occupiedPix[provId * 4 + 1] = countries[siegeCountryId].color.g;
+                map2->occupiedPix[provId * 4 + 2] = countries[siegeCountryId].color.b;
+                map2->occupiedPix[provId * 4 + 3] = countries[siegeCountryId].color.a;
             }
-            map2->occupyingPix[provId * 4] = countries[siegeCountryId]->color.r;
-            map2->occupyingPix[provId * 4 + 1] = countries[siegeCountryId]->color.g;
-            map2->occupyingPix[provId * 4 + 2] = countries[siegeCountryId]->color.b;
-            map2->occupyingPix[provId * 4 + 3] = countries[siegeCountryId]->color.a;
-            prov->Sieging(sctr->GetName(), siegeCountryId, sieged, siegeSoldiers);
+            map2->occupyingPix[provId * 4] = countries[siegeCountryId].color.r;
+            map2->occupyingPix[provId * 4 + 1] = countries[siegeCountryId].color.g;
+            map2->occupyingPix[provId * 4 + 2] = countries[siegeCountryId].color.b;
+            map2->occupyingPix[provId * 4 + 3] = countries[siegeCountryId].color.a;
+            provinces[provId].Sieging(countries[siegeCountryId].GetName(), siegeCountryId, sieged, siegeSoldiers);
         }
         if (map2->occupiedText != nullptr)
             delete map2->occupiedText;
@@ -117,14 +114,13 @@ void ProcessPacket::DailyUpdate(sf::Packet& packet, std::vector<War>& wars,
         map2->occupyingText = new Texture(&map2->occupyingPix[0], provinces.size(), 1);
 
         for (auto& prov : provinces) {
-            if (!prov->WasSiegeUpdated()) {
-                if (prov->GetSieged() != 0) {
-                    if (prov->GetCountryId() < 0)  // its water
+            if (!prov.WasSiegeUpdated()) {
+                if (prov.GetSieged() != 0) {
+                    if (prov.GetCountryId() < 0)  // its water
                         continue;
-                    assert(prov->GetCountryId() >= 0 && prov->GetCountryId() < countries.size());
-                    auto sctr = countries.at(prov->GetCountryId());
+                    assert(prov.GetCountryId() >= 0 && prov.GetCountryId() < countries.size());
                 }
-                prov->ResetSieging();
+                prov.ResetSieging();
             }
         }
     }
@@ -199,9 +195,9 @@ void ProcessPacket::HourlyUpdate(sf::Packet& packet, std::vector<Unit>& units, s
     }
 }
 
-int ProcessPacket::PeaceAccepted(sf::Packet& packet, std::vector<std::unique_ptr<Province>>& provinces,
-                                 std::vector<std::shared_ptr<Country>>& countries, std::vector<War>& wars,
-                                 SideBarData& sideBarData, std::vector<ProvData>& provsData)
+int ProcessPacket::PeaceAccepted(sf::Packet& packet, std::vector<Province>& provinces,
+                                 std::vector<Country>& countries, std::vector<War>& wars,
+                                 SideBarData& sideBarData)
 {
     int provinceCount;
     packet >> provinceCount;
@@ -211,11 +207,8 @@ int ProcessPacket::PeaceAccepted(sf::Packet& packet, std::vector<std::unique_ptr
         packet >> provId;
         packet >> ctrId;
         assert(ctrId >= 0 && ctrId < countries.size());
-        auto ctr = countries.at(ctrId);
         assert(provId >= 0 && provId < provinces.size());
-        auto& prov = provinces.at(provId);
-        prov->SetOwner(ctr->GetName(), ctrId);
-        provsData[provId].ctrId = ctrId;
+        provinces[provId].SetOwner(countries[ctrId].GetName(), ctrId);
     }
 
     int warId;
@@ -245,7 +238,7 @@ int ProcessPacket::PeaceAccepted(sf::Packet& packet, std::vector<std::unique_ptr
 }
 
 void ProcessPacket::NewWar(sf::Packet& packet, std::vector<War>& wars, int myCountryId,
-                           std::vector<std::shared_ptr<Country>>& countries, SideBarData& sideBarData)
+                           std::vector<Country>& countries, SideBarData& sideBarData)
 {
     int id;
     int attackerId, defenderId;
@@ -256,32 +249,32 @@ void ProcessPacket::NewWar(sf::Packet& packet, std::vector<War>& wars, int myCou
 
     if (myCountryId == attackerId || myCountryId == defenderId) {
         assert(attackerId >= 0 && attackerId < countries.size());
-        auto attacker = countries.at(attackerId);
+        //auto attacker = countries.at(attackerId);
         assert(defenderId >= 0 && defenderId < countries.size());
-        auto defender = countries.at(defenderId);
+        //auto defender = countries.at(defenderId);
 
-        std::string rival = (myCountryId == attackerId) ? defender->GetName() : attacker->GetName();
+        std::string rival = (myCountryId == attackerId) ? countries[defenderId].GetName() : countries[attackerId].GetName();
         sideBarData.elements.push_back(
             SideBarData::Element{.type = SideBarData::IType::WAR, .val = id, .hoverText = rival});
         War war{id, 0};
-        war.AddAttacker(attacker->GetName(), attackerId);
-        war.AddDefender(defender->GetName(), defenderId);
+        war.AddAttacker(countries[attackerId].GetName(), attackerId);
+        war.AddDefender(countries[defenderId].GetName(), defenderId);
         wars.emplace_back(war);
     }
 }
-void ProcessPacket::ProvincePopulation(sf::Packet& packet, std::vector<std::unique_ptr<Province>>& provinces)
+void ProcessPacket::ProvincePopulation(sf::Packet& packet, std::vector<Province>& provinces)
 {
     int id, population;
     packet >> id;
     packet >> population;
     auto provIt = std::find_if(provinces.begin(), provinces.end(),
-                               [id](const std::unique_ptr<Province>& prov) { return id == prov->GetId(); });
+                               [id](const Province& prov) { return id == prov.GetId(); });
     if (provIt != provinces.end()) {
-        (*provIt)->SetPopulation(population);
+        provIt->SetPopulation(population);
     }
 }
 
-void ProcessPacket::SetGold(sf::Packet& packet, std::shared_ptr<Country>& country)
+void ProcessPacket::SetGold(sf::Packet& packet, Country* country)
 {
     float gold = 0.0f;
     packet >> gold;
@@ -295,7 +288,7 @@ void ProcessPacket::SetSpeed(sf::Packet& packet)
 }
 
 void ProcessPacket::MonthlyUpdate(sf::Packet& packet, const std::string& myCountry,
-                                  std::vector<std::shared_ptr<Country>>& countries)
+                                  std::vector<Country>& countries)
 {
     int countC = 0;
     packet >> countC;
@@ -305,7 +298,7 @@ void ProcessPacket::MonthlyUpdate(sf::Packet& packet, const std::string& myCount
         packet >> cName;
 
         auto cIt = std::find_if(countries.begin(), countries.end(),
-                                [cName](std::shared_ptr<Country>& c) { return c->GetName() == cName; });
+                                [cName](Country& c) { return c.GetName() == cName; });
 
         int relC = 0;
         packet >> relC;
@@ -316,7 +309,7 @@ void ProcessPacket::MonthlyUpdate(sf::Packet& packet, const std::string& myCount
             packet >> rcr;
 
             if (cIt != countries.end())
-                (*cIt)->SetRel(rcn, rcr);
+                cIt->SetRel(rcn, rcr);
         }
     }
 
@@ -330,15 +323,15 @@ void ProcessPacket::MonthlyUpdate(sf::Packet& packet, const std::string& myCount
     }
 
     auto cIt = std::find_if(countries.begin(), countries.end(),
-                            [myCountry](std::shared_ptr<Country>& c) { return c->GetName() == myCountry; });
+                            [myCountry](Country& c) { return c.GetName() == myCountry; });
     if (cIt != countries.end()) {
-        (*cIt)->SetImprRel(imprRel);
+        cIt->SetImprRel(imprRel);
     }
 }
 
 void ProcessPacket::BotPeaceOffer(sf::Packet& packet, std::vector<PeaceOffer>& peaceOffers,
-                                  const std::vector<std::shared_ptr<Country>>& countries, SideBarData& sideBarData,
-                                  const std::shared_ptr<Country>& myCountry)
+                                  const std::vector<Country>& countries, SideBarData& sideBarData,
+                                  const Country* myCountry)
 {
     PeaceOffer peaceOffer;
     int lostProvCount, gainProvCount;
@@ -385,24 +378,23 @@ void ProcessPacket::BotPeaceOffer(sf::Packet& packet, std::vector<PeaceOffer>& p
     assert(peaceOffer.offeredBy >= 0 && peaceOffer.offeredBy < countries.size());
     sideBarData.elements.push_back(SideBarData::Element{.type = SideBarData::IType::PEACE_OFFER,
                                                         .val = peaceOffer.peaceId,
-                                                        .hoverText = countries[peaceOffer.offeredBy]->GetName()});
+                                                        .hoverText = countries[peaceOffer.offeredBy].GetName()});
     peaceOffers.push_back(peaceOffer);
 }
 
 void ProcessPacket::PeaceDeclined(sf::Packet& packet, SideBarData& sideBarData,
-                                  const std::vector<std::shared_ptr<Country>>& countries)
+                                  const std::vector<Country>& countries)
 {
     int recipantid;
     packet >> recipantid;
     assert(recipantid >= 0 && recipantid < countries.size());
 
     sideBarData.elements.push_back(SideBarData::Element{
-        .type = SideBarData::IType::PEACE_DECLINED, .val = 0, .hoverText = countries[recipantid]->GetName()});
+        .type = SideBarData::IType::PEACE_DECLINED, .val = 0, .hoverText = countries[recipantid].GetName()});
 }
 
 void ProcessPacket::Paused(sf::Packet& packet, bool& game_paused)
 {
-    Log("olaboga");
     packet >> game_paused;
     Log(game_paused);
 }

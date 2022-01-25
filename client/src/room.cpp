@@ -1,7 +1,7 @@
 #include "room.h"
 
-Room::Room(Window& window, Settings& s, std::vector<std::shared_ptr<Country>>& countries)
-    : Scene(window, s.resolution), settings(s), countries(countries)
+Room::Room(Window* window, GameData* gd)
+    : window(window), gd(gd)
 {
 }
 
@@ -10,9 +10,9 @@ Room::~Room() {}
 void Room::Play(bool localhost)
 {
     if (localhost)
-        status = socket.connect(settings.localhost, settings.localPort);
+        status = socket.connect(gd->settings.localhost, gd->settings.localPort);
     else
-        status = socket.connect(settings.friendIp, settings.friendPort);
+        status = socket.connect(gd->settings.friendIp, gd->settings.friendPort);
 
     socket.setBlocking(false);
     std::string country = "";
@@ -23,7 +23,7 @@ void Room::Play(bool localhost)
         socket.send(pack);
         pack.clear();
         pack << "name";
-        pack << settings.name;
+        pack << gd->settings.name;
         socket.send(pack);
     }
 
@@ -32,27 +32,29 @@ void Room::Play(bool localhost)
 
 
     if (play) {
-        Game game(window, socket, country, settings.resolution, countries);
+        Game game(window, socket, country, gd);
         game.Play();
     }
 }
 
 void Room::loop(bool& play, std::string& country)
 {
-    guiLast.init(&window, resolution, window.GetSize());
+    guiLast.init(window, gd->settings.resolution, window->GetSize());
     std::vector<sf::Packet> toSend;
     std::vector<std::string> plarr;
     std::vector<std::string> ctrarr;
 
+
+    // ojojoj atlantyda bedzie 2 razy w tej tablicy
     ctrarr.push_back("Atlantyda");
-    for (auto& c : countries) {
-        if (c->GetName() == "Atlantyda")
+    for (auto& c : gd->countries) {
+        if (c.GetName() == "Atlantyda")
             continue;
-        ctrarr.push_back(c->GetName());
+        ctrarr.push_back(c.GetName());
     }
 
-    while (!window.ShouldClose()) {
-        window.Refresh();
+    while (!window->ShouldClose()) {
+        window->Refresh();
 
         sf::Packet packet;
         if (socket.receive(packet) == sf::Socket::Done) {
@@ -83,16 +85,16 @@ void Room::loop(bool& play, std::string& country)
 
         // gui draw & clicks
         guiLast.start();
-        glm::vec2 mp{window.xMouse * resolution.x / window.GetSize().x,
-                     (window.GetSize().y - window.yMouse) * resolution.y / window.GetSize().y};
+        glm::vec2 mp{window->xMouse * gd->settings.resolution.x / window->GetSize().x,
+                     (window->GetSize().y - window->yMouse) * gd->settings.resolution.y / window->GetSize().y};
 
         GuiLast::GuiEv ctype;
         GuiLast::GuiEv tmpctype;
-        tmpctype = guiLast.room_playerList(plarr, mp.x, mp.y, window.scrollOffset);
+        tmpctype = guiLast.room_playerList(plarr, mp.x, mp.y, window->scrollOffset);
         if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
         
-        tmpctype = guiLast.room_countryList(ctrarr, mp.x, mp.y, window.scrollOffset);
+        tmpctype = guiLast.room_countryList(ctrarr, mp.x, mp.y, window->scrollOffset);
         if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
         
@@ -101,7 +103,7 @@ void Room::loop(bool& play, std::string& country)
             ctype = tmpctype;
 
         guiLast.flush();
-        if (window.mouseLClicked) {
+        if (window->mouseLClicked) {
             std::vector<sf::Packet> packets;
             switch (ctype.ct) {
                 case ClickEventType::ROOM_PICK_COUNTRY: {
@@ -122,16 +124,16 @@ void Room::loop(bool& play, std::string& country)
             if (packets.size())
                 toSend.insert(toSend.end(), packets.begin(), packets.end());
         }
-        window.mouseLClicked = false;
-        window.mouseRClicked = false;
-        window.scrollOffset = 0;
+        window->mouseLClicked = false;
+        window->mouseRClicked = false;
+        window->scrollOffset = 0;
 
         for (auto& pct : toSend) {
             socket.send(pct);
         }
 
         toSend.clear();
-        window.Update();
+        window->Update();
 
         if (play) {
             break;
@@ -139,6 +141,3 @@ void Room::loop(bool& play, std::string& country)
     }
 }
 
-void Room::processGuiEvent(std::vector<sf::Packet>& toSend, bool& play)
-{
-}
