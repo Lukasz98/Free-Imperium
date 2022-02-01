@@ -1,3 +1,3 @@
 # Free-Imperium
-Open source strategy game
-https://youtu.be/3iscfvGfxc8
+https://www.youtube.com/watch?v=KIBkCDm3Ito
+

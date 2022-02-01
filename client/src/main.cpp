@@ -47,6 +47,7 @@ int main()
     gd.provinces = ProvinceLoader::Load(gd.colorToId);
     gd.initMap();
     gd.loadProvinceTexture();
+    gd.makeCountryNames();
 
     Menu menu(&window, &gd);
     menu.Play();

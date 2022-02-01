@@ -169,7 +169,6 @@ void Game::Play()
     }
 
     const unsigned char *h = gd->map->heightMap.GetPixels();
-    gd->makeCountryNames();
 
     err = glGetError();
     if (err)
