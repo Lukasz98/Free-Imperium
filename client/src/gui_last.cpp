@@ -825,19 +825,30 @@ GuiLast::GuiEv GuiLast::Gui::room_countryList(const std::vector<std::string>& ct
     return GuiLast::GuiEv{ClickEventType::MISS};
 }
 
-GuiLast::GuiEv GuiLast::Gui::room_playerList(const std::vector<std::string>& plarr, int mx, int my, int scr)
+GuiLast::GuiEv GuiLast::Gui::room_playerList(const std::string& playerName, const std::vector<std::string>& plarr, int mx, int my, int scr)
 {
     GuiLast::GuiEv ct{ClickEventType::MISS};
     glm::vec2 offset{5.0f, 2.5f};
     glm::vec2 wSize{res.x * 0.3f, res.y * 0.7f};
-    glm::vec3 wPos{offset.x, 50.0f, 0.1f};
+    glm::vec3 wPos{offset.x, 10.0f, 0.1f};
+    core.drawRect(wPos, wSize, darkBrown);
+   
+    glm::vec2 itemSize{wPos.x, 50.0f};
+    core.drawText(glm::vec3{wPos.x, wPos.y + wSize.y  - itemSize.y, wPos.z + 0.1f}, glm::vec2{wSize.x, itemSize.y},
+                  whiteCol, "Pick your country " + playerName, TEXT_CENTER, AM::FontSize::PX32);
+    
+    glm::vec2 buttonSize{wSize.x * 0.35f, 50.0f};
+    glm::vec3 buttonPos{wPos.x + wSize.x - buttonSize.x - offset.x * 2.0f, wPos.y + offset.y * 3.0f, 0.1f};
+    core.drawRect(buttonPos, buttonSize, weirdBrown);
+    core.drawText(buttonPos, buttonSize,
+                  whiteCol, "Spectator", TEXT_CENTER, AM::FontSize::PX32);
+    if (core.isInRect(buttonPos, buttonSize, mx, my))
+        ct = GuiLast::GuiEv{ClickEventType::START_AS_SPECTATOR};
 
-    core.drawRect(wPos, wSize, weirdBrown);
-    core.drawText(glm::vec3{wPos.x, wPos.y + wSize.y * 0.9f, wPos.z + 0.2f}, glm::vec2{wSize.x, wSize.y * 0.1f},
+    glm::vec2 listSize{wSize.x, wSize.y * 0.35f};
+    glm::vec3 listPos{wPos.x, wPos.y + buttonPos.y + buttonSize.y + offset.y, wPos.z + 0.1f};
+    core.drawText(glm::vec3{wPos.x, listPos.y + listSize.y + offset.y, wPos.z + 0.1f}, glm::vec2{wSize.x, 40.0f},
                   whiteCol, "Players list", TEXT_CENTER, AM::FontSize::PX32);
-
-    glm::vec2 listSize{wSize.x, wSize.y * 0.9f};
-    glm::vec3 listPos{wPos.x, wPos.y, wPos.z + 0.1f};
     core.drawRect(listPos, listSize, weirdBrown);
     glm::vec2 nameSize{listSize.x, 50.0f};
     glm::vec3 namePos{listPos.x + offset.x, listPos.y + listSize.y - offset.y - nameSize.y, 0.2f};

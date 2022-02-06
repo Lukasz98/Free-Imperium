@@ -1,7 +1,7 @@
 #include "menu.h"
 
-Menu::Menu(Window* window, GameData* gd)
-    : window(window), gd(gd)
+Menu::Menu(GameData* gd)
+    : gd(gd)
 {
 }
 
@@ -11,7 +11,7 @@ void Menu::Play()
 {
     loop();
     if (startGame) {
-        Room room(window, gd);
+        Room room(gd);
         room.Play();
     }
     else if (quit) {
@@ -20,13 +20,13 @@ void Menu::Play()
 
 void Menu::loop()
 {
-    guiLast.init(window, gd->settings.resolution, window->GetSize());
-    while (!window->ShouldClose() && !quit && !startGame) {
-        window->Refresh();
+    guiLast.init(gd->window, gd->settings.resolution, gd->window->GetSize());
+    while (!gd->window->ShouldClose() && !quit && !startGame) {
+        gd->window->Refresh();
 
         guiLast.start();
-        glm::vec2 mp{window->xMouse * gd->settings.resolution.x / window->GetSize().x,
-                     (window->GetSize().y - window->yMouse) * gd->settings.resolution.y / window->GetSize().y};
+        glm::vec2 mp{gd->window->xMouse * gd->settings.resolution.x / gd->window->GetSize().x,
+                     (gd->window->GetSize().y - gd->window->yMouse) * gd->settings.resolution.y / gd->window->GetSize().y};
 
         GuiLast::GuiEv ctype;
         GuiLast::GuiEv tmpctype;
@@ -35,7 +35,7 @@ void Menu::loop()
             ctype = tmpctype;
 
         guiLast.flush();
-        if (window->mouseLClicked) {
+        if (gd->window->mouseLClicked) {
             std::vector<sf::Packet> packets;
             switch (ctype.ct) {
                 case ClickEventType::QUIT_GAME: {
@@ -48,10 +48,10 @@ void Menu::loop()
                 }
             }
         }
-        window->mouseLClicked = false;
-        window->mouseRClicked = false;
-        window->scrollOffset = 0;
-        window->Update();
+        gd->window->mouseLClicked = false;
+        gd->window->mouseRClicked = false;
+        gd->window->scrollOffset = 0;
+        gd->window->Update();
     }
 }
 

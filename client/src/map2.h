@@ -110,6 +110,8 @@ struct Map2 {
     std::vector<unsigned char> occupiedPix;
     Texture* occupyingText = nullptr;
     std::vector<unsigned char> occupyingPix;
+    Texture* markedCtrText = nullptr;
+    std::vector<unsigned char> markedCtrPix;
     //GLuint heightMapTextureId;
     Texture heightMap;
 

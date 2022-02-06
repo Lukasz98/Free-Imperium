@@ -2,14 +2,17 @@
 #include <vector>
 
 #include "battle.h"
+#include "camera.h"
 #include "country.h"
+#include "load_data.h"
 #include "map2.h"
 #include "province.h"
+#include "settings.h"
 #include "unit.h"
 #include "war.h"
-#include "settings.h"
 
 struct GameData {
+    Window *window;
     std::vector<Country> countries;
     std::vector<Province> provinces;
     std::vector<Battle> battles;
@@ -22,14 +25,56 @@ struct GameData {
     std::vector<FontVertex> fontVerts;
     GLuint fontCtrVao, fontCtrVbo;
     Settings settings;
+    Camera camera;
+    float waterTime = 0.0f;
+    float ctrNamesFade = 0.0f, ctrNamesFadeIn = 0.0f;
+    GLuint fontTexID[32];
+    GLint tex[32];
+    Shader fontShader;
+    const float zPoint = 1500.0f;
+
+    void updateTime(float dt)
+    {
+        waterTime += dt;
+    }
 
     void initMap()
     {
+        for (GLint i = 0; i < 32; ++i) {
+            tex[i] = i;
+        }
+        for (int i = 0; i <= (int)AM::FontSize::PX160; ++i) {
+            fontTexID[i] = AM::atlasTexture[i]->GetId();
+        }
+        fontShader = Shader{"src/graphics/shaders/fonts.vert", "src/graphics/shaders/fonts.frag", "", ""};
         provsCols.reserve(provinces.size());
         // for (auto& p : provsData) provsCols.push_back(Color3{p.r, p.g, p.b});
         for (auto &p : provinces) provsCols.push_back(Color3{p.color.r, p.color.g, p.color.b});
 
         map = new Map2(provsCols, settings.scale);
+
+        map->occupiedPix.resize(provinces.size() * 4);
+        map->occupyingPix.resize(provinces.size() * 4);
+        std::memset(&map->occupiedPix[0], 0, map->occupiedPix.size());
+        std::memset(&map->occupyingPix[0], 0, map->occupyingPix.size());
+        if (map->occupiedText != nullptr)
+            delete map->occupiedText;
+        map->occupiedText = new Texture(&map->occupiedPix[0], provinces.size(), 1);
+        if (map->occupyingText != nullptr)
+            delete map->occupyingText;
+        map->occupyingText = new Texture(&map->occupyingPix[0], provinces.size(), 1);
+
+        resetMarkedCountry();
+    }
+
+    void resetMarkedCountry()
+    {
+        map->markedCtrPix.resize(provinces.size() * 4);
+        std::memset(&map->markedCtrPix[0], 0, map->markedCtrPix.size());
+        if (map->markedCtrText != nullptr)
+            delete map->markedCtrText;
+        map->markedCtrText = new Texture(&map->markedCtrPix[0], provinces.size(), 1);
+
     }
 
     void f(int ctrId)
@@ -272,3 +317,90 @@ struct GameData {
         }
     }
 };
+
+static void checkCountryNamesFade(GameData *gd, float dt)
+{
+    if (gd->camera.eye.z > gd->zPoint) {
+        gd->ctrNamesFade = 0.0f;
+    }
+    else {
+        gd->ctrNamesFadeIn = 0.0f;
+    }
+}
+static void updateCountryNamesFade(GameData *gd, float dt)
+{
+    gd->ctrNamesFade += dt;
+    if (gd->ctrNamesFade < 0.0f)
+        gd->ctrNamesFade = 10.0f;
+    gd->ctrNamesFadeIn -= dt;
+    if (gd->ctrNamesFadeIn > 0.0f)
+        gd->ctrNamesFadeIn = -10.0f;
+}
+static void drawCountryNames(GameData *gd)
+{
+    for (int i = 0; i <= (int)AM::FontSize::PX160; ++i) {
+        glActiveTexture(GL_TEXTURE0 + i);
+        glBindTexture(GL_TEXTURE_2D, (GLuint)gd->fontTexID[i]);
+    }
+
+    // if (gd->camera.eye.z > gd->zPoint) {
+    //     gd->ctrNamesFade = 0.0f;
+    // }
+    // else {
+    //     gd->ctrNamesFadeIn = 0.0f;
+    // }
+    // Log(ctrNamesFadeIn << ", fade: " << ctrNamesFade);
+    // if (((gd->camera.eye.z > zPoint) || ctrNamesFade < 1.0f) && openPeaceOfferId == -1) {
+    glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
+
+    glUseProgram(gd->fontShader.GetProgram());
+    glUniformMatrix4fv(glGetUniformLocation(gd->fontShader.GetProgram(), "matrix"), 1, GL_FALSE,
+                       glm::value_ptr(gd->camera.GetMat()));
+    glUniform1iv(glGetUniformLocation(gd->fontShader.GetProgram(), "tex"), 32, gd->tex);
+    glUniform1f(glGetUniformLocation(gd->fontShader.GetProgram(), "fade"), gd->ctrNamesFade);
+    glUniform1f(glGetUniformLocation(gd->fontShader.GetProgram(), "fadein"), gd->ctrNamesFadeIn);
+
+    {  // chars
+        glBindVertexArray(gd->fontCtrVao);
+        glDrawArrays(GL_TRIANGLES, 0, gd->fontVerts.size());
+    }
+    //}
+    glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
+}
+
+static void cameraMovement(GameData *gd, float dt)
+{
+    if (gd->window->keys['A'])
+        gd->camera.MoveHor(-1, dt);
+    if (gd->window->keys['D'])
+        gd->camera.MoveHor(1, dt);
+    if (gd->window->keys['W'])
+        gd->camera.MoveVer(1, dt);
+    if (gd->window->keys['S'])
+        gd->camera.MoveVer(-1, dt);
+    if (gd->window->keys['F'])
+        gd->camera.Rotate(1, dt);
+    if (gd->window->keys['T'])
+        gd->camera.Rotate(-1, dt);
+    if (gd->window->keys['G'])
+        gd->camera.Reset();
+
+    if (gd->window->keys['M'])
+        gd->map->ReloadShaders();
+}
+
+static int clickedProvId(GameData *gd, glm::vec2 mouseInWorld)
+{
+    gd->map->DrawForColorPick(gd->camera.GetMat(), (float)gd->provinces.size());
+    int pixx = gd->window->xMouse, pixy = gd->window->GetSize().y - gd->window->yMouse;
+    unsigned char pixel[4];
+    glReadPixels(pixx, pixy, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+    gd->window->Refresh();
+    // clickedProvColor = {(int)pixel[0] / 255.0, (int)pixel[1] / 255.0, (int)pixel[2] / 255.0};
+    unsigned int clickedProviPhash = getHash(pixel[0], pixel[1], pixel[2]);
+    if (gd->colorToId.find(clickedProviPhash) != gd->colorToId.end()) {
+        int pid = gd->colorToId[clickedProviPhash];
+        return pid;
+    }
+    return -1;
+}

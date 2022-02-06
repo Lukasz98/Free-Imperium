@@ -308,6 +308,8 @@ Map2::~Map2()
         delete occupiedText;
     if (occupyingText != nullptr)
         delete occupyingText;
+    if (markedCtrText != nullptr)
+        delete markedCtrText;
 }
 
 void Map2::DrawForColorPick(glm::mat4 proj, float provCount)
@@ -420,6 +422,8 @@ void Map2::ActivateTextures()
         texID[3] = occupiedText->GetId();
     if (occupyingText != nullptr)
         texID[4] = occupyingText->GetId();
+    if (markedCtrText != nullptr)
+        texID[5] = markedCtrText->GetId();
     texID[20] = mapTextures.province.id;
     texID[21] = mapTextures.country.id;
     for (int i = 0; i < 32; ++i) {

@@ -57,7 +57,7 @@ struct Gui {
     GuiEv game_unitsList(const std::vector<Unit*>& units, int mx, int my, bool clicked, int scr, const Province* prov, std::vector<Country>& countries);
     GuiEv game_SideBar(const SideBarData& sbData, int mx, int my, bool clicked, int scr);
 
-    GuiEv room_playerList(const std::vector<std::string>& plarr, int mx, int my, int sc);
+    GuiEv room_playerList(const std::string& playerName, const std::vector<std::string>& plarr, int mx, int my, int sc);
     GuiEv room_countryList(const std::vector<std::string>& ctrarr, int mx, int my, int scr);
     GuiEv room_startButton(int mx, int my);
 

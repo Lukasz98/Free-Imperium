@@ -7,7 +7,7 @@
 #include <memory>
 
 //#include "battle.h"
-#include "camera.h"
+//#include "camera.h"
 //#include "country.h"
 #include "font_batch.h"
 #include "gui_structs.h"
@@ -23,8 +23,7 @@
 
 class Game
 {
-    Window* window;
-    Camera camera;
+    //Camera camera;
     sf::TcpSocket& socket;
     Shader pickModelShader;
     Shader labelShader;
@@ -32,11 +31,11 @@ class Game
     std::vector<glm::mat4> uMat;
     std::vector<int> pids;  // chyba trzyma id prowincji na ktorych sa unity
     GuiLast::Gui guiLast;
-    glm::vec3 clickedProvColor;
-    unsigned int clickedProviPhash;
+    //glm::vec3 clickedProvColor;
+    //unsigned int clickedProviPhash;
     bool game_paused = false;
     float markedProvId = -1.0f;
-    glm::vec3 unitPos;
+    //glm::vec3 unitPos;
     GuiLast::GuiEv ctype = ClickEventType::MISS;
     bool openMyCountry = false;
     int openCountryId = -1;
@@ -74,9 +73,8 @@ class Game
     //void makeCountryNames(const unsigned char* h);
 
     void guiDraw();
-
    public:
-    Game(Window* win, sf::TcpSocket& sock, std::string countryName, GameData* gd);
+    Game(sf::TcpSocket& sock, std::string countryName, GameData* gd);
     ~Game();
 
     void Play();

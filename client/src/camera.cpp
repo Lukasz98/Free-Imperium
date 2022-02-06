@@ -19,7 +19,7 @@ Camera::Camera(glm::vec2 winSize)
     float SCale = 4.0f;
     int mapWidth = 5632, mapHeight = 2048;
 
-    eye = glm::vec3(mapWidth * 1.0 * 2.0, mapHeight * 1.4f * 2.0f, 169.0f + 150.0f);
+    eye = glm::vec3(mapWidth * 1.0 * 2.0, mapHeight * 1.4f * 2.0f, 169.0f + 1550.0f);
     maxZ = 1800.0f;
     maxZ = 2800.0f;
     maxZ = far;
@@ -104,7 +104,7 @@ void Camera::Reset()
 
 void Camera::Scroll(int z)
 {
-    eye.z += 20.0f * z;
+    eye.z += 40.0f * z;
     if (eye.z < minZ)
         eye.z = minZ;
     else if (eye.z > maxZ)

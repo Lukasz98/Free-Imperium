@@ -13,7 +13,7 @@ public:
     glm::mat4 projection;
     glm::vec3 eye, center, up;
     glm::vec3 look;
-    const glm::vec3 look_def;
+    glm::vec3 look_def;
     float width, height;
     float speed;
     float baseSpeed;
@@ -32,6 +32,7 @@ public:
 
 public:
     Camera(glm::vec2 winSize);
+    Camera() {}
 
     void SetPos(float x, float y);
     void MoveHor(int x, float dt);

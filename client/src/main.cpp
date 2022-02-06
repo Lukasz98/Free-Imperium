@@ -42,14 +42,16 @@ int main()
     AM::Init();
 
     GameData gd;
+    gd.window = &window;
     gd.settings.resolution = resolution;
     gd.countries = CountryLoader::Load();
     gd.provinces = ProvinceLoader::Load(gd.colorToId);
+    gd.camera = Camera(gd.settings.resolution);
     gd.initMap();
     gd.loadProvinceTexture();
     gd.makeCountryNames();
 
-    Menu menu(&window, &gd);
+    Menu menu(&gd);
     menu.Play();
 
     AM::Dispose();

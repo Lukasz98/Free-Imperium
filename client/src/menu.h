@@ -16,7 +16,7 @@ class Menu
     void loop();
     
 public:
-    Menu(Window* window, GameData* gd);
+    Menu(GameData* gd);
     ~Menu();
 
     void Play();

@@ -1,9 +1,6 @@
 #include "room.h"
 
-Room::Room(Window* window, GameData* gd)
-    : window(window), gd(gd)
-{
-}
+Room::Room(GameData* gd) : gd(gd) {}
 
 Room::~Room() {}
 
@@ -15,7 +12,6 @@ void Room::Play(bool localhost)
         status = socket.connect(gd->settings.friendIp, gd->settings.friendPort);
 
     socket.setBlocking(false);
-    std::string country = "";
 
     if (status == sf::Socket::Done) {
         sf::Packet pack;
@@ -27,23 +23,127 @@ void Room::Play(bool localhost)
         socket.send(pack);
     }
 
-    bool play = false;
-    loop(play, country);
-
+    loop();
 
     if (play) {
-        Game game(window, socket, country, gd);
+        Game game(socket, myCountryName, gd);
         game.Play();
     }
 }
 
-void Room::loop(bool& play, std::string& country)
+void Room::receivePackets()
 {
-    guiLast.init(window, gd->settings.resolution, window->GetSize());
-    std::vector<sf::Packet> toSend;
-    std::vector<std::string> plarr;
-    std::vector<std::string> ctrarr;
+    sf::Packet packet;
+    if (socket.receive(packet) == sf::Socket::Done) {
+        std::string messg;
+        packet >> messg;
+        if (messg == "Start") {
+            Log(messg);
+            play = true;
+            // break;
+        }
+        else if (messg == "Country") {
+            packet >> messg;
+            myCountryName = messg;
+        }
+        else if (messg == "Players") {
+            int playersCount = 0;
+            packet >> playersCount;
+            plarr.clear();
+            for (int i = 0; i < playersCount; i++) {
+                packet >> messg;
+                std::string text = messg;
+                packet >> messg;
+                text += " " + messg;
+                plarr.push_back(text);
+            }
+        }
+    }
+}
 
+void Room::guiDraw()
+{
+    ctype.ct = ClickEventType::MISS;
+    guiLast.start();
+    glm::vec2 mp{
+        gd->window->xMouse * gd->settings.resolution.x / gd->window->GetSize().x,
+        (gd->window->GetSize().y - gd->window->yMouse) * gd->settings.resolution.y / gd->window->GetSize().y};
+
+    GuiLast::GuiEv tmpctype;
+    tmpctype = guiLast.room_playerList(gd->settings.name, plarr, mp.x, mp.y, gd->window->scrollOffset);
+    if (tmpctype.ct != ClickEventType::MISS)
+        ctype = tmpctype;
+
+    //tmpctype = guiLast.room_countryList(ctrarr, mp.x, mp.y, gd->window->scrollOffset);
+    //if (tmpctype.ct != ClickEventType::MISS)
+    //    ctype = tmpctype;
+
+    tmpctype = guiLast.room_startButton(mp.x, mp.y);
+    if (tmpctype.ct != ClickEventType::MISS)
+        ctype = tmpctype;
+
+    guiLast.flush();
+    if (gd->window->mouseLClicked) {
+        std::vector<sf::Packet> packets;
+        switch (ctype.ct) {
+            case ClickEventType::START_AS_SPECTATOR: {
+                sf::Packet packet;
+                packet << "country";
+                packet << "Atlantyda";
+                toSend.emplace_back(packet);
+                break;
+            }
+            case ClickEventType::ROOM_START_GAME: {
+                sf::Packet packet;
+                packet << "Start";
+                toSend.emplace_back(packet);
+                break;
+            }
+        }
+        if (packets.size())
+            toSend.insert(toSend.end(), packets.begin(), packets.end());
+    }
+}
+
+void Room::input()
+{
+    cameraMovement(gd, dt);
+    if (gd->window->scrollOffset && ctype.ct == ClickEventType::MISS) {
+        gd->camera.Scroll(gd->window->scrollOffset);
+    }
+
+    if (gd->window->mouseLClicked && ctype.ct == ClickEventType::MISS) {
+        glm::vec2 mp{
+            gd->window->xMouse * gd->settings.resolution.x / gd->window->GetSize().x,
+            (gd->window->GetSize().y - gd->window->yMouse) * gd->settings.resolution.y / gd->window->GetSize().y};
+        int id = (float)clickedProvId(gd, mp);
+        if (id >= 0 && id < gd->provinces.size()) {
+            sf::Packet packet;
+            packet << "country";
+            packet << gd->countries[gd->provinces[id].countryId].GetName();
+            toSend.emplace_back(packet);
+            markedCountryId = gd->provinces[id].countryId;
+
+            gd->map->markedCtrPix.resize(gd->provinces.size() * 4);
+            std::memset(&gd->map->markedCtrPix[0], 0, gd->map->markedCtrPix.size());
+            Color col{200, 200, 200, 255};
+            for (int i = 0; i < gd->ctrProvs[markedCountryId].size(); ++i) {
+                int provid = gd->ctrProvs[markedCountryId][i];
+                gd->map->markedCtrPix[provid * 4] = col.r;
+                gd->map->markedCtrPix[provid * 4 + 1] = col.g;
+                gd->map->markedCtrPix[provid * 4 + 2] = col.b;
+                gd->map->markedCtrPix[provid * 4 + 3] = col.a;
+            }
+            if (gd->map->markedCtrText != nullptr)
+                delete gd->map->markedCtrText;
+            gd->map->markedCtrText = new Texture(&gd->map->markedCtrPix[0], gd->provinces.size(), 1);
+        }
+    }
+}
+
+void Room::loop()
+{
+    guiLast.init(gd->window, gd->settings.resolution, gd->window->GetSize());
 
     // ojojoj atlantyda bedzie 2 razy w tej tablicy
     ctrarr.push_back("Atlantyda");
@@ -53,87 +153,51 @@ void Room::loop(bool& play, std::string& country)
         ctrarr.push_back(c.GetName());
     }
 
-    while (!window->ShouldClose()) {
-        window->Refresh();
+    float time = 0.0f;
+    while (!gd->window->ShouldClose() && play == false) {
+        gd->window->Refresh();
+        
+        glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
 
-        sf::Packet packet;
-        if (socket.receive(packet) == sf::Socket::Done) {
-            std::string messg;
-            packet >> messg;
-            if (messg == "Start") {
-                Log(messg);
-                play = true;
-                break;
-            }
-            else if (messg == "Country") {
-                packet >> messg;
-                country = messg;
-            }
-            else if (messg == "Players") {
-                int playersCount = 0;
-                packet >> playersCount;
-                plarr.clear();
-                for (int i = 0; i < playersCount; i++) {
-                    packet >> messg;
-                    std::string text = messg;
-                    packet >> messg;
-                    text += " " + messg;
-                    plarr.push_back(text);
-                }
-            }
+        receivePackets();
+        input();
+
+        // map
+        glm::mat4x4 matrix = gd->camera.GetMat();
+        gd->map->ActivateTextures();
+        gd->map->DrawWater(matrix, gd->camera.eye);
+        int markedProvId = -1;
+        gd->map->DrawLand(matrix, gd->camera.eye, markedProvId, gd->provinces.size(),
+                          gd->map->MAPID_COUNTRY, gd->waterTime);
+        gd->map->DrawBorders(matrix);
+        checkCountryNamesFade(gd, dt);
+        if (((gd->camera.eye.z > gd->zPoint) || gd->ctrNamesFade < 1.0f)) {
+            drawCountryNames(gd);
         }
+        updateCountryNamesFade(gd, dt);
+
+        GLuint ts[] = {0};
+        glBindTextures(ts[0], 1, ts);
+        glActiveTexture(GL_TEXTURE0);
+        //~map
 
         // gui draw & clicks
-        guiLast.start();
-        glm::vec2 mp{window->xMouse * gd->settings.resolution.x / window->GetSize().x,
-                     (window->GetSize().y - window->yMouse) * gd->settings.resolution.y / window->GetSize().y};
+        guiDraw();
 
-        GuiLast::GuiEv ctype;
-        GuiLast::GuiEv tmpctype;
-        tmpctype = guiLast.room_playerList(plarr, mp.x, mp.y, window->scrollOffset);
-        if (tmpctype.ct != ClickEventType::MISS)
-            ctype = tmpctype;
-        
-        tmpctype = guiLast.room_countryList(ctrarr, mp.x, mp.y, window->scrollOffset);
-        if (tmpctype.ct != ClickEventType::MISS)
-            ctype = tmpctype;
-        
-        tmpctype = guiLast.room_startButton(mp.x, mp.y);
-        if (tmpctype.ct != ClickEventType::MISS)
-            ctype = tmpctype;
-
-        guiLast.flush();
-        if (window->mouseLClicked) {
-            std::vector<sf::Packet> packets;
-            switch (ctype.ct) {
-                case ClickEventType::ROOM_PICK_COUNTRY: {
-                    auto ctrName = ctrarr[ctype.val];
-                    sf::Packet packet;
-                    packet << "country"; 
-                    packet << ctrName; 
-                    toSend.emplace_back(packet); 
-                    break;
-                }
-                case ClickEventType::ROOM_START_GAME: {
-                    sf::Packet packet;
-                    packet << "Start";
-                    toSend.emplace_back(packet);
-                    break;
-                }
-            }
-            if (packets.size())
-                toSend.insert(toSend.end(), packets.begin(), packets.end());
-        }
-        window->mouseLClicked = false;
-        window->mouseRClicked = false;
-        window->scrollOffset = 0;
+        gd->window->mouseLClicked = false;
+        gd->window->mouseRClicked = false;
+        gd->window->scrollOffset = 0;
 
         for (auto& pct : toSend) {
             socket.send(pct);
         }
 
         toSend.clear();
-        window->Update();
+        gd->window->Update();
+
+        dt = glfwGetTime() - time;
+        gd->updateTime(dt);
+        time = glfwGetTime();
 
         if (play) {
             break;
