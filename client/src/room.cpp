@@ -74,9 +74,9 @@ void Room::guiDraw()
     if (tmpctype.ct != ClickEventType::MISS)
         ctype = tmpctype;
 
-    //tmpctype = guiLast.room_countryList(ctrarr, mp.x, mp.y, gd->window->scrollOffset);
-    //if (tmpctype.ct != ClickEventType::MISS)
-    //    ctype = tmpctype;
+    // tmpctype = guiLast.room_countryList(ctrarr, mp.x, mp.y, gd->window->scrollOffset);
+    // if (tmpctype.ct != ClickEventType::MISS)
+    //     ctype = tmpctype;
 
     tmpctype = guiLast.room_startButton(mp.x, mp.y);
     if (tmpctype.ct != ClickEventType::MISS)
@@ -103,6 +103,11 @@ void Room::guiDraw()
         if (packets.size())
             toSend.insert(toSend.end(), packets.begin(), packets.end());
     }
+
+    if (ctype.ct == ClickEventType::NONE || ctype.ct == ClickEventType::MISS)
+        glfwSetCursor(gd->window->window, AM::am.def_cursor);
+    else
+        glfwSetCursor(gd->window->window, AM::am.hover_cursor);
 }
 
 void Room::input()
@@ -156,7 +161,7 @@ void Room::loop()
     float time = 0.0f;
     while (!gd->window->ShouldClose() && play == false) {
         gd->window->Refresh();
-        
+
         glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
 
         receivePackets();
@@ -167,8 +172,8 @@ void Room::loop()
         gd->map->ActivateTextures();
         gd->map->DrawWater(matrix, gd->camera.eye);
         int markedProvId = -1;
-        gd->map->DrawLand(matrix, gd->camera.eye, markedProvId, gd->provinces.size(),
-                          gd->map->MAPID_COUNTRY, gd->waterTime);
+        gd->map->DrawLand(matrix, gd->camera.eye, markedProvId, gd->provinces.size(), gd->map->MAPID_COUNTRY,
+                          gd->waterTime);
         gd->map->DrawBorders(matrix);
         checkCountryNamesFade(gd, dt);
         if (((gd->camera.eye.z > gd->zPoint) || gd->ctrNamesFade < 1.0f)) {

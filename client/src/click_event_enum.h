@@ -36,6 +36,7 @@ enum class ClickEventType {
     ROOM_START_GAME = 26,
     MERGE_UNITS = 27,
     START_AS_SPECTATOR = 28,
+    UNIT_SIZE = 29,
     
     CLOSE_WINDOW
 };

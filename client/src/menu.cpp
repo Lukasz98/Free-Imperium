@@ -34,6 +34,8 @@ void Menu::loop()
         if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
 
+        
+
         guiLast.flush();
         if (gd->window->mouseLClicked) {
             std::vector<sf::Packet> packets;
@@ -51,6 +53,10 @@ void Menu::loop()
         gd->window->mouseLClicked = false;
         gd->window->mouseRClicked = false;
         gd->window->scrollOffset = 0;
+        if (ctype.ct == ClickEventType::NONE || ctype.ct == ClickEventType::MISS)
+            glfwSetCursor(gd->window->window, AM::am.def_cursor);
+        else
+            glfwSetCursor(gd->window->window, AM::am.hover_cursor);
         gd->window->Update();
     }
 }

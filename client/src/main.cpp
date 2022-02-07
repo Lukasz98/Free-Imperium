@@ -41,6 +41,10 @@ int main()
 
     AM::Init();
 
+    glfwSetCursor(window.window, AM::am.def_cursor);
+ 
+ 
+
     GameData gd;
     gd.window = &window;
     gd.settings.resolution = resolution;
@@ -53,7 +57,6 @@ int main()
 
     Menu menu(&gd);
     menu.Play();
-
     AM::Dispose();
 }
 

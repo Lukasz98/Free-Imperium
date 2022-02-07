@@ -10,7 +10,6 @@ static glm::vec4 lightBrown{0.568, 0.435, 0.427, 1.0};
 static glm::vec4 weirdBrown{.333, .258, 0.258, 1.0};
 static glm::vec4 whiteCol{1.0, 1.0, 1.0, 1.0};
 
-
 void GuiLast::Gui::init(Window* win, glm::vec2 resolution, glm::vec2 windowSize)
 {
     res = resolution;
@@ -52,8 +51,8 @@ static void listDraw(GuiLast::Gui& gui, glm::vec3 listPos, glm::vec2 listSize, g
         itemPos.y += sc;
         lasty += sc;
         {  // draw bar
-            glm::vec4 barCol = {200.0f/255.0f, 200.0f/255.0f, 200.0f/255.0f, 1.0f};
-            glm::vec4 barBgCol{86.0f/255.0f, 69.0f/255.0f, 55.0f/255.0f, 1.0f};
+            glm::vec4 barCol = {200.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f, 1.0f};
+            glm::vec4 barBgCol{86.0f / 255.0f, 69.0f / 255.0f, 55.0f / 255.0f, 1.0f};
             float firsty = itemPos.y;
             float totalh = firsty - lasty;
             glm::vec2 rsize = glm::vec2{listSize.x * 0.05f, (listSize.y / totalh) * listSize.y};
@@ -76,7 +75,6 @@ static void listDraw(GuiLast::Gui& gui, glm::vec3 listPos, glm::vec2 listSize, g
     }
 }
 
-
 void GuiLast::Gui::reloadShader()
 {
     shader = Shader("src/graphics/shaders/gui_batch/a.vert", "src/graphics/shaders/gui_batch/a.frag", "", "");
@@ -88,8 +86,7 @@ GuiLast::GuiEv GuiLast::Gui::start_menu(int mx, int my)
     glm::vec2 offset{5.0f, 5.5f};
     glm::vec2 itemSize{res.x * 0.5f, 80.0f};
     glm::vec3 itemPos{50.0f, res.y * 0.7f, 0.0f};
-    
-    
+
     core.drawRect(itemPos, itemSize, weirdBrown);
     core.drawText(itemPos, itemSize, whiteCol, "Free Imperium", TEXT_LEFT, AM::FontSize::PX64);
     itemSize.y = 40.0f;
@@ -101,7 +98,7 @@ GuiLast::GuiEv GuiLast::Gui::start_menu(int mx, int my)
     if (core.isInRect(itemPos, itemSize, mx, my))
         ct = GuiLast::GuiEv{ClickEventType::START_ROOM};
     itemPos.y -= itemSize.y + offset.y;
-    
+
     core.drawRect(itemPos, itemSize, weirdBrown);
     core.drawText(itemPos, itemSize, whiteCol, "Quit", TEXT_LEFT, AM::FontSize::PX32);
     if (core.isInRect(itemPos, itemSize, mx, my))
@@ -143,14 +140,16 @@ GuiLast::GuiEv GuiLast::Gui::game_topBar(const TopBarData& td, int mx, int my)
 
         glm::vec2 arrowSize{25.0f, dateSize.y};
         glm::vec3 arrowPos{datePos.x - arrowSize.x, datePos.y, datePos.z};
-        core.drawRect(arrowPos, arrowSize, weirdBrown); arrowPos.z += 0.05f;
+        core.drawRect(arrowPos, arrowSize, weirdBrown);
+        arrowPos.z += 0.05f;
         core.drawText(arrowPos, arrowSize, whiteCol, "<<", TEXT_CENTER);
         if (core.isInRect(arrowPos, arrowSize, mx, my) && td.dateSpeed - 1 > 0)
             ct = GuiLast::GuiEv{ClickEventType::SET_SPEED, td.dateSpeed - 1};
 
         arrowPos.x = datePos.x + dateSize.x;
         arrowPos.z -= 0.05f;
-        core.drawRect(arrowPos, arrowSize, weirdBrown); arrowPos.z += 0.05f;
+        core.drawRect(arrowPos, arrowSize, weirdBrown);
+        arrowPos.z += 0.05f;
         core.drawText(arrowPos, arrowSize, whiteCol, ">>", TEXT_CENTER);
         if (core.isInRect(arrowPos, arrowSize, mx, my) && td.dateSpeed + 1 <= 5)
             ct = GuiLast::GuiEv{ClickEventType::SET_SPEED, td.dateSpeed + 1};
@@ -169,7 +168,8 @@ GuiLast::GuiEv GuiLast::Gui::game_drawPause()
 {
     glm::vec2 itemSize{res.x * 0.5f, 100.0f};
     glm::vec3 itemPos{res.x * 0.5f - itemSize.x * 0.5f, 0.6f * res.y, 0.3f};
-    core.drawRect(itemPos, itemSize, glm::vec4{weirdBrown.x, weirdBrown.y, weirdBrown.z, 0.3f}); itemPos.z += 0.05f;
+    core.drawRect(itemPos, itemSize, glm::vec4{weirdBrown.x, weirdBrown.y, weirdBrown.z, 0.3f});
+    itemPos.z += 0.05f;
     core.drawText(itemPos, itemSize, whiteCol, "Pause", TEXT_CENTER, AM::FontSize::PX64);
 
     return GuiLast::GuiEv{ClickEventType::MISS};
@@ -185,7 +185,8 @@ GuiLast::GuiEv GuiLast::Gui::game_myCountry(const Country* ctr, int mx, int my)
 
     glm::vec2 closeSize{100.0f, 40.0f};
     glm::vec3 closePos{wPos.x + wSize.x - offset.x - closeSize.x, wPos.y + offset.y, 0.2f};
-    core.drawRect(closePos, closeSize, weirdBrown); closePos.z += 0.05f;
+    core.drawRect(closePos, closeSize, weirdBrown);
+    closePos.z += 0.05f;
     core.drawText(closePos, closeSize, whiteCol, "Close", TEXT_CENTER, AM::FontSize::PX16);
 
     glm::vec2 nameSize{200.0f, 40.0f};
@@ -203,7 +204,8 @@ GuiLast::GuiEv GuiLast::Gui::game_myCountry(const Country* ctr, int mx, int my)
     return GuiLast::GuiEv{ClickEventType::MISS};
 }
 
-GuiLast::GuiEv GuiLast::Gui::game_country(const Country* ctr, const Country* myCountry, const std::vector<War>& wars, int mx, int my)
+GuiLast::GuiEv GuiLast::Gui::game_country(const Country* ctr, const Country* myCountry,
+                                          const std::vector<War>& wars, int mx, int my)
 {
     GuiLast::GuiEv ct{ClickEventType::MISS};
     glm::vec2 offset{5.0f, 2.5f};
@@ -214,7 +216,8 @@ GuiLast::GuiEv GuiLast::Gui::game_country(const Country* ctr, const Country* myC
 
     glm::vec2 closeSize{100.0f, 40.0f};
     glm::vec3 closePos{wPos.x + wSize.x - offset.x - closeSize.x, wPos.y + offset.y, 0.2f};
-    core.drawRect(closePos, closeSize, weirdBrown); closePos.z += 0.05f;
+    core.drawRect(closePos, closeSize, weirdBrown);
+    closePos.z += 0.05f;
     core.drawText(closePos, closeSize, whiteCol, "Close", TEXT_CENTER, AM::FontSize::PX16);
 
     glm::vec2 nameSize{200.0f, 40.0f};
@@ -242,7 +245,7 @@ GuiLast::GuiEv GuiLast::Gui::game_country(const Country* ctr, const Country* myC
     if (atWar) {
         core.drawText(namePos, nameSize, whiteCol, "Offer peace", TEXT_LEFT, AM::FontSize::PX16);
         if (core.isInRect(namePos, nameSize, mx, my))
-            ct = GuiLast::GuiEv{ClickEventType::OPEN_OFFER_PEACE , warid};
+            ct = GuiLast::GuiEv{ClickEventType::OPEN_OFFER_PEACE, warid};
     }
     else {
         core.drawText(namePos, nameSize, whiteCol, "Declare war", TEXT_LEFT, AM::FontSize::PX16);
@@ -271,7 +274,8 @@ GuiLast::GuiEv GuiLast::Gui::game_prov(const Province& prov, int mx, int my, boo
 
     glm::vec2 closeSize{100.0f, 40.0f};
     glm::vec3 closePos{wPos.x + wSize.x - offset.x - closeSize.x, wPos.y + offset.y, 0.2f};
-    core.drawRect(closePos, closeSize, weirdBrown); closePos.z += 0.05f;
+    core.drawRect(closePos, closeSize, weirdBrown);
+    closePos.z += 0.05f;
     core.drawText(closePos, closeSize, whiteCol, "Close", TEXT_CENTER, AM::FontSize::PX16);
 
     glm::vec2 nameSize{200.0f, 40.0f};
@@ -280,11 +284,12 @@ GuiLast::GuiEv GuiLast::Gui::game_prov(const Province& prov, int mx, int my, boo
     glm::vec2 valueSize{100.0f, 40.0f};
     glm::vec3 valuePos{namePos.x + wSize.x * 0.5f - offset.x, namePos.y, namePos.z};
     core.drawText(valuePos, valueSize, whiteCol, prov.GetName(), TEXT_LEFT, AM::FontSize::PX16);
-    
+
     namePos.y -= nameSize.y + offset.y;
     core.drawText(namePos, nameSize, whiteCol, "Country: ", TEXT_LEFT, AM::FontSize::PX16);
     valuePos.y -= valueSize.y + offset.y;
-    core.drawRect(valuePos, valueSize, weirdBrown); valuePos.z += 0.05f;
+    core.drawRect(valuePos, valueSize, weirdBrown);
+    valuePos.z += 0.05f;
     core.drawText(valuePos, valueSize, whiteCol, prov.GetCountry(), TEXT_LEFT, AM::FontSize::PX16);
     if (core.isInRect(valuePos, valueSize, mx, my))
         ct = GuiLast::GuiEv{ClickEventType::OPEN_COUNTRY, prov.GetCountryId()};
@@ -294,7 +299,8 @@ GuiLast::GuiEv GuiLast::Gui::game_prov(const Province& prov, int mx, int my, boo
         static int unitSize = 1000;
         namePos.y -= nameSize.y + offset.y;
         valuePos.y -= valueSize.y + offset.y;
-        core.drawRect(namePos, nameSize, weirdBrown); namePos.z += 0.05f;
+        core.drawRect(namePos, nameSize, weirdBrown);
+        namePos.z += 0.05f;
         core.drawText(namePos, nameSize, whiteCol, "Create unit of size: ", TEXT_LEFT, AM::FontSize::PX16);
         namePos.z -= 0.05;
         core.drawText(valuePos, valueSize, whiteCol, std::to_string(unitSize), TEXT_LEFT, AM::FontSize::PX16);
@@ -303,16 +309,22 @@ GuiLast::GuiEv GuiLast::Gui::game_prov(const Province& prov, int mx, int my, boo
 
         namePos.y -= nameSize.y + offset.y;
         valuePos.y -= valueSize.y + offset.y;
-        core.drawRect(namePos, nameSize, weirdBrown); namePos.z += 0.05f;
+        core.drawRect(namePos, nameSize, weirdBrown);
+        namePos.z += 0.05f;
         core.drawText(namePos, nameSize, whiteCol, "Size +1000", TEXT_LEFT, AM::FontSize::PX16);
-        core.drawRect(valuePos, valueSize, weirdBrown); valuePos.z += 0.05f;
+        core.drawRect(valuePos, valueSize, weirdBrown);
+        valuePos.z += 0.05f;
         core.drawText(valuePos, valueSize, whiteCol, "Size -1000", TEXT_LEFT, AM::FontSize::PX16);
         valuePos.z -= 0.05f;
         namePos.z -= 0.05f;
-        if (clicked) {
-            if (core.isInRect(namePos, nameSize, mx, my))
+        if (core.isInRect(namePos, nameSize, mx, my)) {
+            ct = GuiLast::GuiEv{ClickEventType::UNIT_SIZE, unitSize};
+            if (clicked)
                 unitSize += 1000;
-            if (core.isInRect(valuePos, valueSize, mx, my))
+        }
+        if (core.isInRect(valuePos, valueSize, mx, my)) {
+            ct = GuiLast::GuiEv{ClickEventType::UNIT_SIZE, unitSize};
+            if (clicked)
                 unitSize -= 1000;
         }
     }
@@ -327,8 +339,7 @@ GuiLast::GuiEv GuiLast::Gui::game_prov(const Province& prov, int mx, int my, boo
 }
 
 GuiLast::GuiEv GuiLast::Gui::game_battle(const Battle& battle, const Province& prov, int mx, int my, bool clicked,
-                                         const std::vector<Country>& countries,
-                                         const std::vector<Unit>& units)
+                                         const std::vector<Country>& countries, const std::vector<Unit>& units)
 {
     GuiLast::GuiEv ct{ClickEventType::MISS};
     glm::vec2 offset{5.0f, 2.5f};
@@ -339,7 +350,8 @@ GuiLast::GuiEv GuiLast::Gui::game_battle(const Battle& battle, const Province& p
 
     glm::vec2 closeSize{100.0f, 40.0f};
     glm::vec3 closePos{wPos.x + wSize.x - offset.x - closeSize.x, wPos.y + offset.y, 0.2f};
-    core.drawRect(closePos, closeSize, weirdBrown); closePos.z += 0.05f;
+    core.drawRect(closePos, closeSize, weirdBrown);
+    closePos.z += 0.05f;
     core.drawText(closePos, closeSize, whiteCol, "Close", TEXT_CENTER, AM::FontSize::PX16);
 
     glm::vec2 nameSize{100.0f, 40.0f};
@@ -348,11 +360,12 @@ GuiLast::GuiEv GuiLast::Gui::game_battle(const Battle& battle, const Province& p
     glm::vec2 valueSize{100.0f, 40.0f};
     glm::vec3 valuePos{namePos.x + wSize.x * 0.5f - offset.x, namePos.y, namePos.z};
     core.drawText(valuePos, valueSize, whiteCol, prov.GetName(), TEXT_LEFT, AM::FontSize::PX16);
-    
+
     namePos.y -= nameSize.y + offset.y;
     core.drawText(namePos, nameSize, whiteCol, "Country: ", TEXT_LEFT, AM::FontSize::PX16);
     valuePos.y -= valueSize.y + offset.y;
-    core.drawRect(valuePos, valueSize, weirdBrown); valuePos.z += 0.05f;
+    core.drawRect(valuePos, valueSize, weirdBrown);
+    valuePos.z += 0.05f;
     core.drawText(valuePos, valueSize, whiteCol, prov.GetCountry(), TEXT_LEFT, AM::FontSize::PX16);
     if (core.isInRect(valuePos, valueSize, mx, my))
         ct = GuiLast::GuiEv{ClickEventType::OPEN_COUNTRY, prov.GetCountryId()};
@@ -418,7 +431,8 @@ GuiLast::GuiEv GuiLast::Gui::game_unit(const Unit& unit, int mx, int my, bool cl
 
     glm::vec2 closeSize{100.0f, 40.0f};
     glm::vec3 closePos{wPos.x + wSize.x - offset.x - closeSize.x, wPos.y + offset.y, 0.2f};
-    core.drawRect(closePos, closeSize, weirdBrown); closePos.z += 0.05f;
+    core.drawRect(closePos, closeSize, weirdBrown);
+    closePos.z += 0.05f;
     core.drawText(closePos, closeSize, whiteCol, "Close", TEXT_CENTER, AM::FontSize::PX16);
 
     glm::vec2 nameSize{100.0f, 40.0f};
@@ -431,7 +445,8 @@ GuiLast::GuiEv GuiLast::Gui::game_unit(const Unit& unit, int mx, int my, bool cl
     namePos.y -= nameSize.y + offset.y;
     core.drawText(namePos, nameSize, whiteCol, "Country: ", TEXT_LEFT, AM::FontSize::PX16);
     valuePos.y -= valueSize.y - offset.y;
-    core.drawRect(valuePos, valueSize, weirdBrown); valuePos.z += 0.05f;
+    core.drawRect(valuePos, valueSize, weirdBrown);
+    valuePos.z += 0.05f;
     core.drawText(valuePos, valueSize, whiteCol, countries[unit.countryId].GetName(), TEXT_LEFT,
                   AM::FontSize::PX16);
     if (core.isInRect(valuePos, valueSize, mx, my))
@@ -464,7 +479,8 @@ GuiLast::GuiEv GuiLast::Gui::game_war(const War* war, int mx, int my, bool click
 
     glm::vec2 closeSize{100.0f, 40.0f};
     glm::vec3 closePos{wPos.x + wSize.x - offset.x - closeSize.x, wPos.y + offset.y, 0.2f};
-    core.drawRect(closePos, closeSize, weirdBrown); closePos.z += 0.05f;
+    core.drawRect(closePos, closeSize, weirdBrown);
+    closePos.z += 0.05f;
     core.drawText(closePos, closeSize, whiteCol, "Close", TEXT_CENTER, AM::FontSize::PX16);
 
     glm::vec2 nameSize{wSize.x - offset.x * 2.0f, 40.0f};
@@ -480,13 +496,15 @@ GuiLast::GuiEv GuiLast::Gui::game_war(const War* war, int mx, int my, bool click
     core.drawText(rightPos, rightSize, whiteCol, "Defender:", TEXT_CENTER, AM::FontSize::PX16);
 
     leftPos.y -= (offset.y + leftSize.y);
-    core.drawRect(leftPos, leftSize, weirdBrown); leftPos.z += 0.05f;
+    core.drawRect(leftPos, leftSize, weirdBrown);
+    leftPos.z += 0.05f;
     core.drawText(leftPos, leftSize, whiteCol, war->attackers[0], TEXT_CENTER, AM::FontSize::PX16);
     if (core.isInRect(leftPos, leftSize, mx, my))
         ct = GuiLast::GuiEv{ClickEventType::OPEN_COUNTRY, war->attackersIds[0]};
 
     rightPos.y -= (offset.y + rightSize.y);
-    core.drawRect(rightPos, rightSize, weirdBrown); rightPos.z += 0.05f;
+    core.drawRect(rightPos, rightSize, weirdBrown);
+    rightPos.z += 0.05f;
     core.drawText(rightPos, rightSize, whiteCol, war->defenders[0], TEXT_CENTER, AM::FontSize::PX16);
     if (core.isInRect(rightPos, rightSize, mx, my))
         ct = GuiLast::GuiEv{ClickEventType::OPEN_COUNTRY, war->defendersIds[0]};
@@ -498,7 +516,8 @@ GuiLast::GuiEv GuiLast::Gui::game_war(const War* war, int mx, int my, bool click
 
     namePos.y = closePos.y;
     nameSize.x *= 0.5f;
-    core.drawRect(namePos, nameSize, weirdBrown); namePos.z += 0.05f;
+    core.drawRect(namePos, nameSize, weirdBrown);
+    namePos.z += 0.05f;
     core.drawText(namePos, nameSize, whiteCol, "Offer peace: ", TEXT_CENTER, AM::FontSize::PX16);
     if (core.isInRect(namePos, nameSize, mx, my))
         ct = GuiLast::GuiEv{ClickEventType::OPEN_OFFER_PEACE, war->id};
@@ -524,19 +543,22 @@ GuiLast::GuiEv GuiLast::Gui::game_unitsList(const std::vector<Unit*>& units, int
 
     glm::vec2 closeSize{100.0f, 40.0f};
     glm::vec3 closePos{wPos.x + wSize.x - offset.x - closeSize.x, wPos.y + offset.y, 0.2f};
-    core.drawRect(closePos, closeSize, weirdBrown); closePos.z += 0.05f;
+    core.drawRect(closePos, closeSize, weirdBrown);
+    closePos.z += 0.05f;
     core.drawText(closePos, closeSize, whiteCol, "Close", TEXT_CENTER, AM::FontSize::PX16);
 
     glm::vec2 mergeSize = closeSize;
     glm::vec3 mergePos{wPos.x + offset.x, closePos.y, 0.2f};
-    core.drawRect(mergePos, mergeSize, weirdBrown); mergePos.z += 0.05f;
+    core.drawRect(mergePos, mergeSize, weirdBrown);
+    mergePos.z += 0.05f;
     core.drawText(mergePos, mergeSize, whiteCol, "Merge", TEXT_CENTER, AM::FontSize::PX16);
     if (core.isInRect(mergePos, mergeSize, mx, my))
         ct = GuiLast::GuiEv{ClickEventType::MERGE_UNITS};
 
     glm::vec2 nameSize{wSize.x * 0.9f, 50.0f};
     glm::vec3 namePos{wPos.x + offset.x, wPos.y + wSize.y * 0.9f, 0.2f};
-    core.drawRect(namePos, nameSize, weirdBrown); namePos.z += 0.05f;
+    core.drawRect(namePos, nameSize, weirdBrown);
+    namePos.z += 0.05f;
     core.drawText(namePos, nameSize, whiteCol, std::string("Units at ") + prov->GetName(), TEXT_CENTER,
                   AM::FontSize::PX16);
     namePos.z -= 0.05f;
@@ -561,7 +583,7 @@ GuiLast::GuiEv GuiLast::Gui::game_unitsList(const std::vector<Unit*>& units, int
             valuePos = startPos;
             valuePos.x += offset.x * 1.0f + rectSize.x;
             erasePos = startPos;
-            //erasePos.x = listPos.x + listSize.x - offset.x * 4.0f - eraseSize.x;
+            // erasePos.x = listPos.x + listSize.x - offset.x * 4.0f - eraseSize.x;
             erasePos.x = valuePos.x + elSize.x + offset.x;
             for (auto& unit : units) {
                 // core.drawText(startPos, elSize, greenCol, "name: ", TEXT_LEFT, AM::FontSize::PX16);
@@ -569,7 +591,8 @@ GuiLast::GuiEv GuiLast::Gui::game_unitsList(const std::vector<Unit*>& units, int
                 glm::vec4 r2col{(float)rectcol.r / 255.0f, (float)rectcol.g / 255.0f, (float)rectcol.b / 255.0f,
                                 (float)rectcol.a / 255.0f};
                 core.drawRect(startPos, rectSize, r2col);
-                core.drawRect(valuePos, elSize, brown); valuePos.z += 0.05f;
+                core.drawRect(valuePos, elSize, brown);
+                valuePos.z += 0.05f;
                 core.drawText(valuePos, elSize, whiteCol,
                               unit->GetName() + std::string{", size: "} + int_to_string(unit->soldiers), TEXT_LEFT,
                               AM::FontSize::PX16);
@@ -602,8 +625,7 @@ GuiLast::GuiEv GuiLast::Gui::game_unitsList(const std::vector<Unit*>& units, int
 
 GuiLast::GuiEv GuiLast::Gui::game_peaceOffer(const PeaceOffer* offer, int mx, int my, int myCtrId,
                                              const std::vector<Province>& provinces,
-                                             std::vector<Country>& countries, bool clicked,
-                                             int scr)
+                                             std::vector<Country>& countries, bool clicked, int scr)
 {
     GuiLast::GuiEv ct{ClickEventType::MISS};
     glm::vec2 offset{5.0f, 2.5f};
@@ -614,18 +636,21 @@ GuiLast::GuiEv GuiLast::Gui::game_peaceOffer(const PeaceOffer* offer, int mx, in
 
     glm::vec2 closeSize{100.0f, 40.0f};
     glm::vec3 closePos{wPos.x + wSize.x - offset.x - closeSize.x, wPos.y + offset.y, 0.2f};
-    core.drawRect(closePos, closeSize, weirdBrown); closePos.z += 0.05f;
+    core.drawRect(closePos, closeSize, weirdBrown);
+    closePos.z += 0.05f;
     core.drawText(closePos, closeSize, whiteCol, "Close", TEXT_CENTER, AM::FontSize::PX16);
     closePos.z -= 0.05f;
-    
+
     glm::vec2 sendSize{100.0f, 40.0f};
     glm::vec3 sendPos{wPos.x + offset.x, closePos.y, closePos.z};
-    //Log(offer->peaceId);
-    core.drawRect(sendPos, sendSize, weirdBrown); sendPos.z += 0.05f;
+    // Log(offer->peaceId);
+    core.drawRect(sendPos, sendSize, weirdBrown);
+    sendPos.z += 0.05f;
     if (offer->peaceId != -2) {
         core.drawText(sendPos, sendSize, whiteCol, "Accept", TEXT_CENTER, AM::FontSize::PX16);
         glm::vec3 declinePos{sendPos.x + offset.x * 3.0f + sendSize.x, sendPos.y, sendPos.z};
-        core.drawRect(declinePos, sendSize, weirdBrown); declinePos.z += 0.05f;
+        core.drawRect(declinePos, sendSize, weirdBrown);
+        declinePos.z += 0.05f;
         core.drawText(declinePos, sendSize, whiteCol, "Decline", TEXT_CENTER, AM::FontSize::PX16);
         if (core.isInRect(declinePos, sendSize, mx, my))
             ct = GuiLast::GuiEv{ClickEventType::REJECT_PEACE_OFFER, offer->peaceId};
@@ -825,23 +850,23 @@ GuiLast::GuiEv GuiLast::Gui::room_countryList(const std::vector<std::string>& ct
     return GuiLast::GuiEv{ClickEventType::MISS};
 }
 
-GuiLast::GuiEv GuiLast::Gui::room_playerList(const std::string& playerName, const std::vector<std::string>& plarr, int mx, int my, int scr)
+GuiLast::GuiEv GuiLast::Gui::room_playerList(const std::string& playerName, const std::vector<std::string>& plarr,
+                                             int mx, int my, int scr)
 {
     GuiLast::GuiEv ct{ClickEventType::MISS};
     glm::vec2 offset{5.0f, 2.5f};
     glm::vec2 wSize{res.x * 0.3f, res.y * 0.7f};
     glm::vec3 wPos{offset.x, 10.0f, 0.1f};
     core.drawRect(wPos, wSize, darkBrown);
-   
+
     glm::vec2 itemSize{wPos.x, 50.0f};
-    core.drawText(glm::vec3{wPos.x, wPos.y + wSize.y  - itemSize.y, wPos.z + 0.1f}, glm::vec2{wSize.x, itemSize.y},
+    core.drawText(glm::vec3{wPos.x, wPos.y + wSize.y - itemSize.y, wPos.z + 0.1f}, glm::vec2{wSize.x, itemSize.y},
                   whiteCol, "Pick your country " + playerName, TEXT_CENTER, AM::FontSize::PX32);
-    
+
     glm::vec2 buttonSize{wSize.x * 0.35f, 50.0f};
     glm::vec3 buttonPos{wPos.x + wSize.x - buttonSize.x - offset.x * 2.0f, wPos.y + offset.y * 3.0f, 0.1f};
     core.drawRect(buttonPos, buttonSize, weirdBrown);
-    core.drawText(buttonPos, buttonSize,
-                  whiteCol, "Spectator", TEXT_CENTER, AM::FontSize::PX32);
+    core.drawText(buttonPos, buttonSize, whiteCol, "Spectator", TEXT_CENTER, AM::FontSize::PX32);
     if (core.isInRect(buttonPos, buttonSize, mx, my))
         ct = GuiLast::GuiEv{ClickEventType::START_AS_SPECTATOR};
 

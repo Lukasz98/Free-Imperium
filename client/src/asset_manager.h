@@ -14,7 +14,11 @@ struct AM
     std::unique_ptr<Shader> modelInstancedShader;
     std::unique_ptr<Texture> modelTexture;
     std::unique_ptr<Texture> iconsTexture;
-
+    std::unique_ptr<Texture> def_cursorTexture;
+    std::unique_ptr<Texture> hover_cursorTexture;
+    GLFWcursor* def_cursor; 
+    GLFWcursor* hover_cursor; 
+    
     GLuint fontAtlas;
     struct AtlasInfo
     {

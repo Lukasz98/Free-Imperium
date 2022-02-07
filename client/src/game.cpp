@@ -22,7 +22,6 @@ TopBarData topBarData;
 
 int openedProvId = -1;
 
-
 void labelText(const glm::vec3 &pos, const glm::vec2 &size, const glm::vec4 &col, const std::string &text,
                AM::FontSize fontSize, std::vector<Vertex> &labelVerts)
 {
@@ -92,11 +91,11 @@ void labelText(const glm::vec3 &pos, const glm::vec2 &size, const glm::vec4 &col
 
 Game::Game(sf::TcpSocket &sock, std::string countryName, GameData *gd)
     : socket(sock),
-      //gd->camera(gd->window->GetSize()),
+      // gd->camera(gd->window->GetSize()),
       gd(gd),
-    model3d("src/img/DudeDonePosefix.obj", glm::vec3{0.0, 0.0, 0.1})
+      model3d("src/img/DudeDonePosefix.obj", glm::vec3{0.0, 0.0, 0.1})
 {
-    //gd->window->size = gd->window->GetSize();
+    // gd->window->size = gd->window->GetSize();
     gd->resetMarkedCountry();
     // std::sort(provinces.begin(), provinces.end(),
     //           [](const std::unique_ptr<Province> &p1, const std::unique_ptr<Province> &p2) {
@@ -112,18 +111,17 @@ Game::Game(sf::TcpSocket &sock, std::string countryName, GameData *gd)
         Log(countryName);
         for (auto &prov : gd->provinces) {
             if (prov.GetCountryId() == gd->countries[myCountryId].GetId()) {
-                gd->camera.SetPos(prov.GetUnitPos().x *gd->settings.scale, prov.GetUnitPos().y * gd->settings.scale);
+                gd->camera.SetPos(prov.GetUnitPos().x * gd->settings.scale,
+                                  prov.GetUnitPos().y * gd->settings.scale);
                 break;
             }
         }
     }
     else
         Log("There is no country for you ;(");
-
 }
 
 Game::~Game() {}
-
 
 void Game::Play()
 {
@@ -142,14 +140,14 @@ void Game::Play()
     if (err)
         Log("Opengl error: " << err);
 
-    //Texture ctrsText{"src/img/countries_map.png", gd->map->mapWidth, gd->map->mapHeight};
+    // Texture ctrsText{"src/img/countries_map.png", gd->map->mapWidth, gd->map->mapHeight};
 
-    //GLint tex[32];
+    // GLint tex[32];
 
     std::map<int, Node> nodes;
-    //loadProvData(provsData, gd->colorToId);
-    //loadCountriesData(ctrsData);
-    //ctrProvs.reserve(ctrsData.size());
+    // loadProvData(provsData, gd->colorToId);
+    // loadCountriesData(ctrsData);
+    // ctrProvs.reserve(ctrsData.size());
 
     err = glGetError();
     if (err)
@@ -158,7 +156,7 @@ void Game::Play()
     if (err)
         Log("Opengl error: " << err);
 
-//    GLuint fontTexID[32];
+    //    GLuint fontTexID[32];
 
     const unsigned char *h = gd->map->heightMap.GetPixels();
 
@@ -169,7 +167,6 @@ void Game::Play()
     // set country map
     //
     // ~~~
-
 
     // to jest bindowane prz rysowaniu unitow trzeba to sprawdzic
     GLuint otherTexID[32];
@@ -185,8 +182,10 @@ void Game::Play()
         if (gd->provinces[i].water)
             continue;
 
-        float z = (float)gd->map->heightMap.GetPixels()[(int)(gd->provinces[i].unitPosition.x * 3 + gd->provinces[i].unitPosition.y * gd->map->mapWidth * 3)];
-        tempUnits.push_back(TempUnit{.pos = glm::vec3{gd->provinces[i].unitPosition.x *gd->settings.scale, gd->provinces[i].unitPosition.y *gd->settings.scale, z},
+        float z = (float)gd->map->heightMap.GetPixels()[(
+            int)(gd->provinces[i].unitPosition.x * 3 + gd->provinces[i].unitPosition.y * gd->map->mapWidth * 3)];
+        tempUnits.push_back(TempUnit{.pos = glm::vec3{gd->provinces[i].unitPosition.x * gd->settings.scale,
+                                                      gd->provinces[i].unitPosition.y * gd->settings.scale, z},
                                      .provId = gd->provinces[i].id});
     }
 
@@ -218,8 +217,8 @@ void Game::Play()
     Shader shader("src/graphics/shaders/basic/vert.v", "src/graphics/shaders/basic/frag.f", "", "");
     bool drawBorders = true;
     float tesLevel = 32.0f;
-    //float gd->waterTime = 0.0f;
-    //float gd->ctrNamesFade = 0.0f, ctrNamesFadeIn = 0.0f;
+    // float gd->waterTime = 0.0f;
+    // float gd->ctrNamesFade = 0.0f, ctrNamesFadeIn = 0.0f;
     float time = glfwGetTime();
     float rotateText;
     guiLast.init(gd->window, gd->settings.resolution, gd->window->GetSize());
@@ -282,8 +281,8 @@ void Game::Play()
         {
             gd->map->DrawWater(matrix, gd->camera.eye);
             if (openPeaceOfferId == -1) {
-                gd->map->DrawLand(matrix, gd->camera.eye, markedProvId, gd->provinces.size(), gd->map->MAPID_COUNTRY,
-                               gd->waterTime);
+                gd->map->DrawLand(matrix, gd->camera.eye, markedProvId, gd->provinces.size(),
+                                  gd->map->MAPID_COUNTRY, gd->waterTime);
             }
             else {  // open offering peace mode
                     // Log("peace mode");
@@ -342,8 +341,8 @@ void Game::Play()
                     delete[] nexpix;
                     gd->map->texID[(int)(gd->map->MAPID_PEACE_OFFER + 0.5f)] = newtex.GetId();
                     gd->map->ActivateTextures();
-                    gd->map->DrawLand(matrix, gd->camera.eye, markedProvId, gd->provinces.size(), gd->map->MAPID_PEACE_OFFER,
-                                   0.0f);
+                    gd->map->DrawLand(matrix, gd->camera.eye, markedProvId, gd->provinces.size(),
+                                      gd->map->MAPID_PEACE_OFFER, 0.0f);
                 }
             }
         }
@@ -360,9 +359,10 @@ void Game::Play()
                 if (unit != gd->units.end()) {
                     std::vector<BorderVertex> verts;
                     if (unit->movesVec.size()) {
-                        verts.push_back(
-                            BorderVertex{.pos = Vec3{unit->fakePos.x, unit->fakePos.y, unit->fakePos.z},
-                                         .tc = Vec2{unit->fakePos.x / gd->map->mapWidth, unit->fakePos.y / gd->map->mapHeight}});
+                        verts.push_back(BorderVertex{
+                            .pos = Vec3{unit->fakePos.x, unit->fakePos.y, unit->fakePos.z},
+                            .tc =
+                                Vec2{unit->fakePos.x / gd->map->mapWidth, unit->fakePos.y / gd->map->mapHeight}});
                     }
                     for (std::size_t i = 0; i < unit->movesVec.size(); ++i) {
                         glm::vec3 pos = unit->movesVec[i];
@@ -370,11 +370,13 @@ void Game::Play()
                         int ind = pos.x * 3 + pos.y * gd->map->mapWidth * 3;
                         if (ind > gd->map->mapHeight * gd->map->mapWidth * 3 - 3)
                             ind = gd->map->mapHeight * gd->map->mapWidth * 3 - 3;
-                        verts.push_back(BorderVertex{.pos = Vec3{pos.x, pos.y, pos.z},
-                                                     .tc = Vec2{pos.x / gd->map->mapWidth, pos.y / gd->map->mapHeight}});
+                        verts.push_back(
+                            BorderVertex{.pos = Vec3{pos.x, pos.y, pos.z},
+                                         .tc = Vec2{pos.x / gd->map->mapWidth, pos.y / gd->map->mapHeight}});
                         if (i < unit->movesVec.size() - 1) {
-                            verts.push_back(BorderVertex{.pos = Vec3{pos.x, pos.y, pos.z},
-                                                         .tc = Vec2{pos.x / gd->map->mapWidth, pos.y / gd->map->mapHeight}});
+                            verts.push_back(
+                                BorderVertex{.pos = Vec3{pos.x, pos.y, pos.z},
+                                             .tc = Vec2{pos.x / gd->map->mapWidth, pos.y / gd->map->mapHeight}});
                         }
                     }
                     GLuint err = 0;
@@ -538,7 +540,7 @@ void Game::Play()
             }
         }
         uMat.clear();
-//ctrnames
+        // ctrnames
         for (int i = 0; i <= (int)AM::FontSize::PX160; ++i) {
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, (GLuint)gd->fontTexID[i]);
@@ -550,8 +552,8 @@ void Game::Play()
         }
         updateCountryNamesFade(gd, dt);
         float tt2 = glfwGetTime();
-//~ctrNames
-        
+        //~ctrNames
+
         glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
         matrix = glm::ortho(0.0f, (float)gd->settings.resolution.x, 0.0f, (float)gd->settings.resolution.y);
         glUseProgram(shader.GetProgram());
@@ -571,7 +573,7 @@ void Game::Play()
         pids.clear();
         dt = glfwGetTime() - time;
         gd->updateTime(dt);
-        //gd->waterTime += dt;
+        // gd->waterTime += dt;
         time = glfwGetTime();
     }
 }
@@ -579,8 +581,9 @@ void Game::Play()
 void Game::guiDraw()
 {
     ctype.ct = ClickEventType::MISS;
-    glm::vec2 mp{gd->window->xMouse * gd->settings.resolution.x / gd->window->GetSize().x,
-                 (gd->window->GetSize().y - gd->window->yMouse) * gd->settings.resolution.y / gd->window->GetSize().y};
+    glm::vec2 mp{
+        gd->window->xMouse * gd->settings.resolution.x / gd->window->GetSize().x,
+        (gd->window->GetSize().y - gd->window->yMouse) * gd->settings.resolution.y / gd->window->GetSize().y};
 
     GuiLast::GuiEv tmpctype;
     tmpctype = guiLast.game_topBar(topBarData, mp.x, mp.y);
@@ -664,8 +667,8 @@ void Game::guiDraw()
             }
         }
         tmpctype =
-            guiLast.game_unitsList(clickedUnits_ptr, mp.x, mp.y, gd->window->mouseLClicked, gd->window->scrollOffset,
-                                   &gd->provinces[openUnitsListProvId], gd->countries);
+            guiLast.game_unitsList(clickedUnits_ptr, mp.x, mp.y, gd->window->mouseLClicked,
+                                   gd->window->scrollOffset, &gd->provinces[openUnitsListProvId], gd->countries);
         if (gd->window->mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
             openUnitsList = false;
         else if (tmpctype.ct != ClickEventType::MISS)
@@ -894,6 +897,11 @@ void Game::guiDraw()
         gd->window->mouseLClicked = false;
         gd->window->mouseRClicked = false;
     }
+
+    if (ctype.ct == ClickEventType::NONE || ctype.ct == ClickEventType::MISS)
+        glfwSetCursor(gd->window->window, AM::am.def_cursor);
+    else
+        glfwSetCursor(gd->window->window, AM::am.hover_cursor);
 }
 
 void Game::receivePackets()
@@ -913,11 +921,11 @@ void Game::processPacket(sf::Packet packet)
         ProcessPacket::DailyUpdate(packet, gd->wars, gd->provinces, gd->countries, topBarData, gd->map);
     }
     else if (type == "hourly") {
-        ProcessPacket::HourlyUpdate(packet, gd->units, gd->battles, gd->settings.scale, gd->map->heightMap.GetPixels(), gd->map->mapWidth);
+        ProcessPacket::HourlyUpdate(packet, gd->units, gd->battles, gd->settings.scale,
+                                    gd->map->heightMap.GetPixels(), gd->map->mapWidth);
     }
     else if (type == "PeaceAccepted") {
-        int warId =
-            ProcessPacket::PeaceAccepted(packet, gd->provinces, gd->countries, gd->wars, sideBarData);
+        int warId = ProcessPacket::PeaceAccepted(packet, gd->provinces, gd->countries, gd->wars, sideBarData);
         gd->editCountryMap();
         const unsigned char *h = gd->map->heightMap.GetPixels();
         gd->makeCountryNames();
@@ -974,7 +982,8 @@ void Game::input()
     }
 
     // gd->camera.Update(gd->window->xMouse, gd->windowSize.y - gd->window->yMouse, map.GetHeightTerrain());
-    gd->camera.Update(gd->window->xMouse, gd->window->GetSize().y - gd->window->yMouse, gd->map->heightMap.GetPixels());
+    gd->camera.Update(gd->window->xMouse, gd->window->GetSize().y - gd->window->yMouse,
+                      gd->map->heightMap.GetPixels());
 
     if (gd->window->scrollOffset && ctype.ct == ClickEventType::MISS) {
         gd->camera.Scroll(gd->window->scrollOffset);
