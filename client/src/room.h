@@ -1,13 +1,12 @@
 #pragma once
 #include <SFML/Network.hpp>
-#include "settings.h"
-//#include "country.h"
-#include "game.h"
-#include "gui_last.h"
-#include "game_data.h"
 
-class Room
-{
+#include "settings.h"
+#include "game.h"
+#include "game_data.h"
+#include "gui_last.h"
+
+class Room {
     sf::TcpSocket socket;
     sf::Socket::Status status;
     void loop();
@@ -25,8 +24,8 @@ class Room
     float dt;
     int markedCountryId = -1;
     GuiLast::GuiEv ctype;
-    
-public:
+
+   public:
     Room(GameData* gd);
     ~Room();
 

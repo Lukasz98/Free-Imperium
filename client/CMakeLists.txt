@@ -12,7 +12,15 @@ set ( PROJECT_LINK_LIBS  -lGL -lGLU -lglfw -lGLEW -lpng16 -lstdc++fs -lfreetype 
 include_directories( "/usr/include" "/usr/include/freetype2" "../shared"  "src/" "../shared/" )
 
 add_compile_definitions(HUMAN_PLAYER)
-add_compile_options(-std=c++17 -O0 -g)
+add_compile_options(-std=c++17 -O0 -g -Wunused-function -Wformat=2 -Wnull-dereference 
+    -fdelete-null-pointer-checks -Wno-if-not-aligned -Wmisleading-indentation 
+    -Wmissing-attributes -Wmissing-braces -Wmultistatement-macros -Wno-return-local-addr
+    -Wreturn-type -Wunused-parameter -Wunused -Wuninitialized -Wmaybe-uninitialized 
+    #-Wshadow
+    )
+#add_compile_options(
+#    -ffunction-sections -fdata-sections -Wl,--gc-sections -Wl,--print-gc-sections
+#    )
 #add_compile_options(-std=c++17 -Wall -O0 -g)
 #add_compile_options(-std=c++17 -Wall -Wextra -O0 -g)
 

@@ -5,7 +5,6 @@
 #include <glm/vec3.hpp>
 
 #include "unit.h"
-#include "observer.h"
 
 class Battle
 {

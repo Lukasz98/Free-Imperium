@@ -1,0 +1,14 @@
+BUGS:
+    * w top bar pierwsza literka w "Gold:" jest troche zepsuta, nie wiadomo dlaczego
+    * w skrolowanej liscie pasek nie dziala idealnie
+    * z jakiegos powodu w liscie przestrzen pomiedzy kolejnymi itemami nie jest rowna
+    * zdaza sie ze podczas wojny jednostki stoja na swojej prowincji i nic nie robia
+
+TODO:
+    * labele pod unitami sa malo czytelne, nie mozna rozrozniac z jakiego 
+      kraju sa unity i ile ich jest na danej prowincji
+    * makefile i ccheck itd, dalszy refactor,
+    * menu z ustawieniami (rozdzielczosc), opisem klawiszy itd.
+    * zapisy gry
+    * łodzie
+

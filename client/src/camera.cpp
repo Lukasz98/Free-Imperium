@@ -1,7 +1,6 @@
 #include "camera.h"
 
-Camera::Camera(glm::vec2 winSize)
-    : look_def(glm::vec3(.0f, .0f, -0.1f))
+Camera::Camera(glm::vec2 winSize) : look_def(glm::vec3(.0f, .0f, -0.1f))
 {
     width = 1920, height = 1080.0f;
     speed = 250.0f;
@@ -16,7 +15,6 @@ Camera::Camera(glm::vec2 winSize)
     far = 4800.0f;
     windowSize = winSize;
     projection = glm::perspectiveFovRH(fov, width, height, near, far);
-    float SCale = 4.0f;
     int mapWidth = 5632, mapHeight = 2048;
 
     eye = glm::vec3(mapWidth * 1.0 * 2.0, mapHeight * 1.4f * 2.0f, 169.0f + 1550.0f);
@@ -53,49 +51,6 @@ void Camera::Rotate(int ax, float dt)
     setPlanes();
 }
 
-void Camera::Update(double xMouse, double yMouse, const unsigned char* terrain)
-{
-    return;
-    glm::mat4 view{glm::lookAt(eye, eye + look, up)};
-    float x = (2.0f * xMouse) / windowSize.x - 1.0f;
-    float y = (2.0f * yMouse) / windowSize.y - 1.0f;
-
-    float z = 1.0f;
-    glm::vec3 ray_nds(x, y, z);
-    glm::vec4 ray_clip(ray_nds.x, ray_nds.y, -1.0, 1.0);
-    glm::vec4 ray_eye = glm::inverse(projection) * ray_clip;
-    ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0, 0.0);
-    mouseRay = (glm::inverse(view) * ray_eye);  //.xyz;
-
-    for (float f = 20.0f; f >= -1.0f; f -= 1.0f) {
-        glm::vec3 normal{0.0, 0.0, -1.0};
-
-        double dn = glm::dot(mouseRay, normal);
-        if (dn == 0.0)
-            continue;
-
-        glm::vec3 left{0.0, 0.0, f};
-        double tt = glm::dot(left - eye, normal) / dn;
-
-        glm::vec3 qq{mouseRay.x * tt, mouseRay.y * tt, mouseRay.z * tt};
-        glm::vec3 h{eye + qq};
-
-        int texX = 0.5f + h.x, texY = 0.5f + h.y;
-        int texMapIndex = (1920 * (texY) + (texX));  // + 0.5f;
-        if (texMapIndex >= 1920 * 1088)
-            continue;
-        float colZ = terrain[texMapIndex * 4 + 0];
-        if (colZ != 0.0f)
-            colZ = colZ / 255.0f;
-        float newZ = 20.0f * colZ;
-
-        if (newZ >= f) {
-            mouseInWorld = h;
-            break;
-        }
-    }
-}
-
 void Camera::Reset()
 {
     look = look_def;
@@ -112,7 +67,7 @@ void Camera::Scroll(int z)
     // Log(eye.z);
     setPlanes();
     return;
-    
+
     bool ok = false;
     if (fov >= fovMin + 0.1 && z == -1) {
         fov -= .05f;

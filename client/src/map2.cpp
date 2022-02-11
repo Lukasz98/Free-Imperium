@@ -1,6 +1,7 @@
 #include "map2.h"
 
 #include <glm/gtc/type_ptr.hpp>
+
 #include "log.h"
 
 GLuint err = 0;
@@ -22,7 +23,7 @@ LandBorders::LandBorders(const unsigned char* hpix, int mapWidth, int mapHeight,
             x1 *= scale;
             y1 *= scale;
             int h1 = hpix[index];
-            verts.push_back(Vec3{x1, y1, hpix[index]});
+            verts.push_back(Vec3{x1, y1, (float)hpix[index]});
 
             file >> x1 >> y1 >> z1;
             index = (int)x1 * 3 + (int)y1 * mapWidth * 3;
@@ -31,7 +32,7 @@ LandBorders::LandBorders(const unsigned char* hpix, int mapWidth, int mapHeight,
             x1 *= scale;
             y1 *= scale;
             int h2 = hpix[index];
-            verts.push_back(Vec3{x1, y1, hpix[index]});
+            verts.push_back(Vec3{x1, y1, (float)hpix[index]});
 
             file >> x1 >> y1 >> z1;
             index = (int)x1 * 3 + (int)y1 * mapWidth * 3;
@@ -40,7 +41,7 @@ LandBorders::LandBorders(const unsigned char* hpix, int mapWidth, int mapHeight,
             x1 *= scale;
             y1 *= scale;
             int h3 = hpix[index];
-            verts.push_back(Vec3{x1, y1, hpix[index]});
+            verts.push_back(Vec3{x1, y1, (float)hpix[index]});
             if (0) {
                 if (h2 > h1 && h2 >= h3)
                     h1 = h2;
@@ -83,9 +84,9 @@ SeaBorders::SeaBorders(const unsigned char* hpix, int mapWidth, int mapHeight, i
         int i2 = x2 * 3 + y2 * mapWidth * 3;
         if (i2 > mapHeight * mapWidth * 3 - 3)
             i2 = mapHeight * mapWidth * 3 - 3;
-        verts.push_back(BorderVertex{.pos = Vec3{((float)x1) * scale, ((float)y1) * scale, hpix[i1]},
+        verts.push_back(BorderVertex{.pos = Vec3{((float)x1) * scale, ((float)y1) * scale, (float)hpix[i1]},
                                      .tc = Vec2{(float)x1 / mapWidth, (float)y1 / mapHeight}});
-        verts.push_back(BorderVertex{.pos = Vec3{((float)x2) * scale, ((float)y2) * scale, hpix[i2]},
+        verts.push_back(BorderVertex{.pos = Vec3{((float)x2) * scale, ((float)y2) * scale, (float)hpix[i2]},
                                      .tc = Vec2{(float)x2 / mapWidth, (float)y2 / mapHeight}});
     }
     Log("Sea bor verts count: " << verts.size());
@@ -117,13 +118,8 @@ PolyMap::PolyMap(const unsigned char* hpix, int mapWidth, int mapHeight, const s
     while (file >> ss) {
         if (ss == "id:") {
             file >> ss;
-            // if (provId != -1)
-            //    provinces[provId].vertCount = vertCount;
-
             provId = std::atoi(ss.data());
             file >> ss;
-            // provinces[provId].firstVertId = verts.size();
-            // vertCount = 0;
         }
         int x1 = std::atoi(ss.data());
         file >> ss;
@@ -137,11 +133,9 @@ PolyMap::PolyMap(const unsigned char* hpix, int mapWidth, int mapHeight, const s
         file >> ss;
         int y3 = std::atoi(ss.data());
         float z = 200.0f;
-        // glm::vec3 col{(float)provinces[provId].r / 255.0f, (float)provinces[provId].g / 255.0f,
-        //              (float)provinces[provId].b / 255.0f};
         glm::vec3 col{(float)provsCols[provId].r / 255.0f, (float)provsCols[provId].g / 255.0f,
                       (float)provsCols[provId].b / 255.0f};
-        float tx = (float)provId;  // / 3773.0f;// + 0.5f;
+        float tx = (float)provId;
         int index;
 
         index = x1 * 3 + y1 * mapWidth * 3;
@@ -171,8 +165,6 @@ PolyMap::PolyMap(const unsigned char* hpix, int mapWidth, int mapHeight, const s
         verts[verts.size() - 1].normal = normal;
         verts[verts.size() - 2].normal = normal;
         verts[verts.size() - 3].normal = normal;
-
-        // vertCount += 3;
     }
     glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -199,10 +191,12 @@ PolyMap::PolyMap(const unsigned char* hpix, int mapWidth, int mapHeight, const s
 SeaProvColor::SeaProvColor(int mapWidth, int mapHeight, int scale)
 {
     verts.push_back(SeaProvVert{.pos = Vec3{0.0, 0.0, 0.0}, .tc = Vec2{0.0, 0.0}});
-    verts.push_back(SeaProvVert{.pos = Vec3{0.0, mapHeight * scale, 0.0}, .tc = Vec2{0.0, 1.0}});
-    verts.push_back(SeaProvVert{.pos = Vec3{mapWidth * scale, mapHeight * scale, 0.0}, .tc = Vec2{1.0, 1.0}});
-    verts.push_back(SeaProvVert{.pos = Vec3{mapWidth * scale, mapHeight * scale, 0.0}, .tc = Vec2{1.0, 1.0}});
-    verts.push_back(SeaProvVert{.pos = Vec3{mapWidth * scale, 0.0, 0.0}, .tc = Vec2{1.0, 0.0}});
+    verts.push_back(SeaProvVert{.pos = Vec3{0.0, (float)mapHeight * scale, 0.0}, .tc = Vec2{0.0, 1.0}});
+    verts.push_back(
+        SeaProvVert{.pos = Vec3{(float)mapWidth * scale, (float)mapHeight * scale, 0.0}, .tc = Vec2{1.0, 1.0}});
+    verts.push_back(
+        SeaProvVert{.pos = Vec3{(float)mapWidth * scale, (float)mapHeight * scale, 0.0}, .tc = Vec2{1.0, 1.0}});
+    verts.push_back(SeaProvVert{.pos = Vec3{(float)mapWidth * scale, 0.0, 0.0}, .tc = Vec2{1.0, 0.0}});
     verts.push_back(SeaProvVert{.pos = Vec3{0.0, 0.0, 0.0}, .tc = Vec2{0.0, 0.0}});
     glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -225,7 +219,7 @@ Water::Water(int mapWidth, int mapHeight, int scale)
     verts.push_back(WaterVert{.pos = Vec3{0.0f, 0.0f, 0.0f}, .tc = Vec2{0.0f, 0.0f}});
     verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, 0.0f, 0.0f}, .tc = Vec2{0.5f, 0.0f}});
     verts.push_back(
-        WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+        WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, (float)mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
 
     verts.push_back(WaterVert{.pos = Vec3{0.0f, 0.0f, 0.0f}, .tc = Vec2{0.0f, 0.0f}});
     verts.push_back(
@@ -236,34 +230,37 @@ Water::Water(int mapWidth, int mapHeight, int scale)
     verts.push_back(
         WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
     verts.push_back(
-        WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+        WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, (float)mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
 
     verts.push_back(WaterVert{.pos = Vec3{0.0f, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
-    verts.push_back(WaterVert{.pos = Vec3{0.0f, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+    verts.push_back(WaterVert{.pos = Vec3{0.0f, (float)mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
     verts.push_back(
-        WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+        WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, (float)mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
 
     verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, 0.0f, 0.0f}, .tc = Vec2{0.0f, 0.0f}});
-    verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale, 0.0f, 0.0f}, .tc = Vec2{0.5f, 0.0f}});
-    verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+    verts.push_back(WaterVert{.pos = Vec3{(float)mapWidth * scale, 0.0f, 0.0f}, .tc = Vec2{0.5f, 0.0f}});
+    verts.push_back(
+        WaterVert{.pos = Vec3{(float)mapWidth * scale, (float)mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
 
     verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, 0.0f, 0.0f}, .tc = Vec2{0.0f, 0.0f}});
     verts.push_back(
-        WaterVert{.pos = Vec3{mapWidth * scale, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+        WaterVert{.pos = Vec3{(float)mapWidth * scale, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
     verts.push_back(
         WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{0.0f, 1.0f}});
 
     verts.push_back(
         WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
     verts.push_back(
-        WaterVert{.pos = Vec3{mapWidth * scale, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
-    verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+        WaterVert{.pos = Vec3{(float)mapWidth * scale, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+    verts.push_back(
+        WaterVert{.pos = Vec3{(float)mapWidth * scale, (float)mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
 
     verts.push_back(
         WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale * 0.5f, 0.0f}, .tc = Vec2{.5f, 1.0f}});
     verts.push_back(
-        WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
-    verts.push_back(WaterVert{.pos = Vec3{mapWidth * scale, mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+        WaterVert{.pos = Vec3{mapWidth * scale * 0.5f, (float)mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
+    verts.push_back(
+        WaterVert{.pos = Vec3{(float)mapWidth * scale, (float)mapHeight * scale, 0.0f}, .tc = Vec2{.5f, 1.0f}});
 
     glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -286,11 +283,10 @@ Map2::Map2(const std::vector<Color3>& provsCols, int scale)
       water(mapWidth, mapHeight, scale),
       provTexture("src/img/Provinces_org.png", mapWidth, mapHeight),
       grassT("../shared/grass1.png", 64, 64, GL_REPEAT),
-    //  heightMapTextureId(heightMapId)
       heightMap("src/img/Heightmap.png", mapWidth, mapHeight)
 {
-Log("poly count=" << polyMap.verts.size());
-Log("borders=" << landBorders.verts.size() << ", " << seaBorders.verts.size());
+    Log("poly count=" << polyMap.verts.size());
+    Log("borders=" << landBorders.verts.size() << ", " << seaBorders.verts.size());
     landBorders = LandBorders(heightMap.GetPixels(), mapWidth, mapHeight, scale);
     seaBorders = SeaBorders(heightMap.GetPixels(), mapWidth, mapHeight, scale);
     polyMap = PolyMap(heightMap.GetPixels(), mapWidth, mapHeight, provsCols, scale);
@@ -350,8 +346,7 @@ void Map2::DrawLand(glm::mat4 proj, glm::vec3 eye, float provId, float provCount
 {
 #if 1
     glUseProgram(landShader.GetProgram());
-    glUniformMatrix4fv(glGetUniformLocation(landShader.GetProgram(), "matrix"), 1, GL_FALSE,
-                       glm::value_ptr(proj));
+    glUniformMatrix4fv(glGetUniformLocation(landShader.GetProgram(), "matrix"), 1, GL_FALSE, glm::value_ptr(proj));
     glUniform1iv(glGetUniformLocation(landShader.GetProgram(), "tex"), 32, tex);
     glUniform3fv(glGetUniformLocation(landShader.GetProgram(), "eyeLight"), 1, glm::value_ptr(eye));
     glUniform1f(glGetUniformLocation(landShader.GetProgram(), "provId"), provId);
@@ -407,10 +402,10 @@ void Map2::ReloadShaders()
     landShader = Shader{"src/graphics/shaders/poly/vert.v", "src/graphics/shaders/poly/frag.f", "", ""};
     waterColorShader =
         Shader{"src/graphics/shaders/water_color/vert.v", "src/graphics/shaders/water_color/frag.f", "", ""};
-    
 
     landTesShader = Shader("src/graphics/shaders/poly_tes/vert.v", "src/graphics/shaders/poly_tes/frag.f",
-                         "src/graphics/shaders/poly_tes/tes_ster.ts", "src/graphics/shaders/poly_tes/tes_w.tw", "src/graphics/shaders/poly_tes/geom.g");
+                           "src/graphics/shaders/poly_tes/tes_ster.ts", "src/graphics/shaders/poly_tes/tes_w.tw",
+                           "src/graphics/shaders/poly_tes/geom.g");
 }
 
 void Map2::ActivateTextures()

@@ -1,9 +1,6 @@
 #include "menu.h"
 
-Menu::Menu(GameData* gd)
-    : gd(gd)
-{
-}
+Menu::Menu(GameData* gd) : gd(gd) {}
 
 Menu::~Menu() {}
 
@@ -25,16 +22,15 @@ void Menu::loop()
         gd->window->Refresh();
 
         guiLast.start();
-        glm::vec2 mp{gd->window->xMouse * gd->settings.resolution.x / gd->window->GetSize().x,
-                     (gd->window->GetSize().y - gd->window->yMouse) * gd->settings.resolution.y / gd->window->GetSize().y};
+        glm::vec2 mp{
+            gd->window->xMouse * gd->settings.resolution.x / gd->window->GetSize().x,
+            (gd->window->GetSize().y - gd->window->yMouse) * gd->settings.resolution.y / gd->window->GetSize().y};
 
         GuiLast::GuiEv ctype;
         GuiLast::GuiEv tmpctype;
         tmpctype = guiLast.start_menu(mp.x, mp.y);
         if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
-
-        
 
         guiLast.flush();
         if (gd->window->mouseLClicked) {

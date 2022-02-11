@@ -8,14 +8,14 @@ War::War(int id, int idInGui)
 
 void War::AddBattleWinner(std::string winner)
 {
-    for (auto & a : attackers) {
+    for (auto& a : attackers) {
         if (a == winner) {
             attackerWarScore += 10;
             return;
         }
     }
 
-    for (auto & d : defenders) {
+    for (auto& d : defenders) {
         if (d == winner) {
             attackerWarScore -= 10;
             return;
@@ -48,28 +48,27 @@ bool War::ShouldTheyFight(std::string b, std::string c) const
 {
     if (b == c)
         return false;
-    
-    for (const auto & a : attackers)
+
+    for (const auto& a : attackers)
         if (a == b)
-            for (const auto & d : defenders)
+            for (const auto& d : defenders)
                 if (d == c)
                     return true;
 
-    for (const auto & a : attackers)
+    for (const auto& a : attackers)
         if (a == c)
-            for (const auto & d : defenders)
+            for (const auto& d : defenders)
                 if (d == b)
                     return true;
 
     return false;
-
 }
 
 bool War::ShouldTheyFight(int b, int c) const
 {
     if (b == c)
         return false;
-    
+
     for (auto a : attackersIds)
         if (a == b)
             for (auto d : defendersIds)
@@ -84,7 +83,7 @@ bool War::ShouldTheyFight(int b, int c) const
 
     return false;
 }
-    
+
 bool War::IsAttacker(int ctrId) const
 {
     for (auto a : attackersIds)
@@ -100,5 +99,4 @@ bool War::IsDefender(int ctrId) const
             return true;
     return false;
 }
-
 

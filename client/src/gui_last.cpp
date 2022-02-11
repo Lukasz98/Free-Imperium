@@ -677,9 +677,6 @@ GuiLast::GuiEv GuiLast::Gui::game_peaceOffer(const PeaceOffer* offer, int mx, in
     core.drawText(namePos, nameSize, whiteCol, "Lost provinces:", TEXT_CENTER, AM::FontSize::PX16);
     auto* lostTuples = &offer->lostProv;
     auto* gainTuples = &offer->gainProv;
-    // if (offer->offeredBy != myCtrId) {
-    //     lostTuples = &offer->gainProv;
-    //     gainTuples = &offer->lostProv;
     // }
     int scr2 = scr;
     {  // list1
@@ -751,7 +748,7 @@ GuiLast::GuiEv GuiLast::Gui::game_SideBar(const SideBarData& sbData, int mx, int
     glm::vec3 wPos{res.x - offset.x - wSize.x, wSize.y * 0.25f, 0.1f};
     {  // list
         glm::vec2 listSize = wSize;
-        glm::vec3 listPos = wPos;  //{wPos.x, namePos.y - offset.y * 8.0f - listSize.y, 0.2f};
+        glm::vec3 listPos = wPos;
         core.drawRect(listPos, listSize, weirdBrown);
         glm::vec2 elSize{wSize.x, wSize.x};
         glm::vec3 startPos{wPos.x, wPos.y + wSize.y - elSize.y, 0.2f};
@@ -773,7 +770,7 @@ GuiLast::GuiEv GuiLast::Gui::game_SideBar(const SideBarData& sbData, int mx, int
                 core.drawIcon(startPos, elSize, (int)sbData.elements[i].type);
 
                 if (core.isInRect(startPos, elSize, mx, my))
-                    ct = GuiLast::GuiEv{ClickEventType::SIDEBAR_LEFTC, i};
+                    ct = GuiLast::GuiEv{ClickEventType::SIDEBAR_LEFTC, (int)i};
                 startPos.y = startPos.y - elSize.y - offset.y;
                 startTextPos.y = startPos.y;
             }
@@ -836,7 +833,7 @@ GuiLast::GuiEv GuiLast::Gui::room_countryList(const std::vector<std::string>& ct
             core.drawRect(namePos, nameSize, brown);
             core.drawText(namePos, nameSize, whiteCol, ctrarr[i], TEXT_LEFT, AM::FontSize::PX16);
             if (core.isInRect(namePos, nameSize, mx, my))
-                ct = GuiLast::GuiEv{ClickEventType::ROOM_PICK_COUNTRY, i};
+                ct = GuiLast::GuiEv{ClickEventType::ROOM_PICK_COUNTRY, (int)i};
             namePos.y = namePos.y - nameSize.y - offset.y;
         }
         flush();
@@ -915,7 +912,6 @@ void GuiLast::Gui::start()
 
 void GuiLast::Gui::start(const glm::mat4& matrix)
 {
-    // Shader shader("src/graphics/shaders/gui_batch/a.vert", "src/graphics/shaders/gui_batch/a.frag", "", "");
     glUseProgram(shader.GetProgram());
     glUniformMatrix4fv(glGetUniformLocation(shader.GetProgram(), "pr_matrix"), 1, GL_FALSE,
                        glm::value_ptr(matrix));
@@ -941,6 +937,6 @@ void GuiLast::Gui::start(const glm::mat4& matrix)
 
 void GuiLast::Gui::flush()
 {
-    // drawLists();
     core.guiBatchFlush();
 }
+

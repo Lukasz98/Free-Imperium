@@ -1,14 +1,14 @@
 #pragma once
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
-#include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+
 #include "log.h"
 
-class Camera
-{
-public:
+class Camera {
+   public:
     glm::vec4 planes[6];
     glm::mat4 projection;
     glm::vec3 eye, center, up;
@@ -30,7 +30,7 @@ public:
 
     void setPlanes();
 
-public:
+   public:
     Camera(glm::vec2 winSize);
     Camera() {}
 
@@ -42,17 +42,34 @@ public:
 
     glm::mat4 GetMat();
 
-    void Update(double xMouse, double yMouse, const unsigned char * terrain);
     void Reset();
 
     void Scroll(int z);
 
     bool IsPointInFrustum(glm::vec3 p);
 
-    glm::vec3 GetMouseRay() { return mouseRay; }
-    glm::vec3 GetMouseInWorld() { return mouseInWorld; }
-    float GetFov() { return fov; }
-    glm::vec3 GetEye() { return eye; }
-    float GetFovDelta() { return fovMax - fov; }
-    float GetScrollPerc() { return (maxZ - eye.z) * 0.05f; }
+    glm::vec3 GetMouseRay()
+    {
+        return mouseRay;
+    }
+    glm::vec3 GetMouseInWorld()
+    {
+        return mouseInWorld;
+    }
+    float GetFov()
+    {
+        return fov;
+    }
+    glm::vec3 GetEye()
+    {
+        return eye;
+    }
+    float GetFovDelta()
+    {
+        return fovMax - fov;
+    }
+    float GetScrollPerc()
+    {
+        return (maxZ - eye.z) * 0.05f;
+    }
 };

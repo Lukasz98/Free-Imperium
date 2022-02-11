@@ -1,6 +1,6 @@
 #include "country.h"
-
-Country::Country(DataObj * obj)
+/*
+Country::Country(DataObj* obj)
 {
     id = std::stoi(obj->values["id:"]);
     name = obj->values["name:"];
@@ -17,8 +17,8 @@ Country::Country(DataObj * obj)
     ss >> col;
     color.b = (unsigned char)std::stoi(col);
 }
-Country::Country(const CountryData& cd, const std::string& name)
-    : name(name)
+*/
+Country::Country(const CountryData& cd, const std::string& _name) : name(_name)
 {
     id = cd.id;
     culture = "some culture";
@@ -29,14 +29,12 @@ Country::Country(const CountryData& cd, const std::string& name)
     color.b = cd.b;
 }
 
-Country::~Country()
-{
+Country::~Country() {}
 
-}
-
-void Country::SetRel(const std::string & c, int r)
+void Country::SetRel(const std::string& c, int r)
 {
-    auto it = std::find_if(relations.begin(), relations.end(), [c](std::pair<std::string,int> & p){ return c == p.first; });
+    auto it = std::find_if(relations.begin(), relations.end(),
+                           [c](std::pair<std::string, int>& p) { return c == p.first; });
     if (it != relations.end())
         (*it).second = r;
     else {
@@ -44,35 +42,36 @@ void Country::SetRel(const std::string & c, int r)
     }
 }
 
-int Country::GetRel(const std::string & c)
+int Country::GetRel(const std::string& c)
 {
-    auto it = std::find_if(relations.begin(), relations.end(), [c](std::pair<std::string,int> & p){ return c == p.first; });
+    auto it = std::find_if(relations.begin(), relations.end(),
+                           [c](std::pair<std::string, int>& p) { return c == p.first; });
     if (it != relations.end())
         return (*it).second;
     return 0;
 }
 
-void Country::StartImprRel(const std::string & c)
+void Country::StartImprRel(const std::string& c)
 {
     auto it = std::find(impRelWith.begin(), impRelWith.end(), c);
     if (it == impRelWith.end())
         impRelWith.emplace_back(c);
 }
 
-void Country::StopImprRel(const std::string & c)
+void Country::StopImprRel(const std::string& c)
 {
     auto it = std::find(impRelWith.begin(), impRelWith.end(), c);
     if (it != impRelWith.end())
         impRelWith.erase(it);
 }
 
-bool Country::IsImprRel(const std::string & c)
+bool Country::IsImprRel(const std::string& c)
 {
     auto it = std::find(impRelWith.begin(), impRelWith.end(), c);
     return !(it == impRelWith.end());
 }
 
-void Country::SetImprRel(const std::vector<std::string> & ir)
+void Country::SetImprRel(const std::vector<std::string>& ir)
 {
     impRelWith = ir;
 }
@@ -81,6 +80,4 @@ bool Country::Apply(/*PeaceOffer offer*/)
 {
     return false;
 }
-    
-    
 

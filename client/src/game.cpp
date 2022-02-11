@@ -28,7 +28,6 @@ void labelText(const glm::vec3 &pos, const glm::vec2 &size, const glm::vec4 &col
     glm::vec3 textPos = pos;
     GLuint tid = (GLuint)fontSize;
     float spaceWidth = 10.0f;
-    float padding = 5.0f;
     float off = 0.0f, betweenWidth = 1.0f;
 
     float widthSum = 0.0f, maxY = 0.0f;
@@ -45,7 +44,6 @@ void labelText(const glm::vec3 &pos, const glm::vec2 &size, const glm::vec4 &col
     textPos.y = (textPos.y + size.y * 0.5f) - maxY * 0.5f;
 
     for (int i = 0; i < text.size(); ++i) {
-        // for (int i = 0; i < text.size() && i < max; ++i) {
         glm::vec3 rPos;
         glm::vec2 rSize, rLBTC, tcLen;
         if (AM::atlasInfo[fontSize][text[i]].set) {
@@ -90,19 +88,10 @@ void labelText(const glm::vec3 &pos, const glm::vec2 &size, const glm::vec4 &col
 }
 
 Game::Game(sf::TcpSocket &sock, std::string countryName, GameData *gd)
-    : socket(sock),
-      // gd->camera(gd->window->GetSize()),
-      gd(gd),
-      model3d("src/img/DudeDonePosefix.obj", glm::vec3{0.0, 0.0, 0.1})
+    : socket(sock), gd(gd), model3d("src/img/DudeDonePosefix.obj", glm::vec3{0.0, 0.0, 0.1})
 {
-    // gd->window->size = gd->window->GetSize();
     gd->resetMarkedCountry();
-    // std::sort(provinces.begin(), provinces.end(),
-    //           [](const std::unique_ptr<Province> &p1, const std::unique_ptr<Province> &p2) {
-    //               return p1->GetId() < p2->GetId();
-    //           });
 
-    // setCountryMap();
     Log("Ctr name:" << countryName);
     auto it = std::find_if(gd->countries.begin(), gd->countries.end(),
                            [countryName](const Country &c) { return c.GetName() == countryName; });
@@ -125,29 +114,18 @@ Game::~Game() {}
 
 void Game::Play()
 {
-    float currTime = 0.0f;
-    float displayTime = 0.0f;
-    float framesTime = 0.0f;
-    bool display = true;
+    float fpsTime = 0.0f;
     int frames = 0;
 
     pickModelShader =
         Shader{"src/graphics/shaders/pick_model/vert.v", "src/graphics/shaders/pick_model/frag.f", "", ""};
     labelShader = Shader{"src/graphics/shaders/label/vert.v", "src/graphics/shaders/label/frag.f", "", ""};
     glPatchParameteri(GL_PATCH_VERTICES, 3);
-    float trCount = 150;
     int err = glGetError();
     if (err)
         Log("Opengl error: " << err);
 
-    // Texture ctrsText{"src/img/countries_map.png", gd->map->mapWidth, gd->map->mapHeight};
-
-    // GLint tex[32];
-
     std::map<int, Node> nodes;
-    // loadProvData(provsData, gd->colorToId);
-    // loadCountriesData(ctrsData);
-    // ctrProvs.reserve(ctrsData.size());
 
     err = glGetError();
     if (err)
@@ -156,17 +134,9 @@ void Game::Play()
     if (err)
         Log("Opengl error: " << err);
 
-    //    GLuint fontTexID[32];
-
-    const unsigned char *h = gd->map->heightMap.GetPixels();
-
     err = glGetError();
     if (err)
         Log("Opengl error: " << err);
-
-    // set country map
-    //
-    // ~~~
 
     // to jest bindowane prz rysowaniu unitow trzeba to sprawdzic
     GLuint otherTexID[32];
@@ -216,11 +186,7 @@ void Game::Play()
 
     Shader shader("src/graphics/shaders/basic/vert.v", "src/graphics/shaders/basic/frag.f", "", "");
     bool drawBorders = true;
-    float tesLevel = 32.0f;
-    // float gd->waterTime = 0.0f;
-    // float gd->ctrNamesFade = 0.0f, ctrNamesFadeIn = 0.0f;
     float time = glfwGetTime();
-    float rotateText;
     guiLast.init(gd->window, gd->settings.resolution, gd->window->GetSize());
     while (!gd->window->ShouldClose()) {
         //
@@ -274,10 +240,6 @@ void Game::Play()
             drawBorders = !drawBorders;
         }
 
-        // if (gd->window->keys['P']) {
-        //     gd->map->DrawForColorPick(matrix, (float)provinces.size());
-        // }
-        // else {
         {
             gd->map->DrawWater(matrix, gd->camera.eye);
             if (openPeaceOfferId == -1) {
@@ -380,9 +342,6 @@ void Game::Play()
                         }
                     }
                     GLuint err = 0;
-                    // glGetError();
-                    // if (err)
-                    //     Log("Opengl error: " << err);
                     GLuint arrvao, arrvbo;
                     glCreateVertexArrays(1, &arrvao);
                     glBindVertexArray(arrvao);
@@ -435,32 +394,19 @@ void Game::Play()
                 glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
 
                 std::vector<Vertex> labelVerts;
-                // for (std::size_t i = 0; i < uinds.size(); ++i) {
                 for (std::size_t i : uinds) {
-                    // for (auto &unit : units) {
-                    //     if (abs(unit.GetFakePos().x - gd->camera.eye.x) > 400)
-                    //         continue;
-                    //     if (abs(unit.GetFakePos().y - gd->camera.eye.y) > 200)
-                    //         continue;
                     glm::mat4 unitModel = glm::mat4(1.0);
                     unitModel = glm::translate(unitModel, gd->units[i].GetFakePos());
                     auto asd = gd->units[i].GetFakePos();
-                    // unitModel = unitModel * rotate;
                     unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
 
-                    int fontSize = 2;
                     float ww = 70.0f, hh = 25.0f;
                     Vertex fv{
                         .pos = glm::vec3{asd.x - ww * 0.6f, asd.y - hh - 8.0f, asd.z},
-                        //.pos = Vec3{-1.5f, -1.5f, 0.0f},
                         .color = glm::vec4{1.0f, 0.0f, 0.0f, 1.0f},
                         .tc = glm::vec2{0.0f, 0.0f},
                         .textureId = (int)22,
                     };
-                    // auto *mlptr = glm::value_ptr(unitModel);
-                    // for (int i = 0; i < 16; ++i) {
-                    //     fv.ml[i] = *(mlptr + i);
-                    // }
                     labelVerts.push_back(fv);
                     fv.pos.y += hh;
                     labelVerts.push_back(fv);
@@ -546,12 +492,11 @@ void Game::Play()
             glBindTexture(GL_TEXTURE_2D, (GLuint)gd->fontTexID[i]);
         }
 
-        checkCountryNamesFade(gd, dt);
+        checkCountryNamesFade(gd);
         if (((gd->camera.eye.z > gd->zPoint) || gd->ctrNamesFade < 1.0f) && openPeaceOfferId == -1) {
             drawCountryNames(gd);
         }
         updateCountryNamesFade(gd, dt);
-        float tt2 = glfwGetTime();
         //~ctrNames
 
         glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
@@ -573,6 +518,12 @@ void Game::Play()
         pids.clear();
         dt = glfwGetTime() - time;
         gd->updateTime(dt);
+        fpsTime += dt;
+        ++frames;
+        if (fpsTime > 1.0f) {
+            fpsTime = 0.0f;
+            frames = 0;
+        }
         // gd->waterTime += dt;
         time = glfwGetTime();
     }
@@ -925,9 +876,8 @@ void Game::processPacket(sf::Packet packet)
                                     gd->map->heightMap.GetPixels(), gd->map->mapWidth);
     }
     else if (type == "PeaceAccepted") {
-        int warId = ProcessPacket::PeaceAccepted(packet, gd->provinces, gd->countries, gd->wars, sideBarData);
+        ProcessPacket::PeaceAccepted(packet, gd->provinces, gd->countries, gd->wars, sideBarData);
         gd->editCountryMap();
-        const unsigned char *h = gd->map->heightMap.GetPixels();
         gd->makeCountryNames();
         if (openedProvId >= 0) {
             assert(openedProvId < (int)gd->provinces.size());
@@ -981,20 +931,14 @@ void Game::input()
         toSend.emplace_back(packet);
     }
 
-    // gd->camera.Update(gd->window->xMouse, gd->windowSize.y - gd->window->yMouse, map.GetHeightTerrain());
-    gd->camera.Update(gd->window->xMouse, gd->window->GetSize().y - gd->window->yMouse,
-                      gd->map->heightMap.GetPixels());
-
     if (gd->window->scrollOffset && ctype.ct == ClickEventType::MISS) {
         gd->camera.Scroll(gd->window->scrollOffset);
     }
 
-    glm::vec2 mouseInWorld = gd->camera.GetMouseInWorld();
-
     if (gd->window->mouseLClicked && !gd->window->mouseRClicked) {
         if (ctype.ct == ClickEventType::MISS) {
-            if (!unitClick(mouseInWorld)) {
-                int pid = provClick(mouseInWorld);
+            if (!unitClick()) {
+                int pid = provClick();
                 if (pid != -1) {
                     if (openPeaceOfferId == -1) {
                         resetGuiWindows();
@@ -1052,7 +996,7 @@ void Game::input()
     }
     else if (gd->window->mouseRClicked) {
         if (ctype.ct == ClickEventType::MISS && openUnitId != -1) {
-            int pid = provClick(mouseInWorld);
+            int pid = provClick();
             if (pid != -1) {
                 toSend.emplace_back(PreparePacket::MoveUnit(openUnitId, pid));
                 Log("Try unit move: " << openUnitId << " => topid: " << pid);
@@ -1062,9 +1006,9 @@ void Game::input()
     gd->window->mouseRClicked = false;
 }
 
-int Game::provClick(glm::vec2 mouseInWorld)
+int Game::provClick()
 {
-    int id = (float)clickedProvId(gd, mouseInWorld);
+    int id = (float)clickedProvId(gd);
     if (id >= 0 && id < gd->provinces.size()) {
         markedProvId = (float)id;
         openedProvId = markedProvId;
@@ -1073,7 +1017,7 @@ int Game::provClick(glm::vec2 mouseInWorld)
     return -1;
 }
 
-bool Game::unitClick(glm::vec2 mouseInWorld)
+bool Game::unitClick()
 {
     GLuint err;
     {  // check for unit clicks
@@ -1101,7 +1045,6 @@ bool Game::unitClick(glm::vec2 mouseInWorld)
     int pixx = gd->window->xMouse, pixy = gd->window->GetSize().y - gd->window->yMouse;
     glReadPixels(pixx, pixy, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
     gd->window->Refresh();
-    glm::vec3 unitColor = {(int)pixel[0] / 255.0, (int)pixel[1] / 255.0, (int)pixel[2] / 255.0};
     unsigned int clickedUnitPhash = getHash(pixel[0], pixel[1], pixel[2]);
 
     if (gd->colorToId.find(clickedUnitPhash) != gd->colorToId.end()) {
@@ -1129,24 +1072,24 @@ bool Game::unitClick(glm::vec2 mouseInWorld)
     return false;
 }
 
-void Game::unitMove(std::unordered_map<std::string, std::string> &values, glm::vec2 mouseInWorld)
-{
-    // Color provinceColor = map.ClickOnProvince(mouseInWorld.x, mouseInWorld.y);
-    // auto it = std::find_if(provinces.begin(), provinces.end(), [provinceColor](std::unique_ptr<Province> &p) {
-    //     return p->GetColor() == provinceColor;
-    // });
-    // if (it != provinces.end()) {
-    //     auto idIt = values.find("id");
-    //     if (idIt == values.end())
-    //         return;
-    //     sf::Packet packet;
-    //     packet << "UnitMove";
-    //     packet << std::stoi(idIt->second);
-    //     packet << (*it)->GetId();
+// void Game::unitMove(std::unordered_map<std::string, std::string> &values, glm::vec2 mouseInWorld)
+//{
+//  Color provinceColor = map.ClickOnProvince(mouseInWorld.x, mouseInWorld.y);
+//  auto it = std::find_if(provinces.begin(), provinces.end(), [provinceColor](std::unique_ptr<Province> &p) {
+//      return p->GetColor() == provinceColor;
+//  });
+//  if (it != provinces.end()) {
+//      auto idIt = values.find("id");
+//      if (idIt == values.end())
+//          return;
+//      sf::Packet packet;
+//      packet << "UnitMove";
+//      packet << std::stoi(idIt->second);
+//      packet << (*it)->GetId();
 
-    //    toSend.push_back(packet);
-    //}
-}
+//    toSend.push_back(packet);
+//}
+//}
 
 void Game::processGuiEvent() {}
 

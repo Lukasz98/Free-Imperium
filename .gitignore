@@ -10,6 +10,7 @@ server/build/*
 client/build/*
 client/BordersData.txt
 client/polygon.txt
+client/unused/
 
 client/new_gui_sketch
 client/src/vgcore*

@@ -2,17 +2,14 @@
 #include <algorithm>
 #include <sstream>
 
-#include "log.h"
 #include "color.h"
-#include "month_cash.h"
 #include "data_object.h"
-//#include "observer.h"
+#include "log.h"
+#include "month_cash.h"
 #include "ctr_data.h"
 
-
-class Country
-{
-    public:
+class Country {
+   public:
     int id;
     Color color;
     std::string name, culture, religion;
@@ -22,48 +19,98 @@ class Country
     int manpower = 0;
     int prestige = 0;
     int totalDevelopment = 0;
-    
-    std::vector<std::pair<std::string,int>> relations;
+
+    std::vector<std::pair<std::string, int>> relations;
     std::vector<std::string> impRelWith;
-    
-public:
 
-
+   public:
     Country(const CountryData& cd, const std::string& name);
-    Country(DataObj * obj);
+//    Country(DataObj* obj);
     ~Country();
 
-
     bool Apply(/*PeaceOffer offer*/);
-    
-    void SetName(std::string n) { name = n; }
-    void SetCulture(std::string c) { culture = c; }
-    void SetReligion(std::string r) { religion = r; }
-    void SetColor(Color c) { color = c; }    
-    void SetGold(float g) { gold = g; }
-    void SetIncome(float i) { income = i; }
 
-    void SetRel(const std::string & c, int r = 2);
-    void StartImprRel(const std::string & c);
-    void StopImprRel(const std::string & c);
-    void SetImprRel(const std::vector<std::string> & ir);
-    int GetRel(const std::string & c);
-    bool IsImprRel(const std::string & c);
+    void SetName(std::string n)
+    {
+        name = n;
+    }
+    void SetCulture(std::string c)
+    {
+        culture = c;
+    }
+    void SetReligion(std::string r)
+    {
+        religion = r;
+    }
+    void SetColor(Color c)
+    {
+        color = c;
+    }
+    void SetGold(float g)
+    {
+        gold = g;
+    }
+    void SetIncome(float i)
+    {
+        income = i;
+    }
 
-    float GetGold() { return gold; }
-    float GetIncome() { return income; }
-    float GetArmyMaintenance() { return armyMaintenance; }
-    void SetArmyMaintenance(float m) { armyMaintenance = m; }
+    void SetRel(const std::string& c, int r = 2);
+    void StartImprRel(const std::string& c);
+    void StopImprRel(const std::string& c);
+    void SetImprRel(const std::vector<std::string>& ir);
+    int GetRel(const std::string& c);
+    bool IsImprRel(const std::string& c);
 
-    inline int GetId() const { return id; }        
-    const std::string & GetName() const { return name; }
-    std::string GetCulture() const { return culture; }
-    std::string GetReligion() const { return religion; }
-    float GetGold() const { return gold; }
-    Color GetColor() const { return color; }
-    int GetTotalDevelopment() const { return totalDevelopment; }
+    float GetGold()
+    {
+        return gold;
+    }
+    float GetIncome()
+    {
+        return income;
+    }
+    float GetArmyMaintenance()
+    {
+        return armyMaintenance;
+    }
+    void SetArmyMaintenance(float m)
+    {
+        armyMaintenance = m;
+    }
 
-    const std::vector<std::pair<std::string,int>> & GetRelations() const { return relations; }
+    inline int GetId() const
+    {
+        return id;
+    }
+    const std::string& GetName() const
+    {
+        return name;
+    }
+    std::string GetCulture() const
+    {
+        return culture;
+    }
+    std::string GetReligion() const
+    {
+        return religion;
+    }
+    float GetGold() const
+    {
+        return gold;
+    }
+    Color GetColor() const
+    {
+        return color;
+    }
+    int GetTotalDevelopment() const
+    {
+        return totalDevelopment;
+    }
 
+    const std::vector<std::pair<std::string, int>>& GetRelations() const
+    {
+        return relations;
+    }
 };
 

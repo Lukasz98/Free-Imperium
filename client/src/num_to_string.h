@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-//namespace convert {
+// namespace convert {
 
 inline std::string itos(int f)
 {
@@ -12,7 +12,7 @@ inline std::string itos(int f)
     }
 
     std::string result;
-    
+
     if (f >= 1000) {
         int a = f / 1000;
         int b = f % 1000;
@@ -36,7 +36,6 @@ inline std::string itos(int f)
 
     return result;
 }
-
 
 inline std::string ftos(float f)
 {

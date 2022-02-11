@@ -119,7 +119,7 @@ void Model3D::Draw()
     unbind();
 }
 
-void Model3D::DrawRect(glm::mat4 ml)
+void Model3D::DrawRect()
 {
     //  auto pos = plane->GetPosition();
     // glm::vec3 pos2 = ml * glm::vec4{pos,1.0};

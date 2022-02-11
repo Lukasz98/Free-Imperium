@@ -2,15 +2,11 @@
 
 #include "num_to_string.h"
 
-void ProcessPacket::DailyUpdate(sf::Packet& packet, std::vector<War>& wars,
-                                std::vector<Province>& provinces,
-                                std::vector<Country>& countries, TopBarData& topBarData,
-                                Map2* map2)
+void ProcessPacket::DailyUpdate(sf::Packet& packet, std::vector<War>& wars, std::vector<Province>& provinces,
+                                std::vector<Country>& countries, TopBarData& topBarData, Map2* map2)
 {
     std::unordered_map<std::string, std::string> values;
     std::string strData;
-    float floatData = 0;
-    int intData = 0;
     int countryCounter = 0;
     packet >> countryCounter;
 
@@ -28,7 +24,6 @@ void ProcessPacket::DailyUpdate(sf::Packet& packet, std::vector<War>& wars,
         packet >> provCount;
         for (int i = 0; i < provCount; i++) {
             int id, manpower, development;
-            int population;
             float treasury;
             float monthIncome, totalMonthIncome;
 
@@ -196,8 +191,7 @@ void ProcessPacket::HourlyUpdate(sf::Packet& packet, std::vector<Unit>& units, s
 }
 
 int ProcessPacket::PeaceAccepted(sf::Packet& packet, std::vector<Province>& provinces,
-                                 std::vector<Country>& countries, std::vector<War>& wars,
-                                 SideBarData& sideBarData)
+                                 std::vector<Country>& countries, std::vector<War>& wars, SideBarData& sideBarData)
 {
     int provinceCount;
     packet >> provinceCount;
@@ -249,11 +243,10 @@ void ProcessPacket::NewWar(sf::Packet& packet, std::vector<War>& wars, int myCou
 
     if (myCountryId == attackerId || myCountryId == defenderId) {
         assert(attackerId >= 0 && attackerId < countries.size());
-        //auto attacker = countries.at(attackerId);
         assert(defenderId >= 0 && defenderId < countries.size());
-        //auto defender = countries.at(defenderId);
 
-        std::string rival = (myCountryId == attackerId) ? countries[defenderId].GetName() : countries[attackerId].GetName();
+        std::string rival =
+            (myCountryId == attackerId) ? countries[defenderId].GetName() : countries[attackerId].GetName();
         sideBarData.elements.push_back(
             SideBarData::Element{.type = SideBarData::IType::WAR, .val = id, .hoverText = rival});
         War war{id, 0};
@@ -297,8 +290,8 @@ void ProcessPacket::MonthlyUpdate(sf::Packet& packet, const std::string& myCount
         std::string cName;
         packet >> cName;
 
-        auto cIt = std::find_if(countries.begin(), countries.end(),
-                                [cName](Country& c) { return c.GetName() == cName; });
+        auto cIt =
+            std::find_if(countries.begin(), countries.end(), [cName](Country& c) { return c.GetName() == cName; });
 
         int relC = 0;
         packet >> relC;
@@ -360,7 +353,6 @@ void ProcessPacket::BotPeaceOffer(sf::Packet& packet, std::vector<PeaceOffer>& p
         packet >> d;
         peaceOffer.gainProv.emplace_back(std::make_tuple(s, ss, d));
     }
-
 
     for (auto it = peaceOffers.begin(); it != peaceOffers.end(); ++it) {
         if (it->warId == peaceOffer.warId && it->offeredBy == peaceOffer.offeredBy) {

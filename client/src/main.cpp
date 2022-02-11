@@ -5,6 +5,7 @@
 
 #include "asset_manager.h"
 #include "camera.h"
+#include "country_loader.h"
 #include "game.h"
 #include "game_data.h"
 #include "graphics/shader.h"
@@ -12,12 +13,9 @@
 #include "gui_last.h"
 #include "log.h"
 #include "menu.h"
-//#include "new_map.h"
+#include "province_loader.h"
 #include "room.h"
 #include "settings.h"
-
-#include "country_loader.h"
-#include "province_loader.h"
 
 int main()
 {
@@ -42,8 +40,6 @@ int main()
     AM::Init();
 
     glfwSetCursor(window.window, AM::am.def_cursor);
- 
- 
 
     GameData gd;
     gd.window = &window;

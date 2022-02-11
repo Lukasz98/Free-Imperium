@@ -7,7 +7,6 @@ int provId;
 int nodeHash(int x, int y)
 {
     int r = x | (y << 16);
-    // r = r | (((int)y) << 16);
     return r;
 }
 
@@ -25,6 +24,7 @@ int dirKind(int x1, int y1, int x2, int y2)
         return 5;
     else if (x1 == x2 - 1 && y1 == y2 - 1)
         return 6;
+    return 1;
 }
 
 int step(int x1, int y1, int x2, int y2, int x3, int y3)
@@ -68,7 +68,6 @@ void bord2(const unsigned char* pix, int x, int y, int w, int h, std::map<int, N
         int rx = x + 1, ry1 = y + 1, ry2 = y;
         int bx1 = x + 1, bx2 = x, by = y - 1;
 
-        int currI = x * 3 + y * w * 3;
 
         int nextI = lx * 3 + y * w * 3;
         if (lx < 0)
@@ -113,14 +112,10 @@ void bord2(const unsigned char* pix, int x, int y, int w, int h, std::map<int, N
             nodes[thash2].next.push_back(thash);
             nodes[thash].provId.push_back(std::make_pair(provId, chunkId));
             nodes[thash2].provId.push_back(std::make_pair(provId, chunkId));
-            // if (goL == false) {
-            //    nodes[nodeHash(lx, ly2)].next.push_back(thash);
-            //}
         }
         else {
             que.push(tx1 | (ty << 16));
         }
-        //}
 
         bool goR = false;
         if (rx < w) {
@@ -140,9 +135,6 @@ void bord2(const unsigned char* pix, int x, int y, int w, int h, std::map<int, N
                 nodes[thash2].provId.push_back(std::make_pair(provId, chunkId));
                 nodes[thash].next.push_back(thash2);
                 nodes[thash2].next.push_back(thash);
-                // if (goT == false) {
-                //    nodes[nodeHash(tx2, ty)].next.push_back(thash2);
-                //}
             }
             else {
                 que.push(rx | (ry2 << 16));
@@ -165,12 +157,6 @@ void bord2(const unsigned char* pix, int x, int y, int w, int h, std::map<int, N
                 nodes[thash2].next.push_back(thash);
                 nodes[thash].provId.push_back(std::make_pair(provId, chunkId));
                 nodes[thash2].provId.push_back(std::make_pair(provId, chunkId));
-                // if (goR == false) {
-                //    nodes[nodeHash(rx, ry2)].next.push_back(thash2);
-                //}
-                // if (goL == false) {
-                //    nodes[nodeHash(lx, ly1)].next.push_back(thash);
-                //}
             }
             else {
                 que.push(bx2 | (by << 16));
@@ -190,7 +176,7 @@ void saveBorders(const unsigned char* pix, int ww, int hh, std::vector<ProvData>
         if (pd.water)
             continue;
         provId = pd.id;
-        currCol = Color{pd.r, pd.g, pd.b};
+        currCol = Color{(unsigned char)pd.r, (unsigned char)pd.g, (unsigned char)pd.b};
         for (std::size_t i = 0; i < provPoints[pd.id].size(); ++i) {
             bord2(pix, provPoints[pd.id][i].first, provPoints[pd.id][i].second, ww, hh, nodes, i);
         }
@@ -198,9 +184,7 @@ void saveBorders(const unsigned char* pix, int ww, int hh, std::vector<ProvData>
             Log(pd.id << ", chunks: " << provPoints[pd.id].size());
     }
     Log("nodes: " << nodes.size());
-    // return;
     std::vector<int> toDelete;
-    std::size_t initialSize = nodes.size();
     for (auto& alele : nodes) {
         auto& it = alele.second;
         for (int i = 0; i < it.next.size(); ++i) {
@@ -367,14 +351,13 @@ label:
                         continue;
                     if (visited.find(i) != visited.end() && visited[i])
                         continue;
-                if (std::find_if(nodes[i].provId.begin(),
-                                 nodes[i].provId.end(), [pdid = pd.id](std::pair<int, int> p) {
-                                     return pdid == p.first;
-                                 }) == nodes[i].provId.end())
-                    continue;
-                    //if (std::find_if(it->second.provId.begin(), it->second.provId.end(),
-                    //                 [pdid = pd.id](std::pair<int, int> p) { return pdid == p.first; }) !=
-                    //    it->second.provId.end())
+                    if (std::find_if(nodes[i].provId.begin(), nodes[i].provId.end(),
+                                     [pdid = pd.id](std::pair<int, int> p) { return pdid == p.first; }) ==
+                        nodes[i].provId.end())
+                        continue;
+                    // if (std::find_if(it->second.provId.begin(), it->second.provId.end(),
+                    //                  [pdid = pd.id](std::pair<int, int> p) { return pdid == p.first; }) !=
+                    //     it->second.provId.end())
                     {
                         key = i;
                         visited[key] = true;
@@ -383,7 +366,7 @@ label:
                     }
                 }
                 chunks.back().second = count;
-                //break;
+                // break;
             }
         }
 
@@ -391,7 +374,7 @@ label:
 
         // ~
 
-            //Log(pd.id << ", chunks: " << chunks.size());
+        // Log(pd.id << ", chunks: " << chunks.size());
         assert(chunks.size());
         for (auto chunk : chunks) {
             std::vector<int> verts;
@@ -532,9 +515,9 @@ label:
                     verts.erase(verts.begin() + j);
                     --j;
                 }
-                //if (pd.id == 3703) {
-                //    Log(verts.size());
-                //}
+                // if (pd.id == 3703) {
+                //     Log(verts.size());
+                // }
                 if (dkd == verts.size()) {
                     break;
                 }
@@ -598,7 +581,7 @@ void bord3(const unsigned char* pix, int x, int y, int w, int h, std::vector<Pro
         int rx = x + 1, ry1 = y + 1, ry2 = y;
         int bx1 = x + 1, bx2 = x, by = y - 1;
 
-        int currI = x * 3 + y * w * 3;
+        //int currI = x * 3 + y * w * 3;
 
         int nextI = lx * 3 + y * w * 3;
         if (lx < 0)
@@ -725,7 +708,7 @@ void saveSeaBorders(const unsigned char* pix, int ww, int hh, std::vector<ProvDa
         if (!pd.water)
             continue;
         provId = pd.id;
-        currCol = Color{pd.r, pd.g, pd.b};
+        currCol = Color{(unsigned char)pd.r, (unsigned char)pd.g, (unsigned char)pd.b};
         Log(pd.id);
         // bord3(pix, pd.x, pd.y, ww, hh, provD, nodes, colorToId);
         for (std::size_t i = 0; i < provPoints[pd.id].size(); ++i) {
@@ -739,7 +722,7 @@ void saveSeaBorders(const unsigned char* pix, int ww, int hh, std::vector<ProvDa
     Log("nodes: " << nodes.size());
 
     std::vector<int> toDelete;
-    std::size_t initialSize = nodes.size();
+    //std::size_t initialSize = nodes.size();
     for (auto& alele : nodes) {
         auto& it = alele.second;
         for (int i = 0; i < it.next.size(); ++i) {

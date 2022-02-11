@@ -9,12 +9,12 @@
 
 #include "battle.h"
 #include "camera.h"
+#include "click_event_enum.h"
 #include "country.h"
 #include "graphics/shader.h"
 #include "graphics/window.h"
-#include "click_event_enum.h"
-#include "gui_structs.h"
 #include "gui_last/gui_core_last.h"
+#include "gui_structs.h"
 #include "peace_offer.h"
 #include "province.h"
 #include "unit.h"
@@ -54,18 +54,19 @@ struct Gui {
     GuiEv game_battle(const Battle& battle, const Province& prov, int mx, int my, bool clicked,
                       const std::vector<Country>& countries, const std::vector<Unit>& units);
     GuiEv game_unit(const Unit& unit, int mx, int my, bool clicked, std::vector<Country>& countries);
-    GuiEv game_unitsList(const std::vector<Unit*>& units, int mx, int my, bool clicked, int scr, const Province* prov, std::vector<Country>& countries);
+    GuiEv game_unitsList(const std::vector<Unit*>& units, int mx, int my, bool clicked, int scr,
+                         const Province* prov, std::vector<Country>& countries);
     GuiEv game_SideBar(const SideBarData& sbData, int mx, int my, bool clicked, int scr);
 
-    GuiEv room_playerList(const std::string& playerName, const std::vector<std::string>& plarr, int mx, int my, int sc);
+    GuiEv room_playerList(const std::string& playerName, const std::vector<std::string>& plarr, int mx, int my,
+                          int sc);
     GuiEv room_countryList(const std::vector<std::string>& ctrarr, int mx, int my, int scr);
     GuiEv room_startButton(int mx, int my);
 
     GuiEv game_war(const War* war, int mx, int my, bool clicked);
-    //    GuiEv game_peaceOffer(const PeaceOffer* offer, int mx, int my, bool clicked);
     GuiEv game_peaceOffer(const PeaceOffer* offer, int mx, int my, int myctrid,
-                          const std::vector<Province>& provinces,
-                          std::vector<Country>& countries, bool clicked, int scr);
+                          const std::vector<Province>& provinces, std::vector<Country>& countries, bool clicked,
+                          int scr);
 
     void game_drawUnitBar(const Unit& u);
 };

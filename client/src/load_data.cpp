@@ -1,4 +1,5 @@
 #include "load_data.h"
+
 #include <cassert>
 
 unsigned int getHash(unsigned char r, unsigned char g, unsigned char b)
@@ -141,12 +142,11 @@ void loadProvPointsData(std::vector<std::pair<int, int>>* points, int size)
         }
         id = atoi(ptr);
         assert(id >= 0 && id < size);
-        
+
         getline(f, line);
         ptr = strtok(line.data(), " ");
 
         while (ptr != NULL) {
-        //while ((ptr = strtok(NULL, " ")) != NULL) {
             int x = atoi(ptr);
             ptr = strtok(NULL, " ");
             if (ptr == NULL) {
@@ -154,7 +154,7 @@ void loadProvPointsData(std::vector<std::pair<int, int>>* points, int size)
                 break;
             }
             int y = atoi(ptr);
-            points[id].push_back(std::make_pair(x, y)); 
+            points[id].push_back(std::make_pair(x, y));
             ptr = strtok(NULL, " ");
         }
     }

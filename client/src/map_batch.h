@@ -1,15 +1,13 @@
 #pragma once
 
 #include <GL/glew.h>
-#include "vec.h"
+
 #include "log.h"
+#include "vec.h"
 
 struct MapVertex {
     Vec3 pos;
-    //Vec4 color;
-    //float textureId = 1.0f;
-    Vec2 tc;      //{1.0f, 0.0f};
-    //Vec2 normal;  //{0.5f,1.0f};
+    Vec2 tc;
 };
 
 struct MapBatch {

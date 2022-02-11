@@ -1,9 +1,11 @@
 #pragma once
 
 #include <GL/glew.h>
+
 #include <glm/mat4x4.hpp>
-#include "vec.h"
+
 #include "log.h"
+#include "vec.h"
 
 struct FontVertex {
     Vec3 pos;
@@ -20,6 +22,7 @@ struct FontBatch {
 
     void Init();
     void Begin();
-    void Push(float x, float y, float z, float w, float h, float tcx, float tcy, float tcxLen, float tcyLen, float tid);
+    void Push(float x, float y, float z, float w, float h, float tcx, float tcy, float tcxLen, float tcyLen,
+              float tid);
     void Flush();
 };

@@ -14,10 +14,9 @@ std::vector<Country> CountryLoader::Load()
         cd.id = countries.back().GetId() + 1;
 
     countries.emplace_back(Country{cd, "Atlantyda"});
-    
-    std::sort(countries.begin(), countries.end(), [](const Country& c1, const Country& c2){
-        return c1.GetId() < c2.GetId();
-    });
+
+    std::sort(countries.begin(), countries.end(),
+              [](const Country& c1, const Country& c2) { return c1.GetId() < c2.GetId(); });
 
     return countries;
 }

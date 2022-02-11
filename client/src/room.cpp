@@ -40,7 +40,6 @@ void Room::receivePackets()
         if (messg == "Start") {
             Log(messg);
             play = true;
-            // break;
         }
         else if (messg == "Country") {
             packet >> messg;
@@ -73,10 +72,6 @@ void Room::guiDraw()
     tmpctype = guiLast.room_playerList(gd->settings.name, plarr, mp.x, mp.y, gd->window->scrollOffset);
     if (tmpctype.ct != ClickEventType::MISS)
         ctype = tmpctype;
-
-    // tmpctype = guiLast.room_countryList(ctrarr, mp.x, mp.y, gd->window->scrollOffset);
-    // if (tmpctype.ct != ClickEventType::MISS)
-    //     ctype = tmpctype;
 
     tmpctype = guiLast.room_startButton(mp.x, mp.y);
     if (tmpctype.ct != ClickEventType::MISS)
@@ -121,7 +116,7 @@ void Room::input()
         glm::vec2 mp{
             gd->window->xMouse * gd->settings.resolution.x / gd->window->GetSize().x,
             (gd->window->GetSize().y - gd->window->yMouse) * gd->settings.resolution.y / gd->window->GetSize().y};
-        int id = (float)clickedProvId(gd, mp);
+        int id = (float)clickedProvId(gd);
         if (id >= 0 && id < gd->provinces.size()) {
             sf::Packet packet;
             packet << "country";
@@ -175,7 +170,7 @@ void Room::loop()
         gd->map->DrawLand(matrix, gd->camera.eye, markedProvId, gd->provinces.size(), gd->map->MAPID_COUNTRY,
                           gd->waterTime);
         gd->map->DrawBorders(matrix);
-        checkCountryNamesFade(gd, dt);
+        checkCountryNamesFade(gd);
         if (((gd->camera.eye.z > gd->zPoint) || gd->ctrNamesFade < 1.0f)) {
             drawCountryNames(gd);
         }

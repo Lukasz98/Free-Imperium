@@ -1,18 +1,15 @@
 #pragma once
-#include <iostream>
-#include <vector>
-#include <fstream>
-#include <sstream>
 #include <experimental/filesystem>
-
+#include <fstream>
+#include <iostream>
 #include <memory>
+#include <sstream>
+#include <vector>
 
 #include "country.h"
 #include "data_object_loader.h"
 
-class CountryLoader
-{
-public:
+class CountryLoader {
+   public:
     static std::vector<Country> Load();
-    
 };

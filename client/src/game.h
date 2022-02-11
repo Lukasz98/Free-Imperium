@@ -6,24 +6,16 @@
 #include <map>
 #include <memory>
 
-//#include "battle.h"
-//#include "camera.h"
-//#include "country.h"
 #include "font_batch.h"
-#include "gui_structs.h"
+#include "game_data.h"
 #include "gui_last.h"
+#include "gui_structs.h"
 #include "map2.h"
 #include "peace_offer.h"
 #include "process_packet.h"
-//#include "province.h"
-//#include "scene.h"
-//#include "unit.h"
 #include "settings.h"
-#include "game_data.h"
 
-class Game
-{
-    //Camera camera;
+class Game {
     sf::TcpSocket& socket;
     Shader pickModelShader;
     Shader labelShader;
@@ -31,11 +23,8 @@ class Game
     std::vector<glm::mat4> uMat;
     std::vector<int> pids;  // chyba trzyma id prowincji na ktorych sa unity
     GuiLast::Gui guiLast;
-    //glm::vec3 clickedProvColor;
-    //unsigned int clickedProviPhash;
     bool game_paused = false;
     float markedProvId = -1.0f;
-    //glm::vec3 unitPos;
     GuiLast::GuiEv ctype = ClickEventType::MISS;
     bool openMyCountry = false;
     int openCountryId = -1;
@@ -49,30 +38,26 @@ class Game
     std::vector<int> clickedUnits;
     SideBarData sideBarData;
     void resetGuiWindows();
-    //glm::vec2 windowSize, resolution;
     float dt = 0.0f, drawDt = 0.0f;
 
-    //std::vector<ProvData> provsData;
     std::vector<sf::Packet> toSend;
     int myCountryId;
     std::vector<PeaceOffer> peaceOffers;
     GameData* gd;
 
     std::vector<CountryData> ctrsData;
-    //void editCountryMap2(MapTexture* mt);
     void setCountryMap();
     void receivePackets();
     void processPacket(sf::Packet packet);
     void input();
-    int provClick(glm::vec2 mouseInWorld);
-    bool unitClick(glm::vec2 mouseInWorld);
-    void unitMove(std::unordered_map<std::string, std::string>& values, glm::vec2 mouseInWorld);
+    int provClick();
+    bool unitClick();
     void processGuiEvent();
     void sendPackets();
     void updateBattles();
-    //void makeCountryNames(const unsigned char* h);
 
     void guiDraw();
+
    public:
     Game(sf::TcpSocket& sock, std::string countryName, GameData* gd);
     ~Game();

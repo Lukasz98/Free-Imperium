@@ -6,10 +6,10 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+#include "color.h"
 #include "graphics/map_texture.h"
 #include "graphics/shader.h"
 #include "graphics/texture.h"
-#include "color.h"
 #include "vec.h"
 
 struct LandBorders {
@@ -49,8 +49,7 @@ struct PolyMap {
             int scale);
 };
 
-struct SeaProvVert
-{
+struct SeaProvVert {
     Vec3 pos;
     Vec2 tc;
 };
@@ -82,7 +81,7 @@ struct Map2 {
     const float MAPID_PROV_COLOR = 20.0f;
     const float MAPID_COUNTRY = 21.0f;
     const float MAPID_PEACE_OFFER = 22.0f;
-    
+
     const int mapWidth = 5632;
     const int mapHeight = 2048;
 
@@ -112,7 +111,6 @@ struct Map2 {
     std::vector<unsigned char> occupyingPix;
     Texture* markedCtrText = nullptr;
     std::vector<unsigned char> markedCtrPix;
-    //GLuint heightMapTextureId;
     Texture heightMap;
 
     Map2(const std::vector<Color3>& provsCols, int scale);

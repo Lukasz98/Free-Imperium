@@ -1,22 +1,23 @@
 #pragma once
-#include <iostream>
-#include <vector>
-#include <fstream>
-#include <sstream>
 #include <experimental/filesystem>
+#include <fstream>
+#include <iostream>
 #include <map>
+#include <sstream>
+#include <vector>
 
-#include "province.h"
 #include "data_object_loader.h"
-class ProvinceLoader
-{
-    static void loadFromFile(std::vector<Province> & provinces);
-    static void loadFromMap(std::vector<Province> & provinces, const unsigned char * pixels, int width, int height);
-    static void loadNeighbours(std::vector<Province> & provinces, Color lastColor, Color currentColor, int index);    
+#include "province.h"
 
-    static int getProvinceId(const std::vector<Province> & provinces, Color color);
+class ProvinceLoader {
+/*
+ * static void loadFromFile(std::vector<Province>& provinces);
+    static void loadFromMap(std::vector<Province>& provinces, const unsigned char* pixels, int width, int height);
+    static void loadNeighbours(std::vector<Province>& provinces, Color lastColor, Color currentColor, int index);
 
-public:
+    static int getProvinceId(const std::vector<Province>& provinces, Color color);
+*/
+   public:
     ProvinceLoader() = delete;
 
     static std::vector<Province> Load(std::map<unsigned int, int>& colorToId);
