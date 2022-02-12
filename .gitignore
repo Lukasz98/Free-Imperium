@@ -11,7 +11,15 @@ client/build/*
 client/BordersData.txt
 client/polygon.txt
 client/unused/
+client/imperium
+client/src/*.d
+client/src/*/*.d
+client/src/*.o
+client/src/*/*.o
+shared/*.d
+shared/*.o
 
+vgcore*
 client/new_gui_sketch
 client/src/vgcore*
 server/src/vgcore*

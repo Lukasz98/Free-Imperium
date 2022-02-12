@@ -97,7 +97,8 @@ void saveProvinceFromImg(const unsigned char* provs, const unsigned char* water,
 
     std::vector<CountryData> ctrs;
 
-    bool visited[pmap.size()] = {0};
+    bool visited[pmap.size()];
+    memset(visited, pmap.size(), 1);
 
     for (auto& pdd : pmap) {
         auto& pd = pdd.second;

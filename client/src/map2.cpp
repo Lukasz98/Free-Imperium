@@ -104,7 +104,7 @@ SeaBorders::SeaBorders(const unsigned char* hpix, int mapWidth, int mapHeight, i
         Log("Opengl error: " << err);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(BorderVertex), NULL);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(BorderVertex),
-                          (const GLvoid*)(offsetof(BorderVertex, BorderVertex::tc)));
+                          (const GLvoid*)(offsetof(BorderVertex, tc)));
 }
 
 PolyMap::PolyMap(const unsigned char* hpix, int mapWidth, int mapHeight, const std::vector<Color3>& provsCols,
@@ -181,11 +181,11 @@ PolyMap::PolyMap(const unsigned char* hpix, int mapWidth, int mapHeight, const s
         Log("Opengl error: " << err);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(PolyVert), NULL);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(PolyVert),
-                          (const GLvoid*)(offsetof(PolyVert, PolyVert::col)));
+                          (const GLvoid*)(offsetof(PolyVert, col)));
     glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(PolyVert),
-                          (const GLvoid*)(offsetof(PolyVert, PolyVert::tx)));
+                          (const GLvoid*)(offsetof(PolyVert, tx)));
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(PolyVert),
-                          (const GLvoid*)(offsetof(PolyVert, PolyVert::normal)));
+                          (const GLvoid*)(offsetof(PolyVert, normal)));
 }
 
 SeaProvColor::SeaProvColor(int mapWidth, int mapHeight, int scale)
@@ -211,7 +211,7 @@ SeaProvColor::SeaProvColor(int mapWidth, int mapHeight, int scale)
         Log("Opengl error: " << err);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(SeaProvVert), NULL);  //(const GLvoid*)0);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(SeaProvVert),
-                          (const GLvoid*)(offsetof(SeaProvVert, SeaProvVert::tc)));
+                          (const GLvoid*)(offsetof(SeaProvVert, tc)));
 }
 
 Water::Water(int mapWidth, int mapHeight, int scale)
@@ -275,7 +275,7 @@ Water::Water(int mapWidth, int mapHeight, int scale)
         Log("Opengl error: " << err);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(WaterVert), NULL);  //(const GLvoid*)0);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(WaterVert),
-                          (const GLvoid*)(offsetof(WaterVert, WaterVert::tc)));
+                          (const GLvoid*)(offsetof(WaterVert, tc)));
 }
 
 Map2::Map2(const std::vector<Color3>& provsCols, int scale)

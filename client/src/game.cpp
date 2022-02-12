@@ -364,7 +364,7 @@ void Game::Play()
                         Log("Opengl error: " << err);
                     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(BorderVertex), NULL);
                     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(BorderVertex),
-                                          (const GLvoid *)(offsetof(BorderVertex, BorderVertex::tc)));
+                                          (const GLvoid *)(offsetof(BorderVertex, tc)));
                     glUseProgram(gd->map->seaBorderShader.GetProgram());
                     glUniformMatrix4fv(glGetUniformLocation(gd->map->seaBorderShader.GetProgram(), "matrix"), 1,
                                        GL_FALSE, glm::value_ptr(gd->camera.GetMat()));
@@ -448,11 +448,11 @@ void Game::Play()
                     Log("Opengl error: " << err);
                 glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), NULL);  //(const GLvoid*)0);
                 glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                                      (const GLvoid *)(offsetof(Vertex, Vertex::tc)));
+                                      (const GLvoid *)(offsetof(Vertex, tc)));
                 glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                                      (const GLvoid *)(offsetof(Vertex, Vertex::color)));
+                                      (const GLvoid *)(offsetof(Vertex, color)));
                 glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                                      (const GLvoid *)(offsetof(Vertex, Vertex::textureId)));
+                                      (const GLvoid *)(offsetof(Vertex, textureId)));
 
                 glBindVertexArray(labelVao);
                 glDrawArrays(GL_TRIANGLES, 0, labelVerts.size());

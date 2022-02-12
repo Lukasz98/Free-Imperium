@@ -6,8 +6,9 @@ int loadInt2(char * ptr) // assumes pointer is continuation of strtok
     int v;
     try {
         v = std::stoi(ptr);
-    } catch (std::exception e) {
+    } catch (std::exception& e) {
   //      Log(lineCount);
+        Log(ptr);// << "; Line: " << lineCount);
         Log(e.what());// << "; Line: " << lineCount);
     }
     return v;
@@ -18,7 +19,7 @@ int loadInt(char * ptr) // assumes pointer is continuation of strtok
     try {
         ptr = strtok(NULL, " ");
         v = std::stoi(ptr);
-    } catch (std::exception e) {
+    } catch (std::exception& e) {
   //      Log(lineCount);
         Log(e.what());// << "; Line: " << lineCount);
     }
@@ -30,7 +31,8 @@ float loadFloat(char * ptr) // assumes pointer is continuation of strtok
     try {
         ptr = strtok(NULL, " ");
         v = std::stof(ptr);
-    } catch (std::exception e) {
+    } catch (std::exception& e) {
+        Log(ptr);// << "; Line: " << lineCount);
         Log(e.what());// << "; Line: " << lineCount);
     }
     return v;

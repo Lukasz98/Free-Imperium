@@ -23,7 +23,7 @@ void MapBatch::Init()
         Log("Opengl error: " << err);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, NULL);  //(const GLvoid*)0);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vertexSize,
-                          (const GLvoid*)(offsetof(MapVertex, MapVertex::tc)));  //(const GLvoid*)(7 * GL_FLOAT));
+                          (const GLvoid*)(offsetof(MapVertex, tc)));  //(const GLvoid*)(7 * GL_FLOAT));
 
     err = glGetError();
     if (err)

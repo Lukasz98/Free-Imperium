@@ -19,13 +19,13 @@ void Batch::Init()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, NULL);//(const GLvoid*)0);
     
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, vertexSize, (const GLvoid*)(offsetof(Vertex, Vertex::color)));//(const GLvoid*)(3 * GL_FLOAT));
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, vertexSize, (const GLvoid*)(offsetof(Vertex, color)));//(const GLvoid*)(3 * GL_FLOAT));
                   
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, vertexSize, (const GLvoid*)(offsetof(Vertex, Vertex::tc)));//(const GLvoid*)(7 * GL_FLOAT));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, vertexSize, (const GLvoid*)(offsetof(Vertex, tc)));//(const GLvoid*)(7 * GL_FLOAT));
                           
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, vertexSize, (const GLvoid*)(offsetof(Vertex, Vertex::textureId)));//(const GLvoid*)(7 * GL_FLOAT));
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, vertexSize, (const GLvoid*)(offsetof(Vertex, textureId)));//(const GLvoid*)(7 * GL_FLOAT));
     
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 

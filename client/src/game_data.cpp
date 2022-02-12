@@ -226,19 +226,19 @@ void GameData::makeCountryNames()
         Log("Opengl error: " << err);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex), NULL);  //(const GLvoid*)0);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                          (const GLvoid *)(offsetof(FontVertex, FontVertex::tc)));
+                          (const GLvoid *)(offsetof(FontVertex, tc)));
     glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                          (const GLvoid *)(offsetof(FontVertex, FontVertex::color)));
+                          (const GLvoid *)(offsetof(FontVertex, color)));
     glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                          (const GLvoid *)(offsetof(FontVertex, FontVertex::tid)));
+                          (const GLvoid *)(offsetof(FontVertex, tid)));
     glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                          (const GLvoid *)(offsetof(FontVertex, FontVertex::ml)));
+                          (const GLvoid *)(offsetof(FontVertex, ml)));
     glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                          (const GLvoid *)(offsetof(FontVertex, FontVertex::ml) + 4 * 4));
+                          (const GLvoid *)(offsetof(FontVertex, ml) + 4 * 4));
     glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                          (const GLvoid *)(offsetof(FontVertex, FontVertex::ml) + 8 * 4));
+                          (const GLvoid *)(offsetof(FontVertex, ml) + 8 * 4));
     glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(FontVertex),
-                          (const GLvoid *)(offsetof(FontVertex, FontVertex::ml) + 12 * 4));
+                          (const GLvoid *)(offsetof(FontVertex, ml) + 12 * 4));
 }
 
 void GameData::editCountryMap()

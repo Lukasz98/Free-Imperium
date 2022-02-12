@@ -22,11 +22,11 @@ void FontBatch::Init()
         Log("Opengl error: " << err);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, NULL);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vertexSize,
-                          (const GLvoid*)(offsetof(FontVertex, FontVertex::tc)));
+                          (const GLvoid*)(offsetof(FontVertex, tc)));
     glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, vertexSize,
-                          (const GLvoid*)(offsetof(FontVertex, FontVertex::color)));
+                          (const GLvoid*)(offsetof(FontVertex, color)));
     glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, vertexSize,
-                          (const GLvoid*)(offsetof(FontVertex, FontVertex::tid)));
+                          (const GLvoid*)(offsetof(FontVertex, tid)));
 
     err = glGetError();
     if (err)

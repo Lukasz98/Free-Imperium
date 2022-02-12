@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "../asset_manager.h"
-#include "gui_2/gui_batch.h"
+#include "gui_batch.h"
 
 #define TEXT_CENTER 2
 #define TEXT_RIGHT 3

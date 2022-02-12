@@ -1,5 +1,7 @@
 #pragma once
 #include <map>
+#include <string.h>
+#include <stdio.h>
 #include "ctr_data.h"
 #include "prov_data.h"
 #include "load_values_from_txt.h"
@@ -18,25 +20,33 @@ inline std::vector<CountryData> LoadCountriesData()
     unsigned int lineCount = 0;
     lineCount = 0;
     std::string fname{"../shared/CountryDataTest.txt"};
-    std::fstream f;
-    f.open(fname, std::fstream::in);
-    if (f.is_open() == false)
+    //std::fstream f;
+    //f.open(fname, std::fstream::in);
+    //if (f.is_open() == false)
+    //   Log("Cannot read countries file");
+    
+    FILE *f = fopen(fname.c_str(), "r");
+    if (f == NULL)
        Log("Cannot read countries file");
 
-    std::string line;
+    char *line = (char*)malloc(1024);
+    char * lineptr = NULL;
+    size_t n = 1024;
 
-    while (getline(f, line)) {
+    while (getline(&line, &n, f) > 0) {
+        lineptr = line;
         ++lineCount;
-        char* ptr = strtok(line.data(), " ");
+        char* ptr = strtok(lineptr, " \n");
         if (strcmp(ptr, "{") != 0) {
             Log("ERROR -> fname: " << fname << ", line: " << lineCount);
             break;
         }
 
         CountryData ctr;
-        while (getline(f, line)) {
+        while (getline(&line, &n, f) > 0) {
+            lineptr = line;
             ++lineCount;
-            ptr = strtok(line.data(), " ");
+            ptr = strtok(lineptr, " \n");
             if (strcmp(ptr, "}") == 0) {
                 countries.emplace_back(CountryData{.id = ctr.id, .r = ctr.r, .g = ctr.g, .b = ctr.b});
 
@@ -57,7 +67,10 @@ inline std::vector<CountryData> LoadCountriesData()
             }
         }
     }
-    f.close();
+    free(line);
+    //free(lineptr);
+    fclose(f);
+    //f.close();
     return countries;
 }
 
@@ -67,21 +80,34 @@ inline std::vector<ProvData> LoadProvincesData(std::map<unsigned int, int>& colo
     unsigned int lineCount = 0;
     lineCount = 0;
     std::string fname{"../shared/ProvDataTest.txt"};
-    std::fstream f;
-    f.open(fname, std::fstream::in);
-    std::string line;
-    while (getline(f, line)) {
+    //std::fstream f;
+    //f.open(fname, std::fstream::in);
+    //std::string line;
+    FILE *f = fopen(fname.c_str(), "r");
+    if (f == NULL)
+       Log("Cannot read countries file");
+
+    char *line = (char*)malloc(1024);
+    char *lineptr;
+    size_t n = 1024;
+
+    while (getline(&line, &n, f) > 0) {
+        //line = lineptr;
+        lineptr = line;
+    //while (getline(f, line)) {
         ++lineCount;
-        char* ptr = strtok(line.data(), " ");
+        char* ptr = strtok(lineptr, " \n");
         if (strcmp(ptr, "{") != 0) {
             Log("ERROR -> fname: " << fname << ", line: " << lineCount);
             break;
         }
 
         ProvData pd;
-        while (getline(f, line)) {
+        //while (getline(f, line)) {
+        while (getline(&line, &n, f) > 0) {
+            lineptr = line;
             ++lineCount;
-            ptr = strtok(line.data(), " ");
+            ptr = strtok(lineptr, " \n");
             if (strcmp(ptr, "}") == 0) {
                 //provinces.push_back(pd);
                 //provinces.emplace_back(std::make_shared<Province>(pd.id, pd.r, pd.g, pd.b, pd.x, pd.y, pd.name, pd.ctrId));
@@ -94,7 +120,7 @@ inline std::vector<ProvData> LoadProvincesData(std::map<unsigned int, int>& colo
                 pd.id = loadInt(ptr);
             }
             else if (strcmp(ptr, "name:") == 0) {
-                ptr = strtok(NULL, " ");
+                ptr = strtok(NULL, " \n");
                 pd.name = std::string{ptr};
             }
             else if (strcmp(ptr, "pos:") == 0) {
@@ -111,12 +137,12 @@ inline std::vector<ProvData> LoadProvincesData(std::map<unsigned int, int>& colo
                 pd.b = loadInt(ptr);
             }
             else if (strcmp(ptr, "neighb:") == 0) {
-                while ((ptr = strtok(NULL, " ")) != NULL) {
+                while ((ptr = strtok(NULL, " \n")) != NULL) {
                     pd.neighb.insert(loadInt2(ptr));
                 }
             }
             else if (strcmp(ptr, "neighbSea:") == 0) {
-                while ((ptr = strtok(NULL, " ")) != NULL) {
+                while ((ptr = strtok(NULL, " \n")) != NULL) {
                     pd.neighbSea.insert(loadInt2(ptr));
                 }
             }
@@ -129,7 +155,9 @@ inline std::vector<ProvData> LoadProvincesData(std::map<unsigned int, int>& colo
             }
         }
     }
-    f.close();
+    free(line);
+    fclose(f);
+    //f.close();
     //std::sort(provinces.begin(), provinces.end(), [](ProvData a, ProvData b) { return a.id < b.id; });
     return provinces;
 }

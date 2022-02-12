@@ -1,5 +1,4 @@
 #include "model_3d.h"
-
 #include <math.h>
 
 Model3D::Model3D(const std::string& path, glm::vec3 pos) : position{pos}

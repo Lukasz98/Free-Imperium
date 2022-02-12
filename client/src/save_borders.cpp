@@ -977,7 +977,7 @@ void createSaveProvPoints(const unsigned char* pix, int ww, int hh, std::vector<
         }
     }
 
-    delete pix2;
+    delete [] pix2;
 
     std::fstream f;
     f.open("ProvPointsData.txt", std::fstream::out);

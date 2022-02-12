@@ -15,6 +15,7 @@
 #include "process_packet.h"
 #include "settings.h"
 
+
 class Game {
     sf::TcpSocket& socket;
     Shader pickModelShader;
