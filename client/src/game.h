@@ -58,7 +58,7 @@ class Game {
     void updateBattles();
 
     void guiDraw();
-
+    bool isAtWar(int ctr1, int ctr2);
    public:
     Game(sf::TcpSocket& sock, std::string countryName, GameData* gd);
     ~Game();

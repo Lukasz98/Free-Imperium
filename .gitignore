@@ -1,6 +1,7 @@
 **/*~
 tags
 server/build/*
+server/Makefile
 
 **/CMakeFiles
 **/cmake_install.cmake

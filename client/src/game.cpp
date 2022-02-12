@@ -15,86 +15,36 @@ struct OfferPeaceData {
     std::vector<pair> provs;
     int warId = -1;
     int recipantId = -1;
-} offerPeaceData;  // it represents peace offer that i'm currently making, it resets with opening new peace offer
-                   // making gd->window->(even if same war)
+} offerPeaceData;  // it represents peace offer that i'm currently making, it
+                   // resets with opening new peace offer making
+                   // gd->window->(even if same war)
+
+struct UnitsAtPoint {  // for drawing unit labels
+    std::vector<int> uind;
+    long point;      // from unitfakepos.x & .y
+    int status = 0;  // 0 - own, 1 - enemy, 2 - enemy of enemy
+    int size = 0;
+};
 
 TopBarData topBarData;
 
 int openedProvId = -1;
 
-void labelText(const glm::vec3 &pos, const glm::vec2 &size, const glm::vec4 &col, const std::string &text,
-               AM::FontSize fontSize, std::vector<Vertex> &labelVerts)
-{
-    glm::vec3 textPos = pos;
-    GLuint tid = (GLuint)fontSize;
-    float spaceWidth = 10.0f;
-    float off = 0.0f, betweenWidth = 1.0f;
-
-    float widthSum = 0.0f, maxY = 0.0f;
-    for (int i = 0; i < text.size(); ++i) {
-        if (AM::atlasInfo[fontSize][text[i]].set) {
-            widthSum += AM::atlasInfo[fontSize][text[i]].width + betweenWidth;
-            if (maxY < AM::atlasInfo[fontSize][text[i]].height)
-                maxY = AM::atlasInfo[fontSize][text[i]].height;
-        }
-        else
-            widthSum += spaceWidth;
-    }
-    textPos.x = (textPos.x + size.x * 0.5f) - widthSum * 0.5f;
-    textPos.y = (textPos.y + size.y * 0.5f) - maxY * 0.5f;
-
-    for (int i = 0; i < text.size(); ++i) {
-        glm::vec3 rPos;
-        glm::vec2 rSize, rLBTC, tcLen;
-        if (AM::atlasInfo[fontSize][text[i]].set) {
-            rPos = {textPos.x + off, textPos.y + AM::atlasInfo[fontSize][text[i]].yPos, textPos.z};
-            // this 2 if's are walkaround around bug. If we draw char at x or y with floating point
-            // it gets more blury the closer it gets to .5f, at .0f it looks fine
-            if (rPos.x > (((float)((int)rPos.x))))
-                rPos.x = ((int)(rPos.x + 0.5f));
-            if (rPos.y > (((float)((int)rPos.y))))
-                rPos.y = ((int)(rPos.y + 0.5f));
-            rSize = {AM::atlasInfo[fontSize][text[i]].width, AM::atlasInfo[fontSize][text[i]].height};
-            rLBTC = {AM::atlasInfo[fontSize][text[i]].tcX, AM::atlasInfo[fontSize][text[i]].tcY};
-            tcLen = {AM::atlasInfo[fontSize][text[i]].tcWidth, AM::atlasInfo[fontSize][text[i]].tcHeight};
-            off += rSize.x + betweenWidth;
-
-            labelVerts.push_back(
-                Vertex{.pos = rPos, .color = col, .tc = glm::vec2{rLBTC.x, rLBTC.y}, .textureId = (float)tid});
-            labelVerts.push_back(Vertex{.pos = glm::vec3{rPos.x, rPos.y + rSize.y, rPos.z},
-                                        .color = col,
-                                        .tc = glm::vec2{rLBTC.x, rLBTC.y + tcLen.y},
-                                        .textureId = (float)tid});
-            labelVerts.push_back(Vertex{.pos = glm::vec3{rPos.x + rSize.x, rPos.y + rSize.y, rPos.z},
-                                        .color = col,
-                                        .tc = glm::vec2{rLBTC.x + tcLen.x, rLBTC.y + tcLen.y},
-                                        .textureId = (float)tid});
-            labelVerts.push_back(labelVerts.back());
-            labelVerts.push_back(Vertex{.pos = glm::vec3{rPos.x + rSize.x, rPos.y, rPos.z},
-                                        .color = col,
-                                        .tc = glm::vec2{rLBTC.x + tcLen.x, rLBTC.y},
-                                        .textureId = (float)tid});
-            labelVerts.push_back(
-                Vertex{.pos = rPos, .color = col, .tc = glm::vec2{rLBTC.x, rLBTC.y}, .textureId = (float)tid});
-        }
-        else {
-            rPos = {textPos.x + off, textPos.y, textPos.z};
-            rSize = {spaceWidth, 10.0};
-            rLBTC = {0, 0};
-            tcLen = {0, 0};
-            off += rSize.x;
-        }
-    }
-}
+static void labelText(const glm::vec3 &pos, const glm::vec2 &size,
+                      const glm::vec4 &col, const std::string &text,
+                      AM::FontSize fontSize, std::vector<Vertex> &labelVerts);
 
 Game::Game(sf::TcpSocket &sock, std::string countryName, GameData *gd)
-    : socket(sock), gd(gd), model3d("src/img/DudeDonePosefix.obj", glm::vec3{0.0, 0.0, 0.1})
+    : socket(sock),
+      gd(gd),
+      model3d("src/img/DudeDonePosefix.obj", glm::vec3{0.0, 0.0, 0.1})
 {
     gd->resetMarkedCountry();
 
     Log("Ctr name:" << countryName);
-    auto it = std::find_if(gd->countries.begin(), gd->countries.end(),
-                           [countryName](const Country &c) { return c.GetName() == countryName; });
+    auto it = std::find_if(
+        gd->countries.begin(), gd->countries.end(),
+        [countryName](const Country &c) { return c.GetName() == countryName; });
     if (it != gd->countries.end()) {
         myCountryId = it->GetId();
         Log(countryName);
@@ -117,9 +67,10 @@ void Game::Play()
     float fpsTime = 0.0f;
     int frames = 0;
 
-    pickModelShader =
-        Shader{"src/graphics/shaders/pick_model/vert.v", "src/graphics/shaders/pick_model/frag.f", "", ""};
-    labelShader = Shader{"src/graphics/shaders/label/vert.v", "src/graphics/shaders/label/frag.f", "", ""};
+    pickModelShader = Shader{"src/graphics/shaders/pick_model/vert.v",
+                             "src/graphics/shaders/pick_model/frag.f", "", ""};
+    labelShader = Shader{"src/graphics/shaders/label/vert.v",
+                         "src/graphics/shaders/label/frag.f", "", ""};
     glPatchParameteri(GL_PATCH_VERTICES, 3);
     int err = glGetError();
     if (err)
@@ -153,10 +104,14 @@ void Game::Play()
             continue;
 
         float z = (float)gd->map->heightMap.GetPixels()[(
-            int)(gd->provinces[i].unitPosition.x * 3 + gd->provinces[i].unitPosition.y * gd->map->mapWidth * 3)];
-        tempUnits.push_back(TempUnit{.pos = glm::vec3{gd->provinces[i].unitPosition.x * gd->settings.scale,
-                                                      gd->provinces[i].unitPosition.y * gd->settings.scale, z},
-                                     .provId = gd->provinces[i].id});
+            int)(gd->provinces[i].unitPosition.x * 3 +
+                 gd->provinces[i].unitPosition.y * gd->map->mapWidth * 3)];
+        tempUnits.push_back(TempUnit{
+            .pos =
+                glm::vec3{gd->provinces[i].unitPosition.x * gd->settings.scale,
+                          gd->provinces[i].unitPosition.y * gd->settings.scale,
+                          z},
+            .provId = gd->provinces[i].id});
     }
 
     GLuint unitBuffer;
@@ -170,13 +125,17 @@ void Game::Play()
         glBufferData(GL_ARRAY_BUFFER, maxUMatSize, NULL, GL_DYNAMIC_DRAW);
 
         glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)0);
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4),
+                              (void *)0);
         glEnableVertexAttribArray(4);
-        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)(sizeof(glm::vec4)));
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4),
+                              (void *)(sizeof(glm::vec4)));
         glEnableVertexAttribArray(5);
-        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)(2 * sizeof(glm::vec4)));
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4),
+                              (void *)(2 * sizeof(glm::vec4)));
         glEnableVertexAttribArray(6);
-        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void *)(3 * sizeof(glm::vec4)));
+        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4),
+                              (void *)(3 * sizeof(glm::vec4)));
         glVertexAttribDivisor(3, 1);
         glVertexAttribDivisor(4, 1);
         glVertexAttribDivisor(5, 1);
@@ -184,7 +143,8 @@ void Game::Play()
         glBindVertexArray(0);
     }
 
-    Shader shader("src/graphics/shaders/basic/vert.v", "src/graphics/shaders/basic/frag.f", "", "");
+    Shader shader("src/graphics/shaders/basic/vert.v",
+                  "src/graphics/shaders/basic/frag.f", "", "");
     bool drawBorders = true;
     float time = glfwGetTime();
     guiLast.init(gd->window, gd->settings.resolution, gd->window->GetSize());
@@ -199,10 +159,13 @@ void Game::Play()
         gd->window->Refresh();
 
         if (gd->window->keys['M']) {
-            labelShader = Shader{"src/graphics/shaders/label/vert.v", "src/graphics/shaders/label/frag.f", "", ""};
-            gd->fontShader = Shader{"src/graphics/shaders/fonts.vert", "src/graphics/shaders/fonts.frag", "", ""};
+            labelShader = Shader{"src/graphics/shaders/label/vert.v",
+                                 "src/graphics/shaders/label/frag.f", "", ""};
+            gd->fontShader = Shader{"src/graphics/shaders/fonts.vert",
+                                    "src/graphics/shaders/fonts.frag", "", ""};
             pickModelShader =
-                Shader{"src/graphics/shaders/pick_model/vert.v", "src/graphics/shaders/pick_model/frag.f", "", ""};
+                Shader{"src/graphics/shaders/pick_model/vert.v",
+                       "src/graphics/shaders/pick_model/frag.f", "", ""};
         }
 
         glm::mat4 matrix = gd->camera.GetMat();
@@ -243,12 +206,14 @@ void Game::Play()
         {
             gd->map->DrawWater(matrix, gd->camera.eye);
             if (openPeaceOfferId == -1) {
-                gd->map->DrawLand(matrix, gd->camera.eye, markedProvId, gd->provinces.size(),
-                                  gd->map->MAPID_COUNTRY, gd->waterTime);
+                gd->map->DrawLand(matrix, gd->camera.eye, markedProvId,
+                                  gd->provinces.size(), gd->map->MAPID_COUNTRY,
+                                  gd->waterTime);
             }
             else {  // open offering peace mode
                     // Log("peace mode");
-                unsigned char *nexpix = new unsigned char[gd->map->mapWidth * 4];
+                unsigned char *nexpix =
+                    new unsigned char[gd->map->mapWidth * 4];
                 Color lightBlue{25, 94, 176, 255};
                 Color green{5, 142, 72, 255};
                 Color lightRed{159, 95, 95, 255};
@@ -265,24 +230,31 @@ void Game::Play()
                 if (peaceind >= 0 && peaceind < peaceOffers.size()) {
                     for (int i = 0; i < gd->provinces.size(); ++i) {
                         if (std::find_if(
-                                peaceOffers[peaceind].lostProv.begin(), peaceOffers[peaceind].lostProv.end(),
-                                [id = i](const std::tuple<int, int, int> &t) { return std::get<0>(t) == id; }) !=
-                            peaceOffers[peaceind].lostProv.end())
+                                peaceOffers[peaceind].lostProv.begin(),
+                                peaceOffers[peaceind].lostProv.end(),
+                                [id = i](const std::tuple<int, int, int> &t) {
+                                    return std::get<0>(t) == id;
+                                }) != peaceOffers[peaceind].lostProv.end())
                         {
                             col = &red;
                         }
-                        else if (std::find_if(peaceOffers[peaceind].gainProv.begin(),
-                                              peaceOffers[peaceind].gainProv.end(),
-                                              [id = i](const std::tuple<int, int, int> &t) {
-                                                  return std::get<0>(t) == id;
-                                              }) != peaceOffers[peaceind].gainProv.end())
+                        else if (std::find_if(
+                                     peaceOffers[peaceind].gainProv.begin(),
+                                     peaceOffers[peaceind].gainProv.end(),
+                                     [id = i](
+                                         const std::tuple<int, int, int> &t) {
+                                         return std::get<0>(t) == id;
+                                     }) != peaceOffers[peaceind].gainProv.end())
                         {
                             col = &green;
                         }
-                        else if (peaceOffers[peaceind].offeredBy == gd->provinces[i].GetCountryId() ||
-                                 peaceOffers[peaceind].recipant == gd->provinces[i].GetCountryId())
+                        else if (peaceOffers[peaceind].offeredBy ==
+                                     gd->provinces[i].GetCountryId() ||
+                                 peaceOffers[peaceind].recipant ==
+                                     gd->provinces[i].GetCountryId())
                         {
-                            if (peaceOffers[peaceind].offeredBy == gd->provinces[i].GetCountryId())
+                            if (peaceOffers[peaceind].offeredBy ==
+                                gd->provinces[i].GetCountryId())
                                 col = &lightBlue;
                             else
                                 col = &lightRed;
@@ -291,7 +263,8 @@ void Game::Play()
                             col = &neutral;
                         }
                         if (i == 3018) {
-                            // Log((int)col->r << " " << (int)col->g << " " << (int)col->b);
+                            // Log((int)col->r << " " << (int)col->g << " " <<
+                            // (int)col->b);
                         }
 
                         nexpix[i * 4] = col->r;
@@ -301,9 +274,11 @@ void Game::Play()
                     }
                     Texture newtex = Texture(nexpix, gd->provinces.size(), 1);
                     delete[] nexpix;
-                    gd->map->texID[(int)(gd->map->MAPID_PEACE_OFFER + 0.5f)] = newtex.GetId();
+                    gd->map->texID[(int)(gd->map->MAPID_PEACE_OFFER + 0.5f)] =
+                        newtex.GetId();
                     gd->map->ActivateTextures();
-                    gd->map->DrawLand(matrix, gd->camera.eye, markedProvId, gd->provinces.size(),
+                    gd->map->DrawLand(matrix, gd->camera.eye, markedProvId,
+                                      gd->provinces.size(),
                                       gd->map->MAPID_PEACE_OFFER, 0.0f);
                 }
             }
@@ -315,30 +290,37 @@ void Game::Play()
 
         std::vector<std::size_t> uinds;
         if (gd->camera.eye.z < gd->zPoint && !gd->window->keys['U']) {
-            if (openUnitId != -1) {
+            if (openUnitId != -1) {  // drawing moves arrows
                 auto unit = std::find_if(gd->units.begin(), gd->units.end(),
-                                         [id = openUnitId](const Unit &u) { return u.GetId() == id; });
+                                         [id = openUnitId](const Unit &u) {
+                                             return u.GetId() == id;
+                                         });
                 if (unit != gd->units.end()) {
                     std::vector<BorderVertex> verts;
                     if (unit->movesVec.size()) {
                         verts.push_back(BorderVertex{
-                            .pos = Vec3{unit->fakePos.x, unit->fakePos.y, unit->fakePos.z},
-                            .tc =
-                                Vec2{unit->fakePos.x / gd->map->mapWidth, unit->fakePos.y / gd->map->mapHeight}});
+                            .pos = Vec3{unit->fakePos.x, unit->fakePos.y,
+                                        unit->fakePos.z},
+                            .tc = Vec2{unit->fakePos.x / gd->map->mapWidth,
+                                       unit->fakePos.y / gd->map->mapHeight}});
                     }
                     for (std::size_t i = 0; i < unit->movesVec.size(); ++i) {
                         glm::vec3 pos = unit->movesVec[i];
                         Log(pos.x << " " << pos.y << " " << pos.z);
                         int ind = pos.x * 3 + pos.y * gd->map->mapWidth * 3;
-                        if (ind > gd->map->mapHeight * gd->map->mapWidth * 3 - 3)
-                            ind = gd->map->mapHeight * gd->map->mapWidth * 3 - 3;
-                        verts.push_back(
-                            BorderVertex{.pos = Vec3{pos.x, pos.y, pos.z},
-                                         .tc = Vec2{pos.x / gd->map->mapWidth, pos.y / gd->map->mapHeight}});
+                        if (ind >
+                            gd->map->mapHeight * gd->map->mapWidth * 3 - 3)
+                            ind =
+                                gd->map->mapHeight * gd->map->mapWidth * 3 - 3;
+                        verts.push_back(BorderVertex{
+                            .pos = Vec3{pos.x, pos.y, pos.z},
+                            .tc = Vec2{pos.x / gd->map->mapWidth,
+                                       pos.y / gd->map->mapHeight}});
                         if (i < unit->movesVec.size() - 1) {
-                            verts.push_back(
-                                BorderVertex{.pos = Vec3{pos.x, pos.y, pos.z},
-                                             .tc = Vec2{pos.x / gd->map->mapWidth, pos.y / gd->map->mapHeight}});
+                            verts.push_back(BorderVertex{
+                                .pos = Vec3{pos.x, pos.y, pos.z},
+                                .tc = Vec2{pos.x / gd->map->mapWidth,
+                                           pos.y / gd->map->mapHeight}});
                         }
                     }
                     GLuint err = 0;
@@ -350,10 +332,12 @@ void Game::Play()
                     if (err)
                         Log("Opengl error: " << err);
 
-                    glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
+                    glDisable(
+                        GL_DEPTH_TEST);  // Enable depth testing for z-culling
                     glBindBuffer(GL_ARRAY_BUFFER, arrvbo);
-                    glBufferData(GL_ARRAY_BUFFER, sizeof(BorderVertex) * verts.size(), verts.data(),
-                                 GL_STATIC_DRAW);
+                    glBufferData(GL_ARRAY_BUFFER,
+                                 sizeof(BorderVertex) * verts.size(),
+                                 verts.data(), GL_STATIC_DRAW);
                     err = glGetError();
                     if (err)
                         Log("Opengl error: " << err);
@@ -362,48 +346,107 @@ void Game::Play()
                     err = glGetError();
                     if (err)
                         Log("Opengl error: " << err);
-                    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(BorderVertex), NULL);
-                    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(BorderVertex),
-                                          (const GLvoid *)(offsetof(BorderVertex, tc)));
+                    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
+                                          sizeof(BorderVertex), NULL);
+                    glVertexAttribPointer(
+                        1, 2, GL_FLOAT, GL_FALSE, sizeof(BorderVertex),
+                        (const GLvoid *)(offsetof(BorderVertex, tc)));
                     glUseProgram(gd->map->seaBorderShader.GetProgram());
-                    glUniformMatrix4fv(glGetUniformLocation(gd->map->seaBorderShader.GetProgram(), "matrix"), 1,
-                                       GL_FALSE, glm::value_ptr(gd->camera.GetMat()));
+                    glUniformMatrix4fv(
+                        glGetUniformLocation(
+                            gd->map->seaBorderShader.GetProgram(), "matrix"),
+                        1, GL_FALSE, glm::value_ptr(gd->camera.GetMat()));
                     glBindVertexArray(arrvao);
                     glBindBuffer(GL_ARRAY_BUFFER, arrvbo);
                     glDrawArrays(GL_LINES, 0, verts.size());
                     err = glGetError();
                     if (err)
                         Log("Opengl error: " << err);
-                    glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
+                    glEnable(
+                        GL_DEPTH_TEST);  // Enable depth testing for z-culling
                     glDeleteVertexArrays(1, &arrvao);
                     glDeleteBuffers(1, &arrvbo);
                 }
             }
             float rotateX = 60.0f * 3.1459265f / 180.0f, yScale = 10.0f;
             glm::mat4 rotate = glm::mat4{1.0f};
-            rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
+            rotate =
+                glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
+
+            std::vector<UnitsAtPoint> unitsAtPoint;
             for (std::size_t i = 0; i < gd->units.size(); ++i) {
-                if (abs(gd->units[i].GetFakePos().x - gd->camera.eye.x) > 400)
+                auto upos = gd->units[i].position;
+                if (abs(upos.x - gd->camera.eye.x) > 400)
                     continue;
-                if (abs(gd->units[i].GetFakePos().y - gd->camera.eye.y) > 200)
+                if (abs(upos.y - gd->camera.eye.y) > 200)
                     continue;
                 uinds.push_back(i);
+                long point = (long)(upos.x + 0.5f);
+                point |= ((long)(upos.y + 0.5f) << 32);
+                Log("point: " << point);
+                bool found = false;
+                for (std::size_t j = 0; j < unitsAtPoint.size(); ++j) {
+                    if (unitsAtPoint[j].point == point) {
+                        unitsAtPoint[j].uind.push_back(i);
+                        unitsAtPoint[j].size += gd->units[i].soldiers;
+                        if (myCountryId != gd->units[i].countryId &&
+                            unitsAtPoint[j].status != 1) {
+                            if (true ==
+                                isAtWar(myCountryId, gd->units[i].countryId))
+                                unitsAtPoint[j].status = 1;
+                            else
+                                unitsAtPoint[j].status = 2;
+                        }
+                        found = true;
+                        break;
+                    }
+                }
+                if (false == found) {
+                    unitsAtPoint.emplace_back();
+                    unitsAtPoint.back().point = point;
+                    unitsAtPoint.back().uind.push_back(i);
+                    unitsAtPoint.back().size += gd->units[i].soldiers;
+                    if (myCountryId != gd->units[i].countryId) {
+                        if (true ==
+                            isAtWar(myCountryId, gd->units[i].countryId))
+                            unitsAtPoint.back().status = 1;
+                        else
+                            unitsAtPoint.back().status = 2;
+                    }
+                }
             }
+            Log(unitsAtPoint.size());
 
             {                              // print unit labels;
                 glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
 
                 std::vector<Vertex> labelVerts;
-                for (std::size_t i : uinds) {
+                glm::vec4 owncol{0.0f, 0.0f, 1.0f, 1.0f};
+                glm::vec4 enemycol{1.0f, 0.0f, 0.0f, 1.0f};
+                glm::vec4 enenemycol{1.0f, 0.5f, 0.0f, 1.0f};
+                glm::vec4 *currcol = &owncol;
+                for (std::size_t j = 0; j < unitsAtPoint.size(); ++j) {
+                    assert(unitsAtPoint[j].uind.size() > 0);
+                    int i = unitsAtPoint[j].uind[0];
                     glm::mat4 unitModel = glm::mat4(1.0);
-                    unitModel = glm::translate(unitModel, gd->units[i].GetFakePos());
+                    unitModel =
+                        glm::translate(unitModel, gd->units[i].GetFakePos());
                     auto asd = gd->units[i].GetFakePos();
-                    unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
+                    unitModel =
+                        glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
 
                     float ww = 70.0f, hh = 25.0f;
+
+                    if (unitsAtPoint[j].status == 0)
+                        currcol = &owncol;
+                    else if (unitsAtPoint[j].status == 1)
+                        currcol = &enemycol;
+                    else
+                        currcol = &enenemycol;
                     Vertex fv{
-                        .pos = glm::vec3{asd.x - ww * 0.6f, asd.y - hh - 8.0f, asd.z},
-                        .color = glm::vec4{1.0f, 0.0f, 0.0f, 1.0f},
+                        .pos = glm::vec3{asd.x - ww * 0.6f, asd.y - hh - 8.0f,
+                                         asd.z},
+                        .color = *currcol,
                         .tc = glm::vec2{0.0f, 0.0f},
                         .textureId = (int)22,
                     };
@@ -419,26 +462,67 @@ void Game::Play()
                     labelVerts.push_back(fv);
 
                     fv.pos.z += 1.0f;
-                    std::string labtext = int_to_string(gd->units[i].soldiers);
-                    labelText(fv.pos, glm::vec2{ww, hh}, glm::vec4{0.0f, 1.0f, 0.0f, 1.0f}, labtext,
+                    std::string labtext = int_to_string(unitsAtPoint[j].size);
+                    // std::string labtext =
+                    // int_to_string(gd->units[i].soldiers);
+                    labelText(fv.pos, glm::vec2{ww, hh},
+                              glm::vec4{0.0f, 1.0f, 0.0f, 1.0f}, labtext,
                               AM::FontSize::PX32, labelVerts);
                 }
+                /*
+                                for (std::size_t i : uinds) {
+                                    glm::mat4 unitModel = glm::mat4(1.0);
+                                    unitModel = glm::translate(unitModel,
+                   gd->units[i].GetFakePos()); auto asd =
+                   gd->units[i].GetFakePos(); unitModel = glm::scale(unitModel,
+                   glm::vec3{20.0, yScale, 20.0});
+
+                                    float ww = 70.0f, hh = 25.0f;
+                                    Vertex fv{
+                                        .pos = glm::vec3{asd.x - ww * 0.6f,
+                   asd.y - hh - 8.0f, asd.z}, .color = glm::vec4{1.0f, 0.0f,
+                   0.0f, 1.0f}, .tc = glm::vec2{0.0f, 0.0f}, .textureId =
+                   (int)22,
+                                    };
+                                    labelVerts.push_back(fv);
+                                    fv.pos.y += hh;
+                                    labelVerts.push_back(fv);
+                                    fv.pos.x += ww;
+                                    labelVerts.push_back(fv);
+                                    labelVerts.push_back(fv);
+                                    fv.pos.y -= hh;
+                                    labelVerts.push_back(fv);
+                                    fv.pos.x -= ww;
+                                    labelVerts.push_back(fv);
+
+                                    fv.pos.z += 1.0f;
+                                    std::string labtext =
+                   int_to_string(gd->units[i].soldiers); labelText(fv.pos,
+                   glm::vec2{ww, hh}, glm::vec4{0.0f, 1.0f, 0.0f, 1.0f},
+                   labtext, AM::FontSize::PX32, labelVerts);
+                                }
+                */
+
                 glUseProgram(labelShader.GetProgram());
                 for (int i = 0; i <= (int)AM::FontSize::PX160; ++i) {
                     glActiveTexture(GL_TEXTURE0 + i);
                     glBindTexture(GL_TEXTURE_2D, (GLuint)gd->fontTexID[i]);
                 }
-                glUniformMatrix4fv(glGetUniformLocation(labelShader.GetProgram(), "matrix"), 1, GL_FALSE,
-                                   glm::value_ptr(matrix));
-                glUniform1iv(glGetUniformLocation(labelShader.GetProgram(), "tex"), 32, gd->tex);
+                glUniformMatrix4fv(
+                    glGetUniformLocation(labelShader.GetProgram(), "matrix"), 1,
+                    GL_FALSE, glm::value_ptr(matrix));
+                glUniform1iv(
+                    glGetUniformLocation(labelShader.GetProgram(), "tex"), 32,
+                    gd->tex);
                 GLuint labelVao, labelVbo;
                 glCreateVertexArrays(1, &labelVao);
                 glBindVertexArray(labelVao);
                 glCreateBuffers(1, &labelVbo);
 
                 glBindBuffer(GL_ARRAY_BUFFER, labelVbo);
-                glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * labelVerts.size(), labelVerts.data(),
-                             GL_STATIC_DRAW);
+                glBufferData(GL_ARRAY_BUFFER,
+                             sizeof(Vertex) * labelVerts.size(),
+                             labelVerts.data(), GL_STATIC_DRAW);
                 glEnableVertexArrayAttrib(labelVao, 0);
                 glEnableVertexArrayAttrib(labelVao, 1);
                 glEnableVertexArrayAttrib(labelVao, 2);
@@ -446,13 +530,16 @@ void Game::Play()
                 GLuint err = glGetError();
                 if (err)
                     Log("Opengl error: " << err);
-                glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), NULL);  //(const GLvoid*)0);
+                glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                                      NULL);  //(const GLvoid*)0);
                 glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                                       (const GLvoid *)(offsetof(Vertex, tc)));
-                glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                                      (const GLvoid *)(offsetof(Vertex, color)));
-                glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                                      (const GLvoid *)(offsetof(Vertex, textureId)));
+                glVertexAttribPointer(
+                    2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                    (const GLvoid *)(offsetof(Vertex, color)));
+                glVertexAttribPointer(
+                    3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                    (const GLvoid *)(offsetof(Vertex, textureId)));
 
                 glBindVertexArray(labelVao);
                 glDrawArrays(GL_TRIANGLES, 0, labelVerts.size());
@@ -471,17 +558,23 @@ void Game::Play()
                 if (abs(gd->units[i].GetFakePos().y - gd->camera.eye.y) > 200)
                     continue;
                 glm::mat4 unitModel = glm::mat4(1.0);
-                unitModel = glm::translate(unitModel, gd->units[i].GetFakePos());
+                unitModel =
+                    glm::translate(unitModel, gd->units[i].GetFakePos());
 
                 unitModel = unitModel * rotate;
-                unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
+                unitModel =
+                    glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
 
                 glUseProgram(AM::am.shader->GetProgram());
-                glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "matrix"), 1, GL_FALSE,
-                                   glm::value_ptr(matrix));
-                glUniformMatrix4fv(glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1, GL_FALSE,
-                                   glm::value_ptr(unitModel));
-                glUniform1iv(glGetUniformLocation(AM::am.shader->GetProgram(), "tex"), 32, gd->tex);
+                glUniformMatrix4fv(
+                    glGetUniformLocation(AM::am.shader->GetProgram(), "matrix"),
+                    1, GL_FALSE, glm::value_ptr(matrix));
+                glUniformMatrix4fv(
+                    glGetUniformLocation(AM::am.shader->GetProgram(), "ml"), 1,
+                    GL_FALSE, glm::value_ptr(unitModel));
+                glUniform1iv(
+                    glGetUniformLocation(AM::am.shader->GetProgram(), "tex"),
+                    32, gd->tex);
                 model3d.Draw();
             }
         }
@@ -493,17 +586,20 @@ void Game::Play()
         }
 
         checkCountryNamesFade(gd);
-        if (((gd->camera.eye.z > gd->zPoint) || gd->ctrNamesFade < 1.0f) && openPeaceOfferId == -1) {
+        if (((gd->camera.eye.z > gd->zPoint) || gd->ctrNamesFade < 1.0f) &&
+            openPeaceOfferId == -1)
+        {
             drawCountryNames(gd);
         }
         updateCountryNamesFade(gd, dt);
         //~ctrNames
 
         glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
-        matrix = glm::ortho(0.0f, (float)gd->settings.resolution.x, 0.0f, (float)gd->settings.resolution.y);
+        matrix = glm::ortho(0.0f, (float)gd->settings.resolution.x, 0.0f,
+                            (float)gd->settings.resolution.y);
         glUseProgram(shader.GetProgram());
-        glUniformMatrix4fv(glGetUniformLocation(shader.GetProgram(), "matrix"), 1, GL_FALSE,
-                           glm::value_ptr(matrix));
+        glUniformMatrix4fv(glGetUniformLocation(shader.GetProgram(), "matrix"),
+                           1, GL_FALSE, glm::value_ptr(matrix));
 
         GLuint ts[] = {0};
         glBindTextures(ts[0], 1, ts);
@@ -529,65 +625,90 @@ void Game::Play()
     }
 }
 
+bool Game::isAtWar(int ctr1, int ctr2)
+{
+    for (std::size_t i = 0; i < gd->wars.size(); ++i) {
+        if (true == gd->wars[i].ShouldTheyFight(ctr1, ctr2))
+            return true;
+    }
+    return false;
+}
+
 void Game::guiDraw()
 {
     ctype.ct = ClickEventType::MISS;
-    glm::vec2 mp{
-        gd->window->xMouse * gd->settings.resolution.x / gd->window->GetSize().x,
-        (gd->window->GetSize().y - gd->window->yMouse) * gd->settings.resolution.y / gd->window->GetSize().y};
+    glm::vec2 mp{gd->window->xMouse * gd->settings.resolution.x /
+                     gd->window->GetSize().x,
+                 (gd->window->GetSize().y - gd->window->yMouse) *
+                     gd->settings.resolution.y / gd->window->GetSize().y};
 
     GuiLast::GuiEv tmpctype;
     tmpctype = guiLast.game_topBar(topBarData, mp.x, mp.y);
     if (tmpctype.ct != ClickEventType::MISS)
         ctype = tmpctype;
 
-    tmpctype = guiLast.game_SideBar(sideBarData, mp.x, mp.y, gd->window->mouseLClicked, gd->window->scrollOffset);
+    tmpctype =
+        guiLast.game_SideBar(sideBarData, mp.x, mp.y, gd->window->mouseLClicked,
+                             gd->window->scrollOffset);
     if (tmpctype.ct != ClickEventType::MISS)
         ctype = tmpctype;
 
     if (openMyCountry) {
-        tmpctype = guiLast.game_myCountry(&gd->countries[myCountryId], mp.x, mp.y);
-        if (gd->window->mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
+        tmpctype =
+            guiLast.game_myCountry(&gd->countries[myCountryId], mp.x, mp.y);
+        if (gd->window->mouseLClicked &&
+            tmpctype.ct == ClickEventType::CLOSE_WINDOW)
             openMyCountry = false;
         else if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
     }
 
     if (openProvId != -1) {
-        tmpctype =
-            guiLast.game_prov(gd->provinces[openProvId], mp.x, mp.y, gd->window->mouseLClicked,
-                              gd->provinces[openProvId].GetCountryId() == gd->countries[myCountryId].GetId());
-        if (gd->window->mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
+        tmpctype = guiLast.game_prov(gd->provinces[openProvId], mp.x, mp.y,
+                                     gd->window->mouseLClicked,
+                                     gd->provinces[openProvId].GetCountryId() ==
+                                         gd->countries[myCountryId].GetId());
+        if (gd->window->mouseLClicked &&
+            tmpctype.ct == ClickEventType::CLOSE_WINDOW)
             openProvId = -1;
         else if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
     }
 
     if (openBattleId != -1) {
-        assert(gd->battles[openBattleId].provId >= 0 && gd->battles[openBattleId].provId < gd->provinces.size());
-        tmpctype = guiLast.game_battle(gd->battles[openBattleId], gd->provinces[gd->battles[openBattleId].provId],
-                                       mp.x, mp.y, gd->window->mouseLClicked, gd->countries, gd->units);
-        if (gd->window->mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
+        assert(gd->battles[openBattleId].provId >= 0 &&
+               gd->battles[openBattleId].provId < gd->provinces.size());
+        tmpctype = guiLast.game_battle(
+            gd->battles[openBattleId],
+            gd->provinces[gd->battles[openBattleId].provId], mp.x, mp.y,
+            gd->window->mouseLClicked, gd->countries, gd->units);
+        if (gd->window->mouseLClicked &&
+            tmpctype.ct == ClickEventType::CLOSE_WINDOW)
             openBattleId = -1;
         else if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
     }
 
     if (openCountryId != -1) {
-        tmpctype =
-            guiLast.game_country(&gd->countries[openCountryId], &gd->countries[myCountryId], gd->wars, mp.x, mp.y);
-        if (gd->window->mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
+        tmpctype = guiLast.game_country(&gd->countries[openCountryId],
+                                        &gd->countries[myCountryId], gd->wars,
+                                        mp.x, mp.y);
+        if (gd->window->mouseLClicked &&
+            tmpctype.ct == ClickEventType::CLOSE_WINDOW)
             openCountryId = -1;
         else if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
     }
 
     if (openUnitId != -1) {
-        auto unit = std::find_if(gd->units.begin(), gd->units.end(),
-                                 [id = openUnitId](const Unit &u) { return u.GetId() == id; });
+        auto unit = std::find_if(
+            gd->units.begin(), gd->units.end(),
+            [id = openUnitId](const Unit &u) { return u.GetId() == id; });
         assert(unit != gd->units.end());
-        tmpctype = guiLast.game_unit((*unit), mp.x, mp.y, gd->window->mouseLClicked, gd->countries);
-        if (gd->window->mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
+        tmpctype = guiLast.game_unit((*unit), mp.x, mp.y,
+                                     gd->window->mouseLClicked, gd->countries);
+        if (gd->window->mouseLClicked &&
+            tmpctype.ct == ClickEventType::CLOSE_WINDOW)
             openUnitId = -1;
         else if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
@@ -601,8 +722,10 @@ void Game::guiDraw()
                 break;
             }
         }
-        tmpctype = guiLast.game_war(&gd->wars[warind], mp.x, mp.y, gd->window->mouseLClicked);
-        if (gd->window->mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
+        tmpctype = guiLast.game_war(&gd->wars[warind], mp.x, mp.y,
+                                    gd->window->mouseLClicked);
+        if (gd->window->mouseLClicked &&
+            tmpctype.ct == ClickEventType::CLOSE_WINDOW)
             openWarId = -1;
         else if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
@@ -611,16 +734,19 @@ void Game::guiDraw()
     if (openUnitsList == true) {
         std::vector<Unit *> clickedUnits_ptr;
         for (auto uid : clickedUnits) {
-            auto unit = std::find_if(gd->units.begin(), gd->units.end(),
-                                     [id = uid](const Unit &u) { return u.GetId() == id; });
+            auto unit = std::find_if(
+                gd->units.begin(), gd->units.end(),
+                [id = uid](const Unit &u) { return u.GetId() == id; });
             if (unit != gd->units.end()) {
                 clickedUnits_ptr.push_back(&(*unit));
             }
         }
-        tmpctype =
-            guiLast.game_unitsList(clickedUnits_ptr, mp.x, mp.y, gd->window->mouseLClicked,
-                                   gd->window->scrollOffset, &gd->provinces[openUnitsListProvId], gd->countries);
-        if (gd->window->mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW)
+        tmpctype = guiLast.game_unitsList(
+            clickedUnits_ptr, mp.x, mp.y, gd->window->mouseLClicked,
+            gd->window->scrollOffset, &gd->provinces[openUnitsListProvId],
+            gd->countries);
+        if (gd->window->mouseLClicked &&
+            tmpctype.ct == ClickEventType::CLOSE_WINDOW)
             openUnitsList = false;
         else if (tmpctype.ct != ClickEventType::MISS)
             ctype = tmpctype;
@@ -635,9 +761,11 @@ void Game::guiDraw()
             }
         }
         assert(peaceind >= 0 && peaceind < peaceOffers.size());
-        tmpctype = guiLast.game_peaceOffer(&peaceOffers[peaceind], mp.x, mp.y, myCountryId, gd->provinces,
-                                           gd->countries, gd->window->mouseLClicked, gd->window->scrollOffset);
-        if (gd->window->mouseLClicked && tmpctype.ct == ClickEventType::CLOSE_WINDOW) {
+        tmpctype = guiLast.game_peaceOffer(
+            &peaceOffers[peaceind], mp.x, mp.y, myCountryId, gd->provinces,
+            gd->countries, gd->window->mouseLClicked, gd->window->scrollOffset);
+        if (gd->window->mouseLClicked &&
+            tmpctype.ct == ClickEventType::CLOSE_WINDOW) {
             openPeaceOfferId = -1;
         }
         else if (tmpctype.ct != ClickEventType::MISS)
@@ -675,8 +803,9 @@ void Game::guiDraw()
                 break;
             }
             case ClickEventType::CREATE_UNIT: {
-                packets.emplace_back(
-                    PreparePacket::NewUnit(gd->provinces[openProvId].GetCountryId(), openProvId, ctype.val));
+                packets.emplace_back(PreparePacket::NewUnit(
+                    gd->provinces[openProvId].GetCountryId(), openProvId,
+                    ctype.val));
                 break;
             }
             case ClickEventType::OPEN_UNIT: {
@@ -691,16 +820,20 @@ void Game::guiDraw()
             case ClickEventType::SIDEBAR_LEFTC: {
                 int ind = ctype.val;
                 assert(ind >= 0 && ind < sideBarData.elements.size());
-                if (sideBarData.elements[ind].type == SideBarData::IType::PEACE_OFFER) {
+                if (sideBarData.elements[ind].type ==
+                    SideBarData::IType::PEACE_OFFER) {
                     resetGuiWindows();
-                    openPeaceOfferId = sideBarData.elements[ind].val;  // ctype.val;
+                    openPeaceOfferId =
+                        sideBarData.elements[ind].val;  // ctype.val;
                 }
-                else if (sideBarData.elements[ind].type == SideBarData::IType::WAR) {
+                else if (sideBarData.elements[ind].type ==
+                         SideBarData::IType::WAR) {
                     resetGuiWindows();
                     openWarId = sideBarData.elements[ind].val;
                 }
                 else {
-                    sideBarData.elements.erase(sideBarData.elements.begin() + ind);
+                    sideBarData.elements.erase(sideBarData.elements.begin() +
+                                               ind);
                 }
                 break;
             }
@@ -723,7 +856,8 @@ void Game::guiDraw()
                     }
                     for (std::size_t i = 0; i < gd->wars.size(); ++i) {
                         if ((openWarId != -1 && gd->wars[i].id == openWarId) ||
-                            (openWarId == -1 && gd->wars[i].id == ctype.val)) {
+                            (openWarId == -1 && gd->wars[i].id == ctype.val))
+                        {
                             warind = i;
                             break;
                         }
@@ -732,7 +866,8 @@ void Game::guiDraw()
                     int recipantId = gd->wars[warind].attackersIds[0];
                     if (recipantId == myCountryId)
                         recipantId = gd->wars[warind].defendersIds[0];
-                    peaceOffers.push_back(PeaceOffer{myCountryId, gd->wars[warind].id, recipantId});
+                    peaceOffers.push_back(PeaceOffer{
+                        myCountryId, gd->wars[warind].id, recipantId});
                     resetGuiWindows();
                     openPeaceOfferId = -2;
                 }
@@ -747,9 +882,12 @@ void Game::guiDraw()
                     }
                 }
                 assert(peaceind >= 0 && peaceind < peaceOffers.size());
-                for (std::size_t ind = 0; ind < sideBarData.elements.size(); ++ind) {
-                    if (sideBarData.elements[ind].type == SideBarData::IType::PEACE_OFFER) {
-                        sideBarData.elements.erase(sideBarData.elements.begin() + ind);
+                for (std::size_t ind = 0; ind < sideBarData.elements.size();
+                     ++ind) {
+                    if (sideBarData.elements[ind].type ==
+                        SideBarData::IType::PEACE_OFFER) {
+                        sideBarData.elements.erase(
+                            sideBarData.elements.begin() + ind);
                         break;
                     }
                 }
@@ -758,15 +896,23 @@ void Game::guiDraw()
                     packet << "PeaceOffer";
                     packet << peaceOffers[peaceind].warId;
                     packet << peaceOffers[peaceind].recipant;
-                    packet << (unsigned int)(peaceOffers[peaceind].gainProv.size() +
-                                             peaceOffers[peaceind].lostProv.size());
-                    for (std::size_t i = 0; i < peaceOffers[peaceind].lostProv.size(); ++i) {
-                        packet << std::get<0>(peaceOffers[peaceind].lostProv[i]);
-                        packet << std::get<1>(peaceOffers[peaceind].lostProv[i]);
+                    packet << (unsigned int)(peaceOffers[peaceind]
+                                                 .gainProv.size() +
+                                             peaceOffers[peaceind]
+                                                 .lostProv.size());
+                    for (std::size_t i = 0;
+                         i < peaceOffers[peaceind].lostProv.size(); ++i) {
+                        packet
+                            << std::get<0>(peaceOffers[peaceind].lostProv[i]);
+                        packet
+                            << std::get<1>(peaceOffers[peaceind].lostProv[i]);
                     }
-                    for (std::size_t i = 0; i < peaceOffers[peaceind].gainProv.size(); ++i) {
-                        packet << std::get<0>(peaceOffers[peaceind].gainProv[i]);
-                        packet << std::get<1>(peaceOffers[peaceind].gainProv[i]);
+                    for (std::size_t i = 0;
+                         i < peaceOffers[peaceind].gainProv.size(); ++i) {
+                        packet
+                            << std::get<0>(peaceOffers[peaceind].gainProv[i]);
+                        packet
+                            << std::get<1>(peaceOffers[peaceind].gainProv[i]);
                     }
                     peaceOffers.erase(peaceOffers.begin() + peaceind);
                     packets.push_back(packet);
@@ -776,11 +922,15 @@ void Game::guiDraw()
                     packet << "AcceptPeace";
                     packet << peaceOffers[peaceind].peaceId;
                     packets.push_back(packet);
-                    for (std::size_t ind = 0; ind < sideBarData.elements.size(); ++ind) {
-                        if (sideBarData.elements[ind].type == SideBarData::IType::WAR &&
-                            sideBarData.elements[ind].val == peaceOffers[peaceind].warId)
+                    for (std::size_t ind = 0; ind < sideBarData.elements.size();
+                         ++ind) {
+                        if (sideBarData.elements[ind].type ==
+                                SideBarData::IType::WAR &&
+                            sideBarData.elements[ind].val ==
+                                peaceOffers[peaceind].warId)
                         {
-                            sideBarData.elements.erase(sideBarData.elements.begin() + ind);
+                            sideBarData.elements.erase(
+                                sideBarData.elements.begin() + ind);
                             break;
                         }
                     }
@@ -803,9 +953,12 @@ void Game::guiDraw()
                 packet << peaceOffers[peaceind].peaceId;
                 packets.push_back(packet);
 
-                for (std::size_t ind = 0; ind < sideBarData.elements.size(); ++ind) {
-                    if (sideBarData.elements[ind].type == SideBarData::IType::PEACE_OFFER) {
-                        sideBarData.elements.erase(sideBarData.elements.begin() + ind);
+                for (std::size_t ind = 0; ind < sideBarData.elements.size();
+                     ++ind) {
+                    if (sideBarData.elements[ind].type ==
+                        SideBarData::IType::PEACE_OFFER) {
+                        sideBarData.elements.erase(
+                            sideBarData.elements.begin() + ind);
                         break;
                     }
                 }
@@ -817,8 +970,9 @@ void Game::guiDraw()
                     break;
                 std::vector<Unit *> clickedUnits_ptr;
                 for (auto uid : clickedUnits) {
-                    auto unit = std::find_if(gd->units.begin(), gd->units.end(),
-                                             [id = uid](const Unit &u) { return u.GetId() == id; });
+                    auto unit = std::find_if(
+                        gd->units.begin(), gd->units.end(),
+                        [id = uid](const Unit &u) { return u.GetId() == id; });
                     if (unit != gd->units.end()) {
                         clickedUnits_ptr.push_back(&(*unit));
                     }
@@ -869,14 +1023,17 @@ void Game::processPacket(sf::Packet packet)
     packet >> type;
     // Log(type);
     if (type == "daily") {
-        ProcessPacket::DailyUpdate(packet, gd->wars, gd->provinces, gd->countries, topBarData, gd->map);
+        ProcessPacket::DailyUpdate(packet, gd->wars, gd->provinces,
+                                   gd->countries, topBarData, gd->map);
     }
     else if (type == "hourly") {
-        ProcessPacket::HourlyUpdate(packet, gd->units, gd->battles, gd->settings.scale,
-                                    gd->map->heightMap.GetPixels(), gd->map->mapWidth);
+        ProcessPacket::HourlyUpdate(
+            packet, gd->units, gd->battles, gd->settings.scale,
+            gd->map->heightMap.GetPixels(), gd->map->mapWidth);
     }
     else if (type == "PeaceAccepted") {
-        ProcessPacket::PeaceAccepted(packet, gd->provinces, gd->countries, gd->wars, sideBarData);
+        ProcessPacket::PeaceAccepted(packet, gd->provinces, gd->countries,
+                                     gd->wars, sideBarData);
         gd->editCountryMap();
         gd->makeCountryNames();
         if (openedProvId >= 0) {
@@ -887,7 +1044,8 @@ void Game::processPacket(sf::Packet packet)
         ProcessPacket::ProvincePopulation(packet, gd->provinces);
     }
     else if (type == "NewWar") {
-        ProcessPacket::NewWar(packet, gd->wars, myCountryId, gd->countries, sideBarData);
+        ProcessPacket::NewWar(packet, gd->wars, myCountryId, gd->countries,
+                              sideBarData);
     }
     else if (type == "SetGold") {
         ProcessPacket::SetGold(packet, &gd->countries[myCountryId]);
@@ -896,10 +1054,12 @@ void Game::processPacket(sf::Packet packet)
         ProcessPacket::SetSpeed(packet);
     }
     else if (type == "monthly") {
-        ProcessPacket::MonthlyUpdate(packet, gd->countries[myCountryId].GetName(), gd->countries);
+        ProcessPacket::MonthlyUpdate(
+            packet, gd->countries[myCountryId].GetName(), gd->countries);
     }
     else if (type == "BotPeaceOffer") {
-        ProcessPacket::BotPeaceOffer(packet, peaceOffers, gd->countries, sideBarData, &gd->countries[myCountryId]);
+        ProcessPacket::BotPeaceOffer(packet, peaceOffers, gd->countries,
+                                     sideBarData, &gd->countries[myCountryId]);
     }
     else if (type == "PeaceDeclined") {
         ProcessPacket::PeaceDeclined(packet, sideBarData, gd->countries);
@@ -964,29 +1124,43 @@ void Game::input()
                                 break;
                             }
                         }
-                        if ((gd->provinces[pid].GetCountryId() == peaceOffers[peaceind].offeredBy ||
-                             gd->provinces[pid].GetCountryId() == peaceOffers[peaceind].recipant) &&
+                        if ((gd->provinces[pid].GetCountryId() ==
+                                 peaceOffers[peaceind].offeredBy ||
+                             gd->provinces[pid].GetCountryId() ==
+                                 peaceOffers[peaceind].recipant) &&
                             peaceOffers[peaceind].offeredBy == myCountryId)
                         {
                             auto tmpit = std::find_if(
-                                peaceOffers[peaceind].lostProv.begin(), peaceOffers[peaceind].lostProv.end(),
-                                [id = pid](const std::tuple<int, int, int> &t) { return std::get<0>(t) == id; });
+                                peaceOffers[peaceind].lostProv.begin(),
+                                peaceOffers[peaceind].lostProv.end(),
+                                [id = pid](const std::tuple<int, int, int> &t) {
+                                    return std::get<0>(t) == id;
+                                });
                             if (tmpit != peaceOffers[peaceind].lostProv.end()) {
                                 peaceOffers[peaceind].lostProv.erase(tmpit);
                             }
-                            else if (gd->provinces[pid].GetCountryId() == myCountryId) {
-                                peaceOffers[peaceind].lostProv.push_back(std::make_tuple(
-                                    pid, peaceOffers[peaceind].recipant, gd->provinces[pid].GetDevelopment()));
+                            else if (gd->provinces[pid].GetCountryId() ==
+                                     myCountryId) {
+                                peaceOffers[peaceind].lostProv.push_back(
+                                    std::make_tuple(
+                                        pid, peaceOffers[peaceind].recipant,
+                                        gd->provinces[pid].GetDevelopment()));
                             }
                             tmpit = std::find_if(
-                                peaceOffers[peaceind].gainProv.begin(), peaceOffers[peaceind].gainProv.end(),
-                                [id = pid](const std::tuple<int, int, int> &t) { return std::get<0>(t) == id; });
+                                peaceOffers[peaceind].gainProv.begin(),
+                                peaceOffers[peaceind].gainProv.end(),
+                                [id = pid](const std::tuple<int, int, int> &t) {
+                                    return std::get<0>(t) == id;
+                                });
                             if (tmpit != peaceOffers[peaceind].gainProv.end()) {
                                 peaceOffers[peaceind].gainProv.erase(tmpit);
                             }
-                            else if (gd->provinces[pid].GetCountryId() != myCountryId) {
-                                peaceOffers[peaceind].gainProv.push_back(std::make_tuple(
-                                    pid, peaceOffers[peaceind].offeredBy, gd->provinces[pid].GetDevelopment()));
+                            else if (gd->provinces[pid].GetCountryId() !=
+                                     myCountryId) {
+                                peaceOffers[peaceind].gainProv.push_back(
+                                    std::make_tuple(
+                                        pid, peaceOffers[peaceind].offeredBy,
+                                        gd->provinces[pid].GetDevelopment()));
                             }
                         }
                     }
@@ -1022,17 +1196,21 @@ bool Game::unitClick()
     GLuint err;
     {  // check for unit clicks
         glUseProgram(pickModelShader.GetProgram());
-        glUniformMatrix4fv(glGetUniformLocation(pickModelShader.GetProgram(), "matrix"), 1, GL_FALSE,
-                           glm::value_ptr(gd->camera.GetMat()));
+        glUniformMatrix4fv(
+            glGetUniformLocation(pickModelShader.GetProgram(), "matrix"), 1,
+            GL_FALSE, glm::value_ptr(gd->camera.GetMat()));
         glBindVertexArray(model3d.rectVao);
         glBindBuffer(GL_ARRAY_BUFFER, model3d.rectVbo);
         for (std::size_t i = 0; i < uMat.size(); ++i) {
-            glUniformMatrix4fv(glGetUniformLocation(pickModelShader.GetProgram(), "ml"), 1, GL_FALSE,
-                               glm::value_ptr(uMat[i]));
+            glUniformMatrix4fv(
+                glGetUniformLocation(pickModelShader.GetProgram(), "ml"), 1,
+                GL_FALSE, glm::value_ptr(uMat[i]));
             glm::vec4 pcol{(float)gd->provinces[pids[i]].GetColor().r / 255.0f,
                            gd->provinces[pids[i]].GetColor().g / 255.0f,
                            gd->provinces[pids[i]].GetColor().b / 255.0f, 1.0f};
-            glUniform4fv(glGetUniformLocation(pickModelShader.GetProgram(), "col"), 1, glm::value_ptr(pcol));
+            glUniform4fv(
+                glGetUniformLocation(pickModelShader.GetProgram(), "col"), 1,
+                glm::value_ptr(pcol));
 
             glDrawArrays(GL_TRIANGLES, 0, model3d.rectVertsCount);
             err = glGetError();
@@ -1042,7 +1220,8 @@ bool Game::unitClick()
     }
 
     unsigned char pixel[4];
-    int pixx = gd->window->xMouse, pixy = gd->window->GetSize().y - gd->window->yMouse;
+    int pixx = gd->window->xMouse,
+        pixy = gd->window->GetSize().y - gd->window->yMouse;
     glReadPixels(pixx, pixy, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
     gd->window->Refresh();
     unsigned int clickedUnitPhash = getHash(pixel[0], pixel[1], pixel[2]);
@@ -1072,10 +1251,12 @@ bool Game::unitClick()
     return false;
 }
 
-// void Game::unitMove(std::unordered_map<std::string, std::string> &values, glm::vec2 mouseInWorld)
+// void Game::unitMove(std::unordered_map<std::string, std::string> &values,
+// glm::vec2 mouseInWorld)
 //{
 //  Color provinceColor = map.ClickOnProvince(mouseInWorld.x, mouseInWorld.y);
-//  auto it = std::find_if(provinces.begin(), provinces.end(), [provinceColor](std::unique_ptr<Province> &p) {
+//  auto it = std::find_if(provinces.begin(), provinces.end(),
+//  [provinceColor](std::unique_ptr<Province> &p) {
 //      return p->GetColor() == provinceColor;
 //  });
 //  if (it != provinces.end()) {
@@ -1103,3 +1284,81 @@ void Game::sendPackets()
 
 void Game::updateBattles() {}
 
+void labelText(const glm::vec3 &pos, const glm::vec2 &size,
+               const glm::vec4 &col, const std::string &text,
+               AM::FontSize fontSize, std::vector<Vertex> &labelVerts)
+{
+    glm::vec3 textPos = pos;
+    GLuint tid = (GLuint)fontSize;
+    float spaceWidth = 10.0f;
+    float off = 0.0f, betweenWidth = 1.0f;
+
+    float widthSum = 0.0f, maxY = 0.0f;
+    for (int i = 0; i < text.size(); ++i) {
+        if (AM::atlasInfo[fontSize][text[i]].set) {
+            widthSum += AM::atlasInfo[fontSize][text[i]].width + betweenWidth;
+            if (maxY < AM::atlasInfo[fontSize][text[i]].height)
+                maxY = AM::atlasInfo[fontSize][text[i]].height;
+        }
+        else
+            widthSum += spaceWidth;
+    }
+    textPos.x = (textPos.x + size.x * 0.5f) - widthSum * 0.5f;
+    textPos.y = (textPos.y + size.y * 0.5f) - maxY * 0.5f;
+
+    for (int i = 0; i < text.size(); ++i) {
+        glm::vec3 rPos;
+        glm::vec2 rSize, rLBTC, tcLen;
+        if (AM::atlasInfo[fontSize][text[i]].set) {
+            rPos = {textPos.x + off,
+                    textPos.y + AM::atlasInfo[fontSize][text[i]].yPos,
+                    textPos.z};
+            // this 2 if's are walkaround around bug. If we draw char at x or y
+            // with floating point it gets more blury the closer it gets to .5f,
+            // at .0f it looks fine
+            if (rPos.x > (((float)((int)rPos.x))))
+                rPos.x = ((int)(rPos.x + 0.5f));
+            if (rPos.y > (((float)((int)rPos.y))))
+                rPos.y = ((int)(rPos.y + 0.5f));
+            rSize = {AM::atlasInfo[fontSize][text[i]].width,
+                     AM::atlasInfo[fontSize][text[i]].height};
+            rLBTC = {AM::atlasInfo[fontSize][text[i]].tcX,
+                     AM::atlasInfo[fontSize][text[i]].tcY};
+            tcLen = {AM::atlasInfo[fontSize][text[i]].tcWidth,
+                     AM::atlasInfo[fontSize][text[i]].tcHeight};
+            off += rSize.x + betweenWidth;
+
+            labelVerts.push_back(Vertex{.pos = rPos,
+                                        .color = col,
+                                        .tc = glm::vec2{rLBTC.x, rLBTC.y},
+                                        .textureId = (float)tid});
+            labelVerts.push_back(
+                Vertex{.pos = glm::vec3{rPos.x, rPos.y + rSize.y, rPos.z},
+                       .color = col,
+                       .tc = glm::vec2{rLBTC.x, rLBTC.y + tcLen.y},
+                       .textureId = (float)tid});
+            labelVerts.push_back(Vertex{
+                .pos = glm::vec3{rPos.x + rSize.x, rPos.y + rSize.y, rPos.z},
+                .color = col,
+                .tc = glm::vec2{rLBTC.x + tcLen.x, rLBTC.y + tcLen.y},
+                .textureId = (float)tid});
+            labelVerts.push_back(labelVerts.back());
+            labelVerts.push_back(
+                Vertex{.pos = glm::vec3{rPos.x + rSize.x, rPos.y, rPos.z},
+                       .color = col,
+                       .tc = glm::vec2{rLBTC.x + tcLen.x, rLBTC.y},
+                       .textureId = (float)tid});
+            labelVerts.push_back(Vertex{.pos = rPos,
+                                        .color = col,
+                                        .tc = glm::vec2{rLBTC.x, rLBTC.y},
+                                        .textureId = (float)tid});
+        }
+        else {
+            rPos = {textPos.x + off, textPos.y, textPos.z};
+            rSize = {spaceWidth, 10.0};
+            rLBTC = {0, 0};
+            tcLen = {0, 0};
+            off += rSize.x;
+        }
+    }
+}
