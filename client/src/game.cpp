@@ -21,14 +21,6 @@ struct OfferPeaceData {
                    // resets with opening new peace offer making
                    // gd->window->(even if same war)
 
-struct UnitsAtPoint {  // for drawing unit labels
-    std::vector<int> uind;
-    std::unordered_set<int> ctrIds;
-    long point;      // from unitfakepos.x & .y
-    int status = 0;  // 0 - own, 1 - enemy, 2 - enemy of enemy
-    int size = 0;
-};
-
 TopBarData topBarData;
 
 int openedProvId = -1;
@@ -179,18 +171,59 @@ void Game::Play()
         float rotateX = 60.0f * 3.1459265f / 180.0f, yScale = 10.0f;
         glm::mat4 rotate = glm::mat4{1.0f};
         rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
-        for (auto &unit : gd->units) {
-            if (abs(unit.GetFakePos().x - gd->camera.eye.x) > 400)
+        // for (auto &unit : gd->units) {
+        for (int i = 0; i < gd->units.size(); ++i) {
+            if (abs(gd->units[i].GetFakePos().x - gd->camera.eye.x) > 400)
                 continue;
-            if (abs(unit.GetFakePos().y - gd->camera.eye.y) > 200)
+            if (abs(gd->units[i].GetFakePos().y - gd->camera.eye.y) > 200)
                 continue;
             glm::mat4 unitModel = glm::mat4(1.0);
-            unitModel = glm::translate(unitModel, unit.GetFakePos());
+            unitModel = glm::translate(unitModel, gd->units[i].GetFakePos());
 
             unitModel = unitModel * rotate;
             unitModel = glm::scale(unitModel, glm::vec3{20.0, yScale, 20.0});
-            uMat.push_back(unitModel);
-            pids.push_back(unit.GetProvId());
+            pids.push_back(gd->units[i].GetProvId());
+            uinds.push_back(i);
+
+            // unitsAtPoint
+            auto upos = gd->units[i].position;
+
+            long point = (long)(upos.x + 0.5f);
+            point |= ((long)(upos.y + 0.5f) << 32);
+            Log("point: " << point);
+            bool found = false;
+            for (std::size_t j = 0; j < unitsAtPoint.size(); ++j) {
+                if (unitsAtPoint[j].point == point) {
+                    unitsAtPoint[j].uind.push_back(i);
+                    unitsAtPoint[j].ctrIds.insert(gd->units[i].countryId);
+                    unitsAtPoint[j].size += gd->units[i].soldiers;
+                    if (myCountryId != gd->units[i].countryId &&
+                        unitsAtPoint[j].status != 1) {
+                        if (true ==
+                            isAtWar(myCountryId, gd->units[i].countryId))
+                            unitsAtPoint[j].status = 1;
+                        else
+                            unitsAtPoint[j].status = 2;
+                    }
+                    found = true;
+                    break;
+                }
+            }
+            if (false == found) {
+                uMat.push_back(unitModel);
+                unitsAtPoint.emplace_back();
+                unitsAtPoint.back().point = point;
+                unitsAtPoint.back().uind.push_back(i);
+                unitsAtPoint.back().ctrIds.insert(gd->units[i].countryId);
+                unitsAtPoint.back().size += gd->units[i].soldiers;
+                if (myCountryId != gd->units[i].countryId) {
+                    if (true == isAtWar(myCountryId, gd->units[i].countryId))
+                        unitsAtPoint.back().status = 1;
+                    else
+                        unitsAtPoint.back().status = 2;
+                }
+            }
+            //~unitsAtPoint
         }
 
         input();
@@ -293,7 +326,7 @@ void Game::Play()
             gd->map->DrawBorders(matrix);
         }
 
-        std::vector<std::size_t> uinds;
+        // drawingMoves = false;
         if (gd->camera.eye.z < gd->zPoint && !gd->window->keys['U']) {
             if (openUnitId != -1) {  // drawing moves arrows
                 auto unit = std::find_if(gd->units.begin(), gd->units.end(),
@@ -301,6 +334,7 @@ void Game::Play()
                                              return u.GetId() == id;
                                          });
                 if (unit != gd->units.end()) {
+                    drawingMoves = true;
                     std::vector<BorderVertex> verts;
                     if (unit->movesVec.size()) {
                         verts.push_back(BorderVertex{
@@ -378,50 +412,6 @@ void Game::Play()
             rotate =
                 glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
 
-            std::vector<UnitsAtPoint> unitsAtPoint;
-            for (std::size_t i = 0; i < gd->units.size(); ++i) {
-                auto upos = gd->units[i].position;
-                if (abs(upos.x - gd->camera.eye.x) > 400)
-                    continue;
-                if (abs(upos.y - gd->camera.eye.y) > 200)
-                    continue;
-                uinds.push_back(i);
-                long point = (long)(upos.x + 0.5f);
-                point |= ((long)(upos.y + 0.5f) << 32);
-                Log("point: " << point);
-                bool found = false;
-                for (std::size_t j = 0; j < unitsAtPoint.size(); ++j) {
-                    if (unitsAtPoint[j].point == point) {
-                        unitsAtPoint[j].uind.push_back(i);
-                        unitsAtPoint[j].ctrIds.insert(gd->units[i].countryId);
-                        unitsAtPoint[j].size += gd->units[i].soldiers;
-                        if (myCountryId != gd->units[i].countryId &&
-                            unitsAtPoint[j].status != 1) {
-                            if (true ==
-                                isAtWar(myCountryId, gd->units[i].countryId))
-                                unitsAtPoint[j].status = 1;
-                            else
-                                unitsAtPoint[j].status = 2;
-                        }
-                        found = true;
-                        break;
-                    }
-                }
-                if (false == found) {
-                    unitsAtPoint.emplace_back();
-                    unitsAtPoint.back().point = point;
-                    unitsAtPoint.back().uind.push_back(i);
-                    unitsAtPoint.back().ctrIds.insert(gd->units[i].countryId);
-                    unitsAtPoint.back().size += gd->units[i].soldiers;
-                    if (myCountryId != gd->units[i].countryId) {
-                        if (true ==
-                            isAtWar(myCountryId, gd->units[i].countryId))
-                            unitsAtPoint.back().status = 1;
-                        else
-                            unitsAtPoint.back().status = 2;
-                    }
-                }
-            }
             Log(unitsAtPoint.size());
 
             {                              // print unit labels;
@@ -500,6 +490,11 @@ void Game::Play()
                         genRectFromVert(fvbg, ewidth, eheight, labelVerts);
                         starty += eheight + offsety;
                     }
+                    //~ country etiquetes
+
+                    // if unit is opened
+                    //
+                    //~ if unit is opened
                 }
 
                 glUseProgram(labelShader.GetProgram());
@@ -552,10 +547,12 @@ void Game::Play()
                 glBindTexture(GL_TEXTURE_2D, otherTexID[i]);
             }
             for (auto i : uinds) {
-                if (abs(gd->units[i].GetFakePos().x - gd->camera.eye.x) > 400)
-                    continue;
-                if (abs(gd->units[i].GetFakePos().y - gd->camera.eye.y) > 200)
-                    continue;
+                // if (abs(gd->units[i].GetFakePos().x - gd->camera.eye.x) >
+                // 400)
+                //     continue;
+                // if (abs(gd->units[i].GetFakePos().y - gd->camera.eye.y) >
+                // 200)
+                //     continue;
                 glm::mat4 unitModel = glm::mat4(1.0);
                 unitModel =
                     glm::translate(unitModel, gd->units[i].GetFakePos());
@@ -577,7 +574,6 @@ void Game::Play()
                 model3d.Draw();
             }
         }
-        uMat.clear();
         // ctrnames
         for (int i = 0; i <= (int)AM::FontSize::PX160; ++i) {
             glActiveTexture(GL_TEXTURE0 + i);
@@ -611,6 +607,9 @@ void Game::Play()
         gd->window->scrollOffset = 0.0f;
         gd->window->Update();
         pids.clear();
+        uinds.clear();
+        unitsAtPoint.clear();
+        uMat.clear();
         dt = glfwGetTime() - time;
         gd->updateTime(dt);
         fpsTime += dt;
@@ -703,14 +702,15 @@ void Game::guiDraw()
         auto unit = std::find_if(
             gd->units.begin(), gd->units.end(),
             [id = openUnitId](const Unit &u) { return u.GetId() == id; });
-        assert(unit != gd->units.end());
-        tmpctype = guiLast.game_unit((*unit), mp.x, mp.y,
-                                     gd->window->mouseLClicked, gd->countries);
-        if (gd->window->mouseLClicked &&
-            tmpctype.ct == ClickEventType::CLOSE_WINDOW)
-            openUnitId = -1;
-        else if (tmpctype.ct != ClickEventType::MISS)
-            ctype = tmpctype;
+        if (unit != gd->units.end()) {
+            tmpctype = guiLast.game_unit(
+                (*unit), mp.x, mp.y, gd->window->mouseLClicked, gd->countries);
+            if (gd->window->mouseLClicked &&
+                tmpctype.ct == ClickEventType::CLOSE_WINDOW)
+                openUnitId = -1;
+            else if (tmpctype.ct != ClickEventType::MISS)
+                ctype = tmpctype;
+        }
     }
 
     if (openWarId != -1) {
@@ -1200,13 +1200,20 @@ bool Game::unitClick()
             GL_FALSE, glm::value_ptr(gd->camera.GetMat()));
         glBindVertexArray(model3d.rectVao);
         glBindBuffer(GL_ARRAY_BUFFER, model3d.rectVbo);
-        for (std::size_t i = 0; i < uMat.size(); ++i) {
+        // for (std::size_t i = 0; i < uMat.size(); ++i) {
+        int r = 0, g = 0, b = 0, a = 255;
+        int perm = 2;
+        for (std::size_t i = 0; i < unitsAtPoint.size(); ++i) {
             glUniformMatrix4fv(
                 glGetUniformLocation(pickModelShader.GetProgram(), "ml"), 1,
                 GL_FALSE, glm::value_ptr(uMat[i]));
-            glm::vec4 pcol{(float)gd->provinces[pids[i]].GetColor().r / 255.0f,
-                           gd->provinces[pids[i]].GetColor().g / 255.0f,
-                           gd->provinces[pids[i]].GetColor().b / 255.0f, 1.0f};
+            // glm::vec4 pcol{(float)gd->provinces[pids[i]].GetColor().r /
+            // 255.0f,
+            //                gd->provinces[pids[i]].GetColor().g / 255.0f,
+            //                gd->provinces[pids[i]].GetColor().b /
+            //                255.0f, 1.0f};
+            glm::vec4 pcol{(float)r / 255.0f, (float)g / 255.0f,
+                           (float)b / 255.0f, 1.0f};
             glUniform4fv(
                 glGetUniformLocation(pickModelShader.GetProgram(), "col"), 1,
                 glm::value_ptr(pcol));
@@ -1215,6 +1222,44 @@ bool Game::unitClick()
             err = glGetError();
             if (err)
                 Log(err);
+            unitsAtPoint[i].perm = (int)r | ((int)g << 8) | ((int)b << 16);
+
+            // perm
+            if (perm == 2) {
+                if (b < 255)
+                    b += 1;
+                else {
+                    b = 0;
+                    g = 0;
+                    perm = 1;
+                }
+            }
+            else if (perm == 1) {
+                if (b < 254)
+                    b += 1;
+                else if (g < 255) {
+                    g += 1;
+                    b = 0;
+                }
+                else {
+                    b = 0;
+                    r = 0;
+                    perm = 0;
+                }
+            }
+            else if (perm == 0) {
+                if (b < 254)
+                    b += 1;
+                else if (g < 255) {
+                    g += 1;
+                    b = 0;
+                }
+                else if (r < 255) {
+                    r += 1;
+                    g = 0;
+                    b = 0;
+                }
+            }
         }
     }
 
@@ -1223,30 +1268,49 @@ bool Game::unitClick()
         pixy = gd->window->GetSize().y - gd->window->yMouse;
     glReadPixels(pixx, pixy, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
     gd->window->Refresh();
-    unsigned int clickedUnitPhash = getHash(pixel[0], pixel[1], pixel[2]);
+    // unsigned int clickedUnitPhash = getHash(pixel[0], pixel[1], pixel[2]);
+    int perm = (int)pixel[0] | ((int)pixel[1] << 8) | ((int)pixel[2] << 16);
 
-    if (gd->colorToId.find(clickedUnitPhash) != gd->colorToId.end()) {
+    // if (gd->colorToId.find(clickedUnitPhash) != gd->colorToId.end()) {
+    for (std::size_t i = 0; i < unitsAtPoint.size(); ++i) {
+        if (unitsAtPoint[i].perm != perm)
+            continue;
         Log("Unit click");
-        auto provId = gd->colorToId[clickedUnitPhash];
         clickedUnits.clear();
-        for (auto &u : gd->units) {
-            if (u.GetProvId() == provId)
-                clickedUnits.push_back(u.GetId());
+        for (int j = 0; j < unitsAtPoint[i].uind.size(); ++j) {
+            //    if (u.GetProvId() == provId)
+            clickedUnits.push_back(gd->units[unitsAtPoint[i].uind[j]].GetId());
         }
-        if (clickedUnits.size() == 1) {
+        if (unitsAtPoint[i].uind.size() == 1) {
             resetGuiWindows();
             openUnitId = clickedUnits[0];
+            Log(openUnitId);
+            // openUnitId = unitsAtPoint[i].uind[0];
         }
-        else if (clickedUnits.size() > 1) {
+        else if (unitsAtPoint[i].uind.size() > 1) {
             resetGuiWindows();
             openUnitsList = true;
+            openUnitsListProvId = gd->units[unitsAtPoint[i].uind[0]].GetProvId();
         }
-        openUnitsListProvId = provId;
+        // auto provId = gd->colorToId[clickedUnitPhash];
+        // clickedUnits.clear();
+        // for (auto &u : gd->units) {
+        //     if (u.GetProvId() == provId)
+        //         clickedUnits.push_back(u.GetId());
+        // }
+        // if (clickedUnits.size() == 1) {
+        //     resetGuiWindows();
+        //     openUnitId = clickedUnits[0];
+        // }
+        // else if (clickedUnits.size() > 1) {
+        //     resetGuiWindows();
+        //     openUnitsList = true;
+        // }
         return true;
     }
-    else {
-        return false;
-    }
+    // else {
+    //     return false;
+    // }
     return false;
 }
 
