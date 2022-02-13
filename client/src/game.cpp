@@ -1,5 +1,7 @@
 #include "game.h"
 
+#include <unordered_set>
+
 #include "ctr_data.h"
 #include "font_batch.h"
 #include "int_to_string.h"
@@ -21,6 +23,7 @@ struct OfferPeaceData {
 
 struct UnitsAtPoint {  // for drawing unit labels
     std::vector<int> uind;
+    std::unordered_set<int> ctrIds;
     long point;      // from unitfakepos.x & .y
     int status = 0;  // 0 - own, 1 - enemy, 2 - enemy of enemy
     int size = 0;
@@ -33,6 +36,8 @@ int openedProvId = -1;
 static void labelText(const glm::vec3 &pos, const glm::vec2 &size,
                       const glm::vec4 &col, const std::string &text,
                       AM::FontSize fontSize, std::vector<Vertex> &labelVerts);
+static void genRectFromVert(Vertex fv, float width, float height,
+                            std::vector<Vertex> &verts);
 
 Game::Game(sf::TcpSocket &sock, std::string countryName, GameData *gd)
     : socket(sock),
@@ -388,6 +393,7 @@ void Game::Play()
                 for (std::size_t j = 0; j < unitsAtPoint.size(); ++j) {
                     if (unitsAtPoint[j].point == point) {
                         unitsAtPoint[j].uind.push_back(i);
+                        unitsAtPoint[j].ctrIds.insert(gd->units[i].countryId);
                         unitsAtPoint[j].size += gd->units[i].soldiers;
                         if (myCountryId != gd->units[i].countryId &&
                             unitsAtPoint[j].status != 1) {
@@ -405,6 +411,7 @@ void Game::Play()
                     unitsAtPoint.emplace_back();
                     unitsAtPoint.back().point = point;
                     unitsAtPoint.back().uind.push_back(i);
+                    unitsAtPoint.back().ctrIds.insert(gd->units[i].countryId);
                     unitsAtPoint.back().size += gd->units[i].soldiers;
                     if (myCountryId != gd->units[i].countryId) {
                         if (true ==
@@ -422,9 +429,13 @@ void Game::Play()
 
                 std::vector<Vertex> labelVerts;
                 glm::vec4 owncol{0.0f, 0.0f, 1.0f, 1.0f};
+                glm::vec4 ownbgcol{0.0f, 0.0f, 0.5f, 1.0f};
                 glm::vec4 enemycol{1.0f, 0.0f, 0.0f, 1.0f};
+                glm::vec4 enemybgcol{0.8f, 0.0f, 0.5f, 1.0f};
                 glm::vec4 enenemycol{1.0f, 0.5f, 0.0f, 1.0f};
+                glm::vec4 enenemybgcol{0.5f, 0.3f, 0.0f, 1.0f};
                 glm::vec4 *currcol = &owncol;
+                glm::vec4 *currbgcol = &ownbgcol;
                 for (std::size_t j = 0; j < unitsAtPoint.size(); ++j) {
                     assert(unitsAtPoint[j].uind.size() > 0);
                     int i = unitsAtPoint[j].uind[0];
@@ -437,12 +448,18 @@ void Game::Play()
 
                     float ww = 70.0f, hh = 25.0f;
 
-                    if (unitsAtPoint[j].status == 0)
+                    if (unitsAtPoint[j].status == 0) {
                         currcol = &owncol;
-                    else if (unitsAtPoint[j].status == 1)
+                        currbgcol = &ownbgcol;
+                    }
+                    else if (unitsAtPoint[j].status == 1) {
                         currcol = &enemycol;
-                    else
+                        currbgcol = &enemybgcol;
+                    }
+                    else {
                         currcol = &enenemycol;
+                        currbgcol = &enenemybgcol;
+                    }
                     Vertex fv{
                         .pos = glm::vec3{asd.x - ww * 0.6f, asd.y - hh - 8.0f,
                                          asd.z},
@@ -450,58 +467,40 @@ void Game::Play()
                         .tc = glm::vec2{0.0f, 0.0f},
                         .textureId = (int)22,
                     };
-                    labelVerts.push_back(fv);
-                    fv.pos.y += hh;
-                    labelVerts.push_back(fv);
-                    fv.pos.x += ww;
-                    labelVerts.push_back(fv);
-                    labelVerts.push_back(fv);
-                    fv.pos.y -= hh;
-                    labelVerts.push_back(fv);
-                    fv.pos.x -= ww;
-                    labelVerts.push_back(fv);
+                    Vertex fvbg = fv;
+                    float wdiff = 2.0f;
+                    fvbg.pos.x -= wdiff;
+                    fvbg.pos.y -= wdiff;
+                    fvbg.pos.z -= 0.5f;
+                    fvbg.color = *currbgcol;
+                    genRectFromVert(fvbg, ww + wdiff * 2.0f, hh + wdiff * 2.0f,
+                                    labelVerts);
+                    genRectFromVert(fv, ww, hh, labelVerts);
 
                     fv.pos.z += 1.0f;
                     std::string labtext = int_to_string(unitsAtPoint[j].size);
-                    // std::string labtext =
-                    // int_to_string(gd->units[i].soldiers);
                     labelText(fv.pos, glm::vec2{ww, hh},
-                              glm::vec4{0.0f, 1.0f, 0.0f, 1.0f}, labtext,
+                              glm::vec4{1.0f, 1.0f, 1.0f, 1.0f}, labtext,
                               AM::FontSize::PX32, labelVerts);
+
+                    // country etiquetes
+                    float ewidth = ww * 0.1f, eheight = hh * 0.33f;
+                    float offsetx = 1.0f, offsety = 1.0f;
+                    float totalheight =
+                        (eheight + offsety) * unitsAtPoint[j].ctrIds.size();
+                    float starty = fv.pos.y + hh * 0.5f - totalheight * 0.5f;
+                    fvbg.pos.x -= (offsetx + ewidth);
+                    // for (int k = 0; k < unitsAtPoint[i].ctrIds.size(); ++k) {
+                    for (auto ctrid : unitsAtPoint[j].ctrIds) {
+                        fvbg.pos.y = starty;
+                        fvbg.color = glm::vec4{
+                            gd->countries[ctrid].color.r / 255.0f,
+                            gd->countries[ctrid].color.g / 255.0f,
+                            gd->countries[ctrid].color.b / 255.0f, 1.0f};
+                        genRectFromVert(fvbg, ewidth, eheight, labelVerts);
+                        starty += eheight + offsety;
+                    }
                 }
-                /*
-                                for (std::size_t i : uinds) {
-                                    glm::mat4 unitModel = glm::mat4(1.0);
-                                    unitModel = glm::translate(unitModel,
-                   gd->units[i].GetFakePos()); auto asd =
-                   gd->units[i].GetFakePos(); unitModel = glm::scale(unitModel,
-                   glm::vec3{20.0, yScale, 20.0});
-
-                                    float ww = 70.0f, hh = 25.0f;
-                                    Vertex fv{
-                                        .pos = glm::vec3{asd.x - ww * 0.6f,
-                   asd.y - hh - 8.0f, asd.z}, .color = glm::vec4{1.0f, 0.0f,
-                   0.0f, 1.0f}, .tc = glm::vec2{0.0f, 0.0f}, .textureId =
-                   (int)22,
-                                    };
-                                    labelVerts.push_back(fv);
-                                    fv.pos.y += hh;
-                                    labelVerts.push_back(fv);
-                                    fv.pos.x += ww;
-                                    labelVerts.push_back(fv);
-                                    labelVerts.push_back(fv);
-                                    fv.pos.y -= hh;
-                                    labelVerts.push_back(fv);
-                                    fv.pos.x -= ww;
-                                    labelVerts.push_back(fv);
-
-                                    fv.pos.z += 1.0f;
-                                    std::string labtext =
-                   int_to_string(gd->units[i].soldiers); labelText(fv.pos,
-                   glm::vec2{ww, hh}, glm::vec4{0.0f, 1.0f, 0.0f, 1.0f},
-                   labtext, AM::FontSize::PX32, labelVerts);
-                                }
-                */
 
                 glUseProgram(labelShader.GetProgram());
                 for (int i = 0; i <= (int)AM::FontSize::PX160; ++i) {
@@ -1361,4 +1360,19 @@ void labelText(const glm::vec3 &pos, const glm::vec2 &size,
             off += rSize.x;
         }
     }
+}
+
+void genRectFromVert(Vertex fv, float width, float height,
+                     std::vector<Vertex> &verts)
+{
+    verts.push_back(fv);
+    fv.pos.y += height;
+    verts.push_back(fv);
+    fv.pos.x += width;
+    verts.push_back(fv);
+    verts.push_back(fv);
+    fv.pos.y -= height;
+    verts.push_back(fv);
+    fv.pos.x -= width;
+    verts.push_back(fv);
 }
