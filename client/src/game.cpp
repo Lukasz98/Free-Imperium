@@ -156,6 +156,7 @@ void Game::Play()
         gd->window->Refresh();
 
         if (gd->window->keys['M']) {
+            AM::am.reloadShaders();
             labelShader = Shader{"src/graphics/shaders/label/vert.v",
                                  "src/graphics/shaders/label/frag.f", "", ""};
             gd->fontShader = Shader{"src/graphics/shaders/fonts.vert",
@@ -190,7 +191,7 @@ void Game::Play()
 
             long point = (long)(upos.x + 0.5f);
             point |= ((long)(upos.y + 0.5f) << 32);
-            Log("point: " << point);
+            // Log("point: " << point);
             bool found = false;
             for (std::size_t j = 0; j < unitsAtPoint.size(); ++j) {
                 if (unitsAtPoint[j].point == point) {
@@ -371,8 +372,9 @@ void Game::Play()
                     if (err)
                         Log("Opengl error: " << err);
 
-                    glDisable(
-                        GL_DEPTH_TEST);  // Enable depth testing for z-culling
+                    // Enable depth testing for z-culling
+                    glDisable(GL_DEPTH_TEST);
+
                     glBindBuffer(GL_ARRAY_BUFFER, arrvbo);
                     glBufferData(GL_ARRAY_BUFFER,
                                  sizeof(BorderVertex) * verts.size(),
@@ -412,7 +414,7 @@ void Game::Play()
             rotate =
                 glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
 
-            Log(unitsAtPoint.size());
+            // Log(unitsAtPoint.size());
 
             {                              // print unit labels;
                 glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
@@ -495,6 +497,83 @@ void Game::Play()
                     // if unit is opened
                     //
                     //~ if unit is opened
+                    //
+                }
+
+                if (openUnitsList || openUnitId) {
+                    int uind = -1, uid = -1;
+                    if (openUnitId > -1) {
+                        uid = openUnitId;
+                        for (std::size_t i = 0; i < gd->units.size(); ++i) {
+                            if (gd->units[i].GetId() == uid) {
+                                uind = i;
+                                break;
+                            }
+                        }
+                    }
+                    else if (clickedUnits.size()) {
+                        for (std::size_t j = 0;
+                             j < clickedUnits.size() && uind == -1; ++j) {
+                            uid = clickedUnits[j];
+                            for (std::size_t i = 0; i < gd->units.size(); ++i) {
+                                if (gd->units[i].GetId() == uid) {
+                                    uind = i;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (uind >= 0) {
+                        err = glGetError();
+                        std::vector<glm::vec3> circleverts;
+                        circleverts.push_back(gd->units[uind].GetFakePos());
+                        GLuint circlevao, circlevbo;
+                        glCreateVertexArrays(1, &circlevao);
+                        glBindVertexArray(circlevao);
+                        glCreateBuffers(1, &circlevbo);
+                        err = glGetError();
+                        if (err)
+                            Log("circle1 Opengl error: " << err);
+
+                        // Enable depth testing for z-culling
+                        // glDisable(GL_DEPTH_TEST);
+                        glBindBuffer(GL_ARRAY_BUFFER, circlevbo);
+                        glBufferData(GL_ARRAY_BUFFER,
+                                     sizeof(glm::vec3) * circleverts.size(),
+                                     circleverts.data(), GL_STATIC_DRAW);
+                        err = glGetError();
+                        if (err)
+                            Log("circle 2Opengl error: " << err);
+                        glEnableVertexArrayAttrib(circlevao, 0);
+                        // glEnableVertexArrayAttrib(circlevao, 1);
+                        err = glGetError();
+                        if (err)
+                            Log("circl3 Opengl error: " << err);
+                        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
+                                              sizeof(glm::vec3), NULL);
+                        // glVertexAttribPointer(
+                        //     1, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec3),
+                        //     (const GLvoid *)(offsetof(BorderVertex, tc)));
+                        glUseProgram(AM::am.circleShader->GetProgram());
+                        glUniformMatrix4fv(
+                            glGetUniformLocation(
+                                AM::am.circleShader->GetProgram(), "matrix"),
+                            1, GL_FALSE, glm::value_ptr(gd->camera.GetMat()));
+                        glUniform1f(
+                            glGetUniformLocation(
+                                AM::am.circleShader->GetProgram(), "time"),
+                            gd->waterTime);
+                        glBindVertexArray(circlevao);
+                        glBindBuffer(GL_ARRAY_BUFFER, circlevbo);
+                        glDrawArrays(GL_POINTS, 0, circleverts.size());
+                        err = glGetError();
+                        if (err)
+                            Log("circle Opengl error: " << err);
+                        // glEnable(GL_DEPTH_TEST);  // Enable depth testing for
+                        //  z-culling
+                        glDeleteVertexArrays(1, &circlevao);
+                        glDeleteBuffers(1, &circlevbo);
+                    }
                 }
 
                 glUseProgram(labelShader.GetProgram());
@@ -522,8 +601,8 @@ void Game::Play()
                 glEnableVertexArrayAttrib(labelVao, 2);
                 glEnableVertexArrayAttrib(labelVao, 3);
                 GLuint err = glGetError();
-                if (err)
-                    Log("Opengl error: " << err);
+                // if (err) // tu byl error
+                //     Log("Opengl error: " << err);
                 glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                                       NULL);  //(const GLvoid*)0);
                 glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
@@ -1078,6 +1157,7 @@ void Game::resetGuiWindows()
     openUnitsList = false;
     openBattleId = -1;
     openWarId = -1;
+    clickedUnits.clear();
 }
 
 void Game::input()
@@ -1276,21 +1356,23 @@ bool Game::unitClick()
         if (unitsAtPoint[i].perm != perm)
             continue;
         Log("Unit click");
+        resetGuiWindows();
         clickedUnits.clear();
         for (int j = 0; j < unitsAtPoint[i].uind.size(); ++j) {
             //    if (u.GetProvId() == provId)
             clickedUnits.push_back(gd->units[unitsAtPoint[i].uind[j]].GetId());
         }
         if (unitsAtPoint[i].uind.size() == 1) {
-            resetGuiWindows();
+            // resetGuiWindows();
             openUnitId = clickedUnits[0];
             Log(openUnitId);
             // openUnitId = unitsAtPoint[i].uind[0];
         }
         else if (unitsAtPoint[i].uind.size() > 1) {
-            resetGuiWindows();
+            // resetGuiWindows();
             openUnitsList = true;
-            openUnitsListProvId = gd->units[unitsAtPoint[i].uind[0]].GetProvId();
+            openUnitsListProvId =
+                gd->units[unitsAtPoint[i].uind[0]].GetProvId();
         }
         // auto provId = gd->colorToId[clickedUnitPhash];
         // clickedUnits.clear();

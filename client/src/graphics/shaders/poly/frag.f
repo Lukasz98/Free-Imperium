@@ -46,7 +46,6 @@ void main()
             if ((int(pos.x) + int(pos.y)) % 10 <= 1) {
                 color = mix(color, occupyingCol,
                             abs(sin(time + pos.x *
-
                                                0.5f)));
             }
         }

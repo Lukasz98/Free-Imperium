@@ -12,6 +12,7 @@ struct AM
     static FT_Face face;
     std::unique_ptr<Shader> shader;
     std::unique_ptr<Shader> modelInstancedShader;
+    std::unique_ptr<Shader> circleShader;
     std::unique_ptr<Texture> modelTexture;
     std::unique_ptr<Texture> iconsTexture;
     std::unique_ptr<Texture> def_cursorTexture;
@@ -48,5 +49,5 @@ struct AM
     static void Init();
     static void Dispose();
 
-
+    void reloadShaders();
 };
