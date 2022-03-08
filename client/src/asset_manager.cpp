@@ -47,6 +47,7 @@ void AM::Init()
 
     am.modelTexture = std::make_unique<Texture>("src/img/Done3.png");
     am.iconsTexture = std::make_unique<Texture>("src/img/icons.png");
+    am.waterTexture = std::make_unique<Texture>("src/img/Blank_map.png");//, mapWidth, mapHeight);
     am.reloadShaders();
     /*
         Texture * atlas = loadFontAtlas(16, FontSize::PX16);

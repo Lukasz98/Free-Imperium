@@ -17,6 +17,7 @@ struct AM
     std::unique_ptr<Texture> iconsTexture;
     std::unique_ptr<Texture> def_cursorTexture;
     std::unique_ptr<Texture> hover_cursorTexture;
+    std::unique_ptr<Texture> waterTexture;
     GLFWcursor* def_cursor; 
     GLFWcursor* hover_cursor; 
     

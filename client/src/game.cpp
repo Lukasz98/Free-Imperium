@@ -10,6 +10,11 @@
 #include "prov_data.h"
 #include "save_borders.h"
 
+
+//
+#include "save_data.h"
+//
+
 struct OfferPeaceData {
     struct pair {
         int provId = -1, recipantId = -1;
@@ -90,6 +95,8 @@ void Game::Play()
     GLuint otherTexID[32];
     for (GLint i = 0; i < 32; ++i) otherTexID[i] = i;
     otherTexID[0] = AM::am.modelTexture->GetId();
+
+    //saveProvinceFromImg(gd->map->provTexture.GetPixels(), AM::am.waterTexture->GetPixels(), gd->map->mapWidth, gd->map->mapHeight);
 
     struct TempUnit {
         glm::vec3 pos;
