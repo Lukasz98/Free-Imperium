@@ -46,7 +46,7 @@ struct Gui {
     void reloadShader();
 
     GuiEv start_menu(int mx, int my);
-    GuiEv game_topBar(const TopBarData& td, int mx, int my);
+    GuiEv game_topBar(const TopBarData& td, const Country* ctr, int mx, int my);
     GuiEv game_drawPause();
     GuiEv game_myCountry(const Country* ctr, int mx, int my);
     GuiEv game_country(const Country* ctr, const Country* myCountry, const std::vector<War>& wars, int mx, int my);

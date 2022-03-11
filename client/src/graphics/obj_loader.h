@@ -133,7 +133,7 @@ namespace objl
 	//
 	// Description: Model Vertex object that holds
 	//	a Position, Normal, and Texture Coordinate
-	struct Vertex
+	struct VertexObj
 	{
 		// Position Vector
 		Vector3 Position;
@@ -198,7 +198,7 @@ namespace objl
 
 		}
 		// Variable Set Constructor
-		Mesh(std::vector<Vertex>& _Vertices, std::vector<unsigned int>& _Indices)
+		Mesh(std::vector<VertexObj>& _Vertices, std::vector<unsigned int>& _Indices)
 		{
 			Vertices = _Vertices;
 			Indices = _Indices;
@@ -206,7 +206,7 @@ namespace objl
 		// Mesh Name
 		std::string MeshName;
 		// Vertex List
-		std::vector<Vertex> Vertices;
+		std::vector<VertexObj> Vertices;
 		// Index List
 		std::vector<unsigned int> Indices;
 
@@ -447,7 +447,7 @@ namespace objl
 			std::vector<Vector2> TCoords;
 			std::vector<Vector3> Normals;
 
-			std::vector<Vertex> Vertices;
+			std::vector<VertexObj> Vertices;
 			std::vector<unsigned int> Indices;
 
 			std::vector<std::string> MeshMatNames;
@@ -576,7 +576,7 @@ namespace objl
 				if (algorithm::firstToken(curline) == "f")
 				{
 					// Generate the vertices
-					std::vector<Vertex> vVerts;
+					std::vector<VertexObj> vVerts;
 					GenVerticesFromRawOBJ(vVerts, Positions, TCoords, Normals, curline);
 
 					// Add Vertices
@@ -714,7 +714,7 @@ namespace objl
 		// Loaded Mesh Objects
 		std::vector<Mesh> LoadedMeshes;
 		// Loaded Vertex Objects
-		std::vector<Vertex> LoadedVertices;
+		std::vector<VertexObj> LoadedVertices;
 		// Loaded Index Positions
 		std::vector<unsigned int> LoadedIndices;
 		// Loaded Material Objects
@@ -723,14 +723,14 @@ namespace objl
 	private:
 		// Generate vertices from a list of positions, 
 		//	tcoords, normals and a face line
-		void GenVerticesFromRawOBJ(std::vector<Vertex>& oVerts,
+		void GenVerticesFromRawOBJ(std::vector<VertexObj>& oVerts,
 			const std::vector<Vector3>& iPositions,
 			const std::vector<Vector2>& iTCoords,
 			const std::vector<Vector3>& iNormals,
 			std::string icurline)
 		{
 			std::vector<std::string> sface, svert;
-			Vertex vVert;
+			VertexObj vVert;
 			algorithm::split(algorithm::tail(icurline), sface, " ");
 
 			bool noNormal = false;
@@ -835,7 +835,7 @@ namespace objl
 		// Triangulate a list of vertices into a face by printing
 		//	inducies corresponding with triangles within it
 		void VertexTriangluation(std::vector<unsigned int>& oIndices,
-			const std::vector<Vertex>& iVerts)
+			const std::vector<VertexObj>& iVerts)
 		{
 			// If there are 2 or less verts,
 			// no triangle can be created,
@@ -854,7 +854,7 @@ namespace objl
 			}
 
 			// Create a list of vertices
-			std::vector<Vertex> tVerts = iVerts;
+			std::vector<VertexObj> tVerts = iVerts;
 
 			while (true)
 			{
@@ -862,7 +862,7 @@ namespace objl
 				for (std::size_t i = 0; i < tVerts.size(); i++)
 				{
 					// pPrev = the previous vertex in the list
-					Vertex pPrev;
+					VertexObj pPrev;
 					if (i == 0)
 					{
 						pPrev = tVerts[tVerts.size() - 1];
@@ -873,10 +873,10 @@ namespace objl
 					}
 
 					// pCur = the current vertex;
-					Vertex pCur = tVerts[i];
+					VertexObj pCur = tVerts[i];
 
 					// pNext = the next vertex in the list
-					Vertex pNext;
+					VertexObj pNext;
 					if (i == tVerts.size() - 1)
 					{
 						pNext = tVerts[0];

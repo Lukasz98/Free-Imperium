@@ -56,7 +56,7 @@ void GuiCore::drawText(const glm::vec3& pos, const glm::vec2& size, const glm::v
             rLBTC = {AM::atlasInfo[fontSize][text[i]].tcX, AM::atlasInfo[fontSize][text[i]].tcY};
             tcLen = {AM::atlasInfo[fontSize][text[i]].tcWidth, AM::atlasInfo[fontSize][text[i]].tcHeight};
             off += rSize.x + betweenWidth;
-
+            
             Vertex v[] = {
                 Vertex{.pos = rPos, .color = col, .tc = glm::vec2{rLBTC.x, rLBTC.y}, .textureId = (float)tid},
                 Vertex{.pos = glm::vec3{rPos.x, rPos.y + rSize.y, rPos.z},

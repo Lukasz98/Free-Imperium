@@ -13,7 +13,7 @@ struct Vertex {
     glm::vec3 pos;
     glm::vec4 color;
     glm::vec2 tc;
-    float textureId = 443;
+    float textureId = 443.0f;
 };
 
 struct Batch {

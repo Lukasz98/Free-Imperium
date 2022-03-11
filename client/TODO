@@ -1,8 +1,13 @@
 BUGS:
-    * w top bar pierwsza literka w "Gold:" jest troche zepsuta, nie wiadomo dlaczego
     * w skrolowanej liscie pasek nie dziala idealnie
     * z jakiegos powodu w liscie przestrzen pomiedzy kolejnymi itemami nie jest rowna
     * zdaza sie ze podczas wojny jednostki stoja na swojej prowincji i nic nie robia
+
+BUGS_ON_HOLD:
+    * w top bar pierwsza literka w "Gold:" jest troche zepsuta, nie wiadomo dlaczego
+        * update: zdarza sie to gdy po wypisaniu znaku wieksza czcionka, wypisujemy od razu mniejsza.
+                  jesli pomiedzy wypiszemy drawRect() to wyswietla sie ok.
+                  W qrenderdoc debugerze, wszystko wyglada ok.
 
 TODO:
     * makefile i ccheck itd, dalszy refactor,

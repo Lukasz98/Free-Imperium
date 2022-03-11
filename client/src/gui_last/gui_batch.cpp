@@ -32,7 +32,7 @@ void Batch::Init()
     GLushort * indices = new GLushort[indicesSize];
     int offset = 0;
     for (int i = 0; i < indicesSize; i += 6) {
-       indices[i] = offset + 0;
+       indices[i + 0] = offset + 0;
        indices[i + 1] = offset + 1;
        indices[i + 2] = offset + 2;
        indices[i + 3] = offset + 2;

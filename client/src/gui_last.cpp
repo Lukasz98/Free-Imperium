@@ -107,7 +107,7 @@ GuiLast::GuiEv GuiLast::Gui::start_menu(int mx, int my)
     return ct;
 }
 
-GuiLast::GuiEv GuiLast::Gui::game_topBar(const TopBarData& td, int mx, int my)
+GuiLast::GuiEv GuiLast::Gui::game_topBar(const TopBarData& td, const Country* ctr, int mx, int my)
 {
     GuiLast::GuiEv ct{ClickEventType::MISS};
     glm::vec2 offset{5.0f, 2.5f};
@@ -118,6 +118,15 @@ GuiLast::GuiEv GuiLast::Gui::game_topBar(const TopBarData& td, int mx, int my)
     glm::vec2 ctrSize{200.0f, wSize.y};
     glm::vec3 ctrPos{wPos.x + wSize.x * 0.5f - ctrSize.x * 0.5f, wPos.y, 0.1f};
     core.drawText(ctrPos, ctrSize, whiteCol, td.ctrName, TEXT_CENTER, AM::FontSize::PX64);
+
+    { // ctr bar
+        glm::vec2 barSize{10.0f, wSize.y};
+        glm::vec3 barPos{ctrPos.x - barSize.x, wPos.y, 0.1f};
+        core.drawRect(barPos, barSize, glm::vec4{ctr->color.r / 255.0f, ctr->color.g / 255.0f, ctr->color.b / 255.0f, 1.0f});
+
+        barPos.x = ctrPos.x + ctrSize.x;
+        core.drawRect(barPos, barSize, glm::vec4{ctr->color.r / 255.0f, ctr->color.g / 255.0f, ctr->color.b / 255.0f, 1.0f});
+    }
 
     glm::vec2 cashSize{100.0f, 40.0f};
     glm::vec3 cashPos{wPos.x + 10.0f, wPos.y + wSize.y * 0.5f, 0.05f};
@@ -923,8 +932,8 @@ void GuiLast::Gui::start(const glm::mat4& matrix)
     GLuint fontTexID[32];
     for (int i = 0; i <= (int)AM::FontSize::PX160; ++i) {
         fontTexID[i] = AM::atlasTexture[i]->GetId();
-    }
-    for (int i = 0; i <= (int)AM::FontSize::PX160; ++i) {
+    //}
+    //for (int i = 0; i <= (int)AM::FontSize::PX160; ++i) {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, (GLuint)fontTexID[i]);
     }

@@ -727,7 +727,7 @@ void Game::guiDraw()
                      gd->settings.resolution.y / gd->window->GetSize().y};
 
     GuiLast::GuiEv tmpctype;
-    tmpctype = guiLast.game_topBar(topBarData, mp.x, mp.y);
+    tmpctype = guiLast.game_topBar(topBarData, &gd->countries[myCountryId], mp.x, mp.y);
     if (tmpctype.ct != ClickEventType::MISS)
         ctype = tmpctype;
 
