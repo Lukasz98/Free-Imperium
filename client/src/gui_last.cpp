@@ -204,7 +204,7 @@ GuiLast::GuiEv GuiLast::Gui::game_myCountry(const Country* ctr, int mx, int my)
 
     glm::vec2 valueSize{100.0f, 40.0f};
     glm::vec3 valuePos{namePos.x + nameSize.x + offset.x, namePos.y, namePos.z};
-    core.drawText(valuePos, valueSize, whiteCol, ctr->GetName(), TEXT_LEFT, AM::FontSize::PX16);
+    core.drawText(valuePos, valueSize, whiteCol, ctr->name, TEXT_LEFT, AM::FontSize::PX16);
 
     if (core.isInRect(closePos, closeSize, mx, my))
         return GuiLast::GuiEv{ClickEventType::CLOSE_WINDOW};
@@ -235,12 +235,12 @@ GuiLast::GuiEv GuiLast::Gui::game_country(const Country* ctr, const Country* myC
 
     glm::vec2 valueSize{200.0f, 40.0f};
     glm::vec3 valuePos{namePos.x + nameSize.x + offset.x, namePos.y, namePos.z};
-    core.drawText(valuePos, valueSize, whiteCol, ctr->GetName(), TEXT_LEFT, AM::FontSize::PX16);
+    core.drawText(valuePos, valueSize, whiteCol, ctr->name, TEXT_LEFT, AM::FontSize::PX16);
 
     bool atWar = false;
     int warid = 0;
     for (auto& war : wars) {
-        if (war.ShouldTheyFight(ctr->GetId(), myCountry->GetId())) {
+        if (war.ShouldTheyFight(ctr->id, myCountry->id)) {
             atWar = true;
             warid = war.id;
             break;
@@ -259,7 +259,7 @@ GuiLast::GuiEv GuiLast::Gui::game_country(const Country* ctr, const Country* myC
     else {
         core.drawText(namePos, nameSize, whiteCol, "Declare war", TEXT_LEFT, AM::FontSize::PX16);
         if (core.isInRect(namePos, nameSize, mx, my))
-            ct = GuiLast::GuiEv{ClickEventType::DECLARE_WAR, ctr->GetId()};
+            ct = GuiLast::GuiEv{ClickEventType::DECLARE_WAR, ctr->id};
     }
     namePos.z -= 0.1;
 
@@ -292,7 +292,7 @@ GuiLast::GuiEv GuiLast::Gui::game_prov(const Province& prov, int mx, int my, boo
     core.drawText(namePos, nameSize, whiteCol, "Province: ", TEXT_LEFT, AM::FontSize::PX16);
     glm::vec2 valueSize{100.0f, 40.0f};
     glm::vec3 valuePos{namePos.x + wSize.x * 0.5f - offset.x, namePos.y, namePos.z};
-    core.drawText(valuePos, valueSize, whiteCol, prov.GetName(), TEXT_LEFT, AM::FontSize::PX16);
+    core.drawText(valuePos, valueSize, whiteCol, prov.name, TEXT_LEFT, AM::FontSize::PX16);
 
     namePos.y -= nameSize.y + offset.y;
     core.drawText(namePos, nameSize, whiteCol, "Country: ", TEXT_LEFT, AM::FontSize::PX16);
@@ -368,7 +368,7 @@ GuiLast::GuiEv GuiLast::Gui::game_battle(const Battle& battle, const Province& p
     core.drawText(namePos, nameSize, whiteCol, "Province: ", TEXT_LEFT, AM::FontSize::PX16);
     glm::vec2 valueSize{100.0f, 40.0f};
     glm::vec3 valuePos{namePos.x + wSize.x * 0.5f - offset.x, namePos.y, namePos.z};
-    core.drawText(valuePos, valueSize, whiteCol, prov.GetName(), TEXT_LEFT, AM::FontSize::PX16);
+    core.drawText(valuePos, valueSize, whiteCol, prov.name, TEXT_LEFT, AM::FontSize::PX16);
 
     namePos.y -= nameSize.y + offset.y;
     core.drawText(namePos, nameSize, whiteCol, "Country: ", TEXT_LEFT, AM::FontSize::PX16);
@@ -387,7 +387,7 @@ GuiLast::GuiEv GuiLast::Gui::game_battle(const Battle& battle, const Province& p
         for (std::size_t i = 0; i < units.size(); ++i) {
             if (units[i].id == battle.attackers[0]) {
                 assert(units[i].countryId >= 0 && units[i].countryId < countries.size());
-                core.drawText(valuePos, valueSize, whiteCol, countries[units[i].countryId].GetName(), TEXT_LEFT,
+                core.drawText(valuePos, valueSize, whiteCol, countries[units[i].countryId].name, TEXT_LEFT,
                               AM::FontSize::PX16);
                 break;
             }
@@ -400,7 +400,7 @@ GuiLast::GuiEv GuiLast::Gui::game_battle(const Battle& battle, const Province& p
         for (std::size_t i = 0; i < units.size(); ++i) {
             if (units[i].id == battle.defenders[0]) {
                 assert(units[i].countryId >= 0 && units[i].countryId < countries.size());
-                core.drawText(valuePos, valueSize, whiteCol, countries[units[i].countryId].GetName(), TEXT_LEFT,
+                core.drawText(valuePos, valueSize, whiteCol, countries[units[i].countryId].name, TEXT_LEFT,
                               AM::FontSize::PX16);
                 break;
             }
@@ -449,14 +449,14 @@ GuiLast::GuiEv GuiLast::Gui::game_unit(const Unit& unit, int mx, int my, bool cl
     core.drawText(namePos, nameSize, whiteCol, "name: ", TEXT_LEFT, AM::FontSize::PX16);
     glm::vec2 valueSize{100.0f, 40.0f};
     glm::vec3 valuePos{namePos.x + wSize.x * 0.5f - offset.x, namePos.y, namePos.z};
-    core.drawText(valuePos, valueSize, whiteCol, unit.GetName(), TEXT_LEFT, AM::FontSize::PX16);
+    core.drawText(valuePos, valueSize, whiteCol, unit.name, TEXT_LEFT, AM::FontSize::PX16);
 
     namePos.y -= nameSize.y + offset.y;
     core.drawText(namePos, nameSize, whiteCol, "Country: ", TEXT_LEFT, AM::FontSize::PX16);
     valuePos.y -= valueSize.y - offset.y;
     core.drawRect(valuePos, valueSize, weirdBrown);
     valuePos.z += 0.05f;
-    core.drawText(valuePos, valueSize, whiteCol, countries[unit.countryId].GetName(), TEXT_LEFT,
+    core.drawText(valuePos, valueSize, whiteCol, countries[unit.countryId].name, TEXT_LEFT,
                   AM::FontSize::PX16);
     if (core.isInRect(valuePos, valueSize, mx, my))
         ct = GuiLast::GuiEv{ClickEventType::OPEN_COUNTRY, unit.GetCountryId()};
@@ -568,11 +568,11 @@ GuiLast::GuiEv GuiLast::Gui::game_unitsList(const std::vector<Unit*>& units, int
     glm::vec3 namePos{wPos.x + offset.x, wPos.y + wSize.y * 0.9f, 0.2f};
     core.drawRect(namePos, nameSize, weirdBrown);
     namePos.z += 0.05f;
-    core.drawText(namePos, nameSize, whiteCol, std::string("Units at ") + prov->GetName(), TEXT_CENTER,
+    core.drawText(namePos, nameSize, whiteCol, std::string("Units at ") + prov->name, TEXT_CENTER,
                   AM::FontSize::PX16);
     namePos.z -= 0.05f;
     if (core.isInRect(namePos, nameSize, mx, my))
-        ct = GuiLast::GuiEv{ClickEventType::OPEN_PROV, prov->GetId()};
+        ct = GuiLast::GuiEv{ClickEventType::OPEN_PROV, prov->id};
     namePos.y = namePos.y - offset.y - nameSize.y;
     {  // list1
         glm::vec2 listSize{wSize.x, wSize.y * 0.6f};
@@ -592,10 +592,8 @@ GuiLast::GuiEv GuiLast::Gui::game_unitsList(const std::vector<Unit*>& units, int
             valuePos = startPos;
             valuePos.x += offset.x * 1.0f + rectSize.x;
             erasePos = startPos;
-            // erasePos.x = listPos.x + listSize.x - offset.x * 4.0f - eraseSize.x;
             erasePos.x = valuePos.x + elSize.x + offset.x;
             for (auto& unit : units) {
-                // core.drawText(startPos, elSize, greenCol, "name: ", TEXT_LEFT, AM::FontSize::PX16);
                 Color rectcol = countries[unit->countryId].color;
                 glm::vec4 r2col{(float)rectcol.r / 255.0f, (float)rectcol.g / 255.0f, (float)rectcol.b / 255.0f,
                                 (float)rectcol.a / 255.0f};
@@ -603,15 +601,15 @@ GuiLast::GuiEv GuiLast::Gui::game_unitsList(const std::vector<Unit*>& units, int
                 core.drawRect(valuePos, elSize, brown);
                 valuePos.z += 0.05f;
                 core.drawText(valuePos, elSize, whiteCol,
-                              unit->GetName() + std::string{", size: "} + int_to_string(unit->soldiers), TEXT_LEFT,
+                              unit->name + std::string{", size: "} + int_to_string(unit->soldiers), TEXT_LEFT,
                               AM::FontSize::PX16);
                 core.drawIcon(erasePos, eraseSize, 4);
                 valuePos.z -= 0.05f;
 
                 if (core.isInRect(valuePos, elSize, mx, my))
-                    ct = GuiLast::GuiEv{ClickEventType::OPEN_UNIT, unit->GetId()};
+                    ct = GuiLast::GuiEv{ClickEventType::OPEN_UNIT, unit->id};
                 if (core.isInRect(erasePos, eraseSize, mx, my))
-                    ct = GuiLast::GuiEv{ClickEventType::DEL_FROM_UNITS_LIST, unit->GetId()};
+                    ct = GuiLast::GuiEv{ClickEventType::DEL_FROM_UNITS_LIST, unit->id};
                 startPos.y = startPos.y - elSize.y - offset.y;
                 valuePos.y = startPos.y;
                 erasePos.y = startPos.y;
@@ -679,14 +677,13 @@ GuiLast::GuiEv GuiLast::Gui::game_peaceOffer(const PeaceOffer* offer, int mx, in
     assert(offer->offeredBy >= 0 && offer->offeredBy < countries.size());
     core.drawText(
         namePos, nameSize, whiteCol,
-        countries[offer->recipant].GetName() + std::string(" vs ") + countries[offer->offeredBy].GetName(),
+        countries[offer->recipant].name + std::string(" vs ") + countries[offer->offeredBy].name,
         TEXT_CENTER, AM::FontSize::PX16);
 
     namePos.y = namePos.y - offset.y * 7.0f - nameSize.y;
     core.drawText(namePos, nameSize, whiteCol, "Lost provinces:", TEXT_CENTER, AM::FontSize::PX16);
     auto* lostTuples = &offer->lostProv;
     auto* gainTuples = &offer->gainProv;
-    // }
     int scr2 = scr;
     {  // list1
         glm::vec2 listSize{wSize.x, wSize.y * 0.2f};
@@ -702,8 +699,8 @@ GuiLast::GuiEv GuiLast::Gui::game_peaceOffer(const PeaceOffer* offer, int mx, in
             for (std::size_t i = 0; i < lostTuples->size(); ++i) {
                 core.drawRect(glm::vec3{startPos.x, startPos.y, startPos.z - 0.05f}, elSize, brown);
                 core.drawText(startPos, elSize, whiteCol,
-                              provinces[std::get<0>((*lostTuples)[i])].GetName() + std::string{" to "} +
-                                  countries[std::get<1>((*lostTuples)[i])].GetName(),
+                              provinces[std::get<0>((*lostTuples)[i])].name + std::string{" to "} +
+                                  countries[std::get<1>((*lostTuples)[i])].name,
                               TEXT_LEFT, AM::FontSize::PX16);
 
                 startPos.y = startPos.y - elSize.y - offset.y;
@@ -729,8 +726,8 @@ GuiLast::GuiEv GuiLast::Gui::game_peaceOffer(const PeaceOffer* offer, int mx, in
             for (std::size_t i = 0; i < gainTuples->size(); ++i) {
                 core.drawRect(glm::vec3{startPos.x, startPos.y, startPos.z - 0.05f}, elSize, brown);
                 core.drawText(startPos, elSize, whiteCol,
-                              provinces[std::get<0>((*gainTuples)[i])].GetName() + std::string{" to "} +
-                                  countries[std::get<1>((*gainTuples)[i])].GetName(),
+                              provinces[std::get<0>((*gainTuples)[i])].name + std::string{" to "} +
+                                  countries[std::get<1>((*gainTuples)[i])].name,
                               TEXT_LEFT, AM::FontSize::PX16);
 
                 startPos.y = startPos.y - elSize.y - offset.y;
@@ -932,8 +929,6 @@ void GuiLast::Gui::start(const glm::mat4& matrix)
     GLuint fontTexID[32];
     for (int i = 0; i <= (int)AM::FontSize::PX160; ++i) {
         fontTexID[i] = AM::atlasTexture[i]->GetId();
-    //}
-    //for (int i = 0; i <= (int)AM::FontSize::PX160; ++i) {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, (GLuint)fontTexID[i]);
     }

@@ -22,6 +22,5 @@ class Battle
 
 
 public:
-    ~Battle();
     inline int GetProvId() const { return provId; }
 };

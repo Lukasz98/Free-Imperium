@@ -120,7 +120,7 @@ void Room::input()
         if (id >= 0 && id < gd->provinces.size()) {
             sf::Packet packet;
             packet << "country";
-            packet << gd->countries[gd->provinces[id].countryId].GetName();
+            packet << gd->countries[gd->provinces[id].countryId].name;
             toSend.emplace_back(packet);
             markedCountryId = gd->provinces[id].countryId;
 
@@ -148,9 +148,9 @@ void Room::loop()
     // ojojoj atlantyda bedzie 2 razy w tej tablicy
     ctrarr.push_back("Atlantyda");
     for (auto& c : gd->countries) {
-        if (c.GetName() == "Atlantyda")
+        if (c.name == "Atlantyda")
             continue;
-        ctrarr.push_back(c.GetName());
+        ctrarr.push_back(c.name);
     }
 
     float time = 0.0f;

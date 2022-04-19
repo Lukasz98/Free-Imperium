@@ -34,8 +34,6 @@ void SetGold(sf::Packet& packet, Country* country);
 
 void SetSpeed(sf::Packet& packet);
 
-void MonthlyUpdate(sf::Packet& packet, const std::string& myCountry, std::vector<Country>& countries);
-
 void BotPeaceOffer(sf::Packet& packet, std::vector<PeaceOffer>& peaceOffers, const std::vector<Country>& countries,
                    SideBarData& sideBarData, const Country* myCountry);
 

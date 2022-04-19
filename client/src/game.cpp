@@ -46,12 +46,12 @@ Game::Game(sf::TcpSocket &sock, std::string countryName, GameData *gd)
     Log("Ctr name:" << countryName);
     auto it = std::find_if(
         gd->countries.begin(), gd->countries.end(),
-        [countryName](const Country &c) { return c.GetName() == countryName; });
+        [countryName](const Country &c) { return c.name == countryName; });
     if (it != gd->countries.end()) {
-        myCountryId = it->GetId();
+        myCountryId = it->id;
         Log(countryName);
         for (auto &prov : gd->provinces) {
-            if (prov.GetCountryId() == gd->countries[myCountryId].GetId()) {
+            if (prov.GetCountryId() == gd->countries[myCountryId].id) {
                 gd->camera.SetPos(prov.GetUnitPos().x * gd->settings.scale,
                                   prov.GetUnitPos().y * gd->settings.scale);
                 break;
@@ -74,29 +74,12 @@ void Game::Play()
     labelShader = Shader{"src/graphics/shaders/label/vert.v",
                          "src/graphics/shaders/label/frag.f", "", ""};
     glPatchParameteri(GL_PATCH_VERTICES, 3);
-    int err = glGetError();
-    if (err)
-        Log("Opengl error: " << err);
 
     std::map<int, Node> nodes;
 
-    err = glGetError();
-    if (err)
-        Log("Opengl error: " << err);
-    err = glGetError();
-    if (err)
-        Log("Opengl error: " << err);
-
-    err = glGetError();
-    if (err)
-        Log("Opengl error: " << err);
-
-    // to jest bindowane prz rysowaniu unitow trzeba to sprawdzic
     GLuint otherTexID[32];
     for (GLint i = 0; i < 32; ++i) otherTexID[i] = i;
     otherTexID[0] = AM::am.modelTexture->GetId();
-
-    //saveProvinceFromImg(gd->map->provTexture.GetPixels(), AM::am.waterTexture->GetPixels(), gd->map->mapWidth, gd->map->mapHeight);
 
     struct TempUnit {
         glm::vec3 pos;
@@ -153,7 +136,6 @@ void Game::Play()
     float time = glfwGetTime();
     guiLast.init(gd->window, gd->settings.resolution, gd->window->GetSize());
     while (!gd->window->ShouldClose()) {
-        //
         receivePackets();
         sendPackets();
         updateBattles();
@@ -179,7 +161,6 @@ void Game::Play()
         float rotateX = 60.0f * 3.1459265f / 180.0f, yScale = 10.0f;
         glm::mat4 rotate = glm::mat4{1.0f};
         rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
-        // for (auto &unit : gd->units) {
         for (int i = 0; i < gd->units.size(); ++i) {
             if (abs(gd->units[i].GetFakePos().x - gd->camera.eye.x) > 400)
                 continue;
@@ -193,12 +174,10 @@ void Game::Play()
             pids.push_back(gd->units[i].GetProvId());
             uinds.push_back(i);
 
-            // unitsAtPoint
             auto upos = gd->units[i].position;
 
             long point = (long)(upos.x + 0.5f);
             point |= ((long)(upos.y + 0.5f) << 32);
-            // Log("point: " << point);
             bool found = false;
             for (std::size_t j = 0; j < unitsAtPoint.size(); ++j) {
                 if (unitsAtPoint[j].point == point) {
@@ -257,7 +236,6 @@ void Game::Play()
                                   gd->waterTime);
             }
             else {  // open offering peace mode
-                    // Log("peace mode");
                 unsigned char *nexpix =
                     new unsigned char[gd->map->mapWidth * 4];
                 Color lightBlue{25, 94, 176, 255};
@@ -308,11 +286,6 @@ void Game::Play()
                         else {
                             col = &neutral;
                         }
-                        if (i == 3018) {
-                            // Log((int)col->r << " " << (int)col->g << " " <<
-                            // (int)col->b);
-                        }
-
                         nexpix[i * 4] = col->r;
                         nexpix[i * 4 + 1] = col->g;
                         nexpix[i * 4 + 2] = col->b;
@@ -334,12 +307,11 @@ void Game::Play()
             gd->map->DrawBorders(matrix);
         }
 
-        // drawingMoves = false;
         if (gd->camera.eye.z < gd->zPoint && !gd->window->keys['U']) {
             if (openUnitId != -1) {  // drawing moves arrows
                 auto unit = std::find_if(gd->units.begin(), gd->units.end(),
                                          [id = openUnitId](const Unit &u) {
-                                             return u.GetId() == id;
+                                             return u.id == id;
                                          });
                 if (unit != gd->units.end()) {
                     drawingMoves = true;
@@ -375,9 +347,6 @@ void Game::Play()
                     glCreateVertexArrays(1, &arrvao);
                     glBindVertexArray(arrvao);
                     glCreateBuffers(1, &arrvbo);
-                    err = glGetError();
-                    if (err)
-                        Log("Opengl error: " << err);
 
                     // Enable depth testing for z-culling
                     glDisable(GL_DEPTH_TEST);
@@ -386,14 +355,8 @@ void Game::Play()
                     glBufferData(GL_ARRAY_BUFFER,
                                  sizeof(BorderVertex) * verts.size(),
                                  verts.data(), GL_STATIC_DRAW);
-                    err = glGetError();
-                    if (err)
-                        Log("Opengl error: " << err);
                     glEnableVertexArrayAttrib(arrvao, 0);
                     glEnableVertexArrayAttrib(arrvao, 1);
-                    err = glGetError();
-                    if (err)
-                        Log("Opengl error: " << err);
                     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
                                           sizeof(BorderVertex), NULL);
                     glVertexAttribPointer(
@@ -407,9 +370,6 @@ void Game::Play()
                     glBindVertexArray(arrvao);
                     glBindBuffer(GL_ARRAY_BUFFER, arrvbo);
                     glDrawArrays(GL_LINES, 0, verts.size());
-                    err = glGetError();
-                    if (err)
-                        Log("Opengl error: " << err);
                     glEnable(
                         GL_DEPTH_TEST);  // Enable depth testing for z-culling
                     glDeleteVertexArrays(1, &arrvao);
@@ -421,7 +381,6 @@ void Game::Play()
             rotate =
                 glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
 
-            // Log(unitsAtPoint.size());
 
             {                              // print unit labels;
                 glDisable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
@@ -499,12 +458,6 @@ void Game::Play()
                         genRectFromVert(fvbg, ewidth, eheight, labelVerts);
                         starty += eheight + offsety;
                     }
-                    //~ country etiquetes
-
-                    // if unit is opened
-                    //
-                    //~ if unit is opened
-                    //
                 }
 
                 if (openUnitsList || openUnitId) {
@@ -512,7 +465,7 @@ void Game::Play()
                     if (openUnitId > -1) {
                         uid = openUnitId;
                         for (std::size_t i = 0; i < gd->units.size(); ++i) {
-                            if (gd->units[i].GetId() == uid) {
+                            if (gd->units[i].id == uid) {
                                 uind = i;
                                 break;
                             }
@@ -523,7 +476,7 @@ void Game::Play()
                              j < clickedUnits.size() && uind == -1; ++j) {
                             uid = clickedUnits[j];
                             for (std::size_t i = 0; i < gd->units.size(); ++i) {
-                                if (gd->units[i].GetId() == uid) {
+                                if (gd->units[i].id == uid) {
                                     uind = i;
                                     break;
                                 }
@@ -531,16 +484,12 @@ void Game::Play()
                         }
                     }
                     if (uind >= 0) {
-                        err = glGetError();
                         std::vector<glm::vec3> circleverts;
                         circleverts.push_back(gd->units[uind].GetFakePos());
                         GLuint circlevao, circlevbo;
                         glCreateVertexArrays(1, &circlevao);
                         glBindVertexArray(circlevao);
                         glCreateBuffers(1, &circlevbo);
-                        err = glGetError();
-                        if (err)
-                            Log("circle1 Opengl error: " << err);
 
                         // Enable depth testing for z-culling
                         // glDisable(GL_DEPTH_TEST);
@@ -548,19 +497,9 @@ void Game::Play()
                         glBufferData(GL_ARRAY_BUFFER,
                                      sizeof(glm::vec3) * circleverts.size(),
                                      circleverts.data(), GL_STATIC_DRAW);
-                        err = glGetError();
-                        if (err)
-                            Log("circle 2Opengl error: " << err);
                         glEnableVertexArrayAttrib(circlevao, 0);
-                        // glEnableVertexArrayAttrib(circlevao, 1);
-                        err = glGetError();
-                        if (err)
-                            Log("circl3 Opengl error: " << err);
                         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
                                               sizeof(glm::vec3), NULL);
-                        // glVertexAttribPointer(
-                        //     1, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec3),
-                        //     (const GLvoid *)(offsetof(BorderVertex, tc)));
                         glUseProgram(AM::am.circleShader->GetProgram());
                         glUniformMatrix4fv(
                             glGetUniformLocation(
@@ -573,11 +512,6 @@ void Game::Play()
                         glBindVertexArray(circlevao);
                         glBindBuffer(GL_ARRAY_BUFFER, circlevbo);
                         glDrawArrays(GL_POINTS, 0, circleverts.size());
-                        err = glGetError();
-                        if (err)
-                            Log("circle Opengl error: " << err);
-                        // glEnable(GL_DEPTH_TEST);  // Enable depth testing for
-                        //  z-culling
                         glDeleteVertexArrays(1, &circlevao);
                         glDeleteBuffers(1, &circlevbo);
                     }
@@ -607,9 +541,6 @@ void Game::Play()
                 glEnableVertexArrayAttrib(labelVao, 1);
                 glEnableVertexArrayAttrib(labelVao, 2);
                 glEnableVertexArrayAttrib(labelVao, 3);
-                GLuint err = glGetError();
-                // if (err) // tu byl error
-                //     Log("Opengl error: " << err);
                 glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                                       NULL);  //(const GLvoid*)0);
                 glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
@@ -751,7 +682,7 @@ void Game::guiDraw()
         tmpctype = guiLast.game_prov(gd->provinces[openProvId], mp.x, mp.y,
                                      gd->window->mouseLClicked,
                                      gd->provinces[openProvId].GetCountryId() ==
-                                         gd->countries[myCountryId].GetId());
+                                         gd->countries[myCountryId].id);
         if (gd->window->mouseLClicked &&
             tmpctype.ct == ClickEventType::CLOSE_WINDOW)
             openProvId = -1;
@@ -787,7 +718,7 @@ void Game::guiDraw()
     if (openUnitId != -1) {
         auto unit = std::find_if(
             gd->units.begin(), gd->units.end(),
-            [id = openUnitId](const Unit &u) { return u.GetId() == id; });
+            [id = openUnitId](const Unit &u) { return u.id == id; });
         if (unit != gd->units.end()) {
             tmpctype = guiLast.game_unit(
                 (*unit), mp.x, mp.y, gd->window->mouseLClicked, gd->countries);
@@ -821,7 +752,7 @@ void Game::guiDraw()
         for (auto uid : clickedUnits) {
             auto unit = std::find_if(
                 gd->units.begin(), gd->units.end(),
-                [id = uid](const Unit &u) { return u.GetId() == id; });
+                [id = uid](const Unit &u) { return u.id == id; });
             if (unit != gd->units.end()) {
                 clickedUnits_ptr.push_back(&(*unit));
             }
@@ -1057,7 +988,7 @@ void Game::guiDraw()
                 for (auto uid : clickedUnits) {
                     auto unit = std::find_if(
                         gd->units.begin(), gd->units.end(),
-                        [id = uid](const Unit &u) { return u.GetId() == id; });
+                        [id = uid](const Unit &u) { return u.id == id; });
                     if (unit != gd->units.end()) {
                         clickedUnits_ptr.push_back(&(*unit));
                     }
@@ -1138,10 +1069,10 @@ void Game::processPacket(sf::Packet packet)
     else if (type == "Speed") {
         ProcessPacket::SetSpeed(packet);
     }
-    else if (type == "monthly") {
-        ProcessPacket::MonthlyUpdate(
-            packet, gd->countries[myCountryId].GetName(), gd->countries);
-    }
+    //else if (type == "monthly") {
+    //    ProcessPacket::MonthlyUpdate(
+    //        packet, gd->countries[myCountryId].name, gd->countries);
+    //}
     else if (type == "BotPeaceOffer") {
         ProcessPacket::BotPeaceOffer(packet, peaceOffers, gd->countries,
                                      sideBarData, &gd->countries[myCountryId]);
@@ -1294,11 +1225,6 @@ bool Game::unitClick()
             glUniformMatrix4fv(
                 glGetUniformLocation(pickModelShader.GetProgram(), "ml"), 1,
                 GL_FALSE, glm::value_ptr(uMat[i]));
-            // glm::vec4 pcol{(float)gd->provinces[pids[i]].GetColor().r /
-            // 255.0f,
-            //                gd->provinces[pids[i]].GetColor().g / 255.0f,
-            //                gd->provinces[pids[i]].GetColor().b /
-            //                255.0f, 1.0f};
             glm::vec4 pcol{(float)r / 255.0f, (float)g / 255.0f,
                            (float)b / 255.0f, 1.0f};
             glUniform4fv(
@@ -1306,9 +1232,6 @@ bool Game::unitClick()
                 glm::value_ptr(pcol));
 
             glDrawArrays(GL_TRIANGLES, 0, model3d.rectVertsCount);
-            err = glGetError();
-            if (err)
-                Log(err);
             unitsAtPoint[i].perm = (int)r | ((int)g << 8) | ((int)b << 16);
 
             // perm
@@ -1355,10 +1278,8 @@ bool Game::unitClick()
         pixy = gd->window->GetSize().y - gd->window->yMouse;
     glReadPixels(pixx, pixy, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
     gd->window->Refresh();
-    // unsigned int clickedUnitPhash = getHash(pixel[0], pixel[1], pixel[2]);
     int perm = (int)pixel[0] | ((int)pixel[1] << 8) | ((int)pixel[2] << 16);
 
-    // if (gd->colorToId.find(clickedUnitPhash) != gd->colorToId.end()) {
     for (std::size_t i = 0; i < unitsAtPoint.size(); ++i) {
         if (unitsAtPoint[i].perm != perm)
             continue;
@@ -1366,63 +1287,21 @@ bool Game::unitClick()
         resetGuiWindows();
         clickedUnits.clear();
         for (int j = 0; j < unitsAtPoint[i].uind.size(); ++j) {
-            //    if (u.GetProvId() == provId)
-            clickedUnits.push_back(gd->units[unitsAtPoint[i].uind[j]].GetId());
+            clickedUnits.push_back(gd->units[unitsAtPoint[i].uind[j]].id);
         }
         if (unitsAtPoint[i].uind.size() == 1) {
-            // resetGuiWindows();
             openUnitId = clickedUnits[0];
             Log(openUnitId);
-            // openUnitId = unitsAtPoint[i].uind[0];
         }
         else if (unitsAtPoint[i].uind.size() > 1) {
-            // resetGuiWindows();
             openUnitsList = true;
             openUnitsListProvId =
                 gd->units[unitsAtPoint[i].uind[0]].GetProvId();
         }
-        // auto provId = gd->colorToId[clickedUnitPhash];
-        // clickedUnits.clear();
-        // for (auto &u : gd->units) {
-        //     if (u.GetProvId() == provId)
-        //         clickedUnits.push_back(u.GetId());
-        // }
-        // if (clickedUnits.size() == 1) {
-        //     resetGuiWindows();
-        //     openUnitId = clickedUnits[0];
-        // }
-        // else if (clickedUnits.size() > 1) {
-        //     resetGuiWindows();
-        //     openUnitsList = true;
-        // }
         return true;
     }
-    // else {
-    //     return false;
-    // }
     return false;
 }
-
-// void Game::unitMove(std::unordered_map<std::string, std::string> &values,
-// glm::vec2 mouseInWorld)
-//{
-//  Color provinceColor = map.ClickOnProvince(mouseInWorld.x, mouseInWorld.y);
-//  auto it = std::find_if(provinces.begin(), provinces.end(),
-//  [provinceColor](std::unique_ptr<Province> &p) {
-//      return p->GetColor() == provinceColor;
-//  });
-//  if (it != provinces.end()) {
-//      auto idIt = values.find("id");
-//      if (idIt == values.end())
-//          return;
-//      sf::Packet packet;
-//      packet << "UnitMove";
-//      packet << std::stoi(idIt->second);
-//      packet << (*it)->GetId();
-
-//    toSend.push_back(packet);
-//}
-//}
 
 void Game::processGuiEvent() {}
 

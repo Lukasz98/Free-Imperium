@@ -33,5 +33,4 @@ public:
     void DrawRect();
 
     bool Click(const glm::mat4 & ml, const glm::mat4 & mlRot, const glm::vec3 & vv, const glm::vec3 & eye, float yScale, float rotateAngle);
-    //bool Click(glm::mat4 ml,  glm::mat4 mlRot, glm::vec3 vv, glm::vec3 eye);
 };

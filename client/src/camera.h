@@ -28,8 +28,6 @@ class Camera {
     glm::vec2 windowSize;
     glm::vec3 mouseRay;
 
-    void setPlanes();
-
    public:
     Camera(glm::vec2 winSize);
     Camera() {}
@@ -46,7 +44,6 @@ class Camera {
 
     void Scroll(int z);
 
-    bool IsPointInFrustum(glm::vec3 p);
 
     glm::vec3 GetMouseRay()
     {

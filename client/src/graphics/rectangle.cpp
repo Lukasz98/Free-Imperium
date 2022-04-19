@@ -3,7 +3,6 @@
 Rectangle::Rectangle(glm::vec3 pos, glm::vec2 s, glm::vec4 color)
     : position(pos), size(s), color(color)
 {
-    //        return;
 glCreateVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
     Right();
@@ -56,22 +55,18 @@ Rectangle::Rectangle(glm::vec3 pos, glm::vec2 s, glm::vec2 texC, glm::vec2 tCL)
 
         position.x + size.x, position.y, position.z,
         texC.x + tCL.x, texC.y,
-        //texC.x, texC.y,//0.0f, 0.0f,
         color.x, color.y, color.z, color.w,
 
         position.x, position.y + size.y, position.z,
         texC.x, texC.y + tCL.y,
-        //texC.x + texCoordLen, texC.y + texCoordLen,//1.0f, 1.0f,
         color.x, color.y, color.z, color.w,
 
         position.x + size.x, position.y + size.y, position.z,
         texC.x + tCL.x, texC.y + tCL.y,
-        //texC.x, texC.y + texCoordLen,//0.0f, 1.0f,
         color.x, color.y, color.z, color.w,
 
         position.x + size.x, position.y, position.z, 
         texC.x + tCL.x, texC.y,
-        //texC.x, texC.y,//0.0f, 0.0f,
         color.x, color.y, color.z, color.w
     };
     std::copy(vertInit.begin(), vertInit.end(), vertices);

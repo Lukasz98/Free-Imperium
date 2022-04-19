@@ -204,7 +204,7 @@ void GameData::makeCountryNames()
         ctrProvs[pd.GetCountryId()].push_back(pd.id);
     }
     for (std::size_t i = 0; i < countries.size(); ++i) {
-        f(countries[i].GetId());
+        f(countries[i].id);
     }
     Log("fontVerts.size = " << fontVerts.size());
     glCreateVertexArrays(1, &fontCtrVao);
@@ -311,7 +311,6 @@ void drawCountryNames(GameData *gd)
         glBindVertexArray(gd->fontCtrVao);
         glDrawArrays(GL_TRIANGLES, 0, gd->fontVerts.size());
     }
-    //}
     glEnable(GL_DEPTH_TEST);  // Enable depth testing for z-culling
 }
 

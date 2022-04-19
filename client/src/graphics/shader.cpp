@@ -31,8 +31,8 @@ Shader::Shader(std::string vertS, std::string fragS, std::string tesSter, std::s
 	if (tes) {
 		tes_ster = glCreateShader(GL_TESS_CONTROL_SHADER);
 		tes_w = glCreateShader(GL_TESS_EVALUATION_SHADER);
-	    std::string tes_sterS = readFile(tesSter.c_str());//"src/graphics/shaders/tes_ster.ts");
- 		std::string tes_wS = readFile(tesW.c_str());//"src/graphics/shaders/tes_w.tw");
+	    std::string tes_sterS = readFile(tesSter.c_str());
+ 		std::string tes_wS = readFile(tesW.c_str());
 		const char *tesSterSource = tes_sterS.c_str();
 		const char *tesWSource = tes_wS.c_str();
 	

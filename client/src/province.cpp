@@ -21,16 +21,6 @@ Province::Province(const ProvData& pd)
 
 Province::~Province() {}
 
-void Province::AddNeighbour(int n_id)
-{
-    for (auto& n : neighbours) {
-        if (n == n_id) {
-            return;
-        }
-    }
-    neighbours.push_back(n_id);
-}
-
 void Province::SetOwner(std::string owner, int ctrId)
 {
     sieged = 0;

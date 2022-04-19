@@ -2,7 +2,6 @@
 
 #include "../gui_structs.h"
 
-// std::vector<List2> lists;
 
 void GuiCore::drawRect(const glm::vec3& pos, const glm::vec2& size, const glm::vec4& col)
 {

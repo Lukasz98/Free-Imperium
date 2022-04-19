@@ -32,7 +32,7 @@ class Game {
     Shader labelShader;
     Model3D model3d;
     std::vector<glm::mat4> uMat;
-    std::vector<int> pids;  // chyba trzyma id prowincji na ktorych sa unity
+    std::vector<int> pids;
     GuiLast::Gui guiLast;
     bool game_paused = false;
     float markedProvId = -1.0f;

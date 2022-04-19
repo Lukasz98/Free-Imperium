@@ -7,27 +7,17 @@ void MapBatch::Init()
     int vertexDataSize = spriteSize * maxSprites;
     int indicesSize = maxSprites * 6;
     Log(vertexSize);
-    // glGenVertexArrays(1, &vao);
     glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
-    // glGenBuffers(1, &vbo);
     glCreateBuffers(1, &vbo);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, vertexDataSize, NULL, GL_DYNAMIC_DRAW);
-    Log("vbo=" << vbo);
     glEnableVertexArrayAttrib(vao, 0);
     glEnableVertexArrayAttrib(vao, 1);
-    GLuint err = glGetError();
-    if (err)
-        Log("Opengl error: " << err);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, NULL);  //(const GLvoid*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexSize, NULL);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vertexSize,
-                          (const GLvoid*)(offsetof(MapVertex, tc)));  //(const GLvoid*)(7 * GL_FLOAT));
-
-    err = glGetError();
-    if (err)
-        Log("Opengl error: " << err);
+                          (const GLvoid*)(offsetof(MapVertex, tc)));
 
     GLushort* indices = new GLushort[indicesSize];
     int offset = 0;
@@ -45,9 +35,6 @@ void MapBatch::Init()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesSize * sizeof(GLushort), indices, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    err = glGetError();
-    if (err)
-        Log("Opengl error: " << err);
     delete[] indices;
 
     glBindVertexArray(vao);

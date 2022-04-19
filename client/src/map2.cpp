@@ -77,7 +77,6 @@ SeaBorders::SeaBorders(const unsigned char* hpix, int mapWidth, int mapHeight, i
         int x2 = std::atoi(ss.data());
         file >> ss;
         int y2 = std::atoi(ss.data());
-        // file >> ss;
         int i1 = x1 * 3 + y1 * mapWidth * 3;
         if (i1 > mapHeight * mapWidth * 3 - 3)
             i1 = mapHeight * mapWidth * 3 - 3;
@@ -344,7 +343,6 @@ void Map2::DrawWater(glm::mat4 proj, glm::vec3 eye)
 
 void Map2::DrawLand(glm::mat4 proj, glm::vec3 eye, float provId, float provCount, int MAPID, float time)
 {
-#if 1
     glUseProgram(landShader.GetProgram());
     glUniformMatrix4fv(glGetUniformLocation(landShader.GetProgram(), "matrix"), 1, GL_FALSE, glm::value_ptr(proj));
     glUniform1iv(glGetUniformLocation(landShader.GetProgram(), "tex"), 32, tex);
@@ -357,22 +355,6 @@ void Map2::DrawLand(glm::mat4 proj, glm::vec3 eye, float provId, float provCount
     glBindVertexArray(polyMap.vao);
     glBindBuffer(GL_ARRAY_BUFFER, polyMap.vbo);
     glDrawArrays(GL_TRIANGLES, 0, polyMap.verts.size());
-#else
-
-    glUseProgram(landTesShader.GetProgram());
-    glUniformMatrix4fv(glGetUniformLocation(landTesShader.GetProgram(), "matrix"), 1, GL_FALSE,
-                       glm::value_ptr(proj));
-    glUniform1iv(glGetUniformLocation(landTesShader.GetProgram(), "tex"), 32, tex);
-    glUniform3fv(glGetUniformLocation(landTesShader.GetProgram(), "eyeLight"), 1, glm::value_ptr(eye));
-    glUniform1f(glGetUniformLocation(landTesShader.GetProgram(), "provId"), provId);
-    glUniform1f(glGetUniformLocation(landTesShader.GetProgram(), "provCount"), provCount);
-    glUniform1f(glGetUniformLocation(landTesShader.GetProgram(), "mapType"), MAPID);
-
-    glBindVertexArray(polyMap.vao);
-    glBindBuffer(GL_ARRAY_BUFFER, polyMap.vbo);
-    glDrawArrays(GL_PATCHES, 0, polyMap.verts.size());
-
-#endif
 }
 
 void Map2::DrawBorders(glm::mat4 proj)

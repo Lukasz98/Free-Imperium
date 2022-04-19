@@ -11,7 +11,6 @@ std::unique_ptr<Texture> loadFontAtlas(int fSize,
 
 void AM::Init()
 {
-    // FT_Library ft;
     if (FT_Init_FreeType(&ft)) {
         fprintf(stderr, "Could not init freetype library\n");
     }
@@ -29,50 +28,20 @@ void AM::Init()
     GLFWimage image2;
     image2.width = 16;
     image2.height = 16;
-    // image2.pixels = am.hover_cursorTexture->GetPixels();
     image2.pixels = new unsigned char[image.width * image.height * 4];
     memcpy(image2.pixels, am.hover_cursorTexture->GetPixels(),
            image.width * image.height * 4);
     am.hover_cursor = glfwCreateCursor(&image2, 0, 0);
-    // FT_Face face;
     if (FT_New_Face(ft, "src/img/Roboto-Light.ttf", 0, &face)) {
-        // if(FT_New_Face(ft, "src/img/Roboto-LightItalic.ttf", 0, &face)) {
-        // if(FT_New_Face(ft, "src/img/Hanken-Book.ttf", 0, &face)) {
         fprintf(stderr, "Could not open font\n");
     }
 
-    // Model3D model{"src/img/DudeDonePosefix.obj", glm::vec3{0.0, 0.0, 0.1}};
-    // am.model = std::make_unique<Model3D>("src/img/DudeDonePosefix.obj",
-    // glm::vec3{0.0, 0.0, 0.1});
-
     am.modelTexture = std::make_unique<Texture>("src/img/Done3.png");
     am.iconsTexture = std::make_unique<Texture>("src/img/icons.png");
-    am.waterTexture = std::make_unique<Texture>("src/img/Blank_map.png");//, mapWidth, mapHeight);
+    am.waterTexture = std::make_unique<Texture>(
+        "src/img/Blank_map.png");
     am.reloadShaders();
-    /*
-        Texture * atlas = loadFontAtlas(16, FontSize::PX16);
-        if (atlas == nullptr) {
-            Log("Font atlas creation error");
-        }
-        else {
-            atlasTexture[FontSize::PX16] = std::make_unique<Texture>(atlas);
-        }
 
-        atlas = loadFontAtlas(32, FontSize::PX32);
-        if (atlas == nullptr) {
-            Log("Font atlas creation error");
-        }
-        else {
-            atlasTexture[FontSize::PX32] = std::make_unique<Texture>(atlas);
-        }
-
-        atlas = loadFontAtlas(64, FontSize::PX64);
-        if (atlas == nullptr) {
-        }
-        else {
-            atlasTexture[FontSize::PX64] = std::make_unique<Texture>(atlas);
-        }
-    */
     if (!(atlasTexture[FontSize::PX16] = loadFontAtlas(16, FontSize::PX16))) {
         Log("Font atlas creation error");
     }
@@ -110,7 +79,6 @@ void AM::Dispose()
 
 void AM::reloadShaders()
 {
-
     am.shader = std::make_unique<Shader>("src/graphics/shaders/model_3d/vert.v",
                                          "src/graphics/shaders/model_3d/frag.f",
                                          "", "");
@@ -119,15 +87,15 @@ void AM::reloadShaders()
         "src/graphics/shaders/instanced_model_3d/frag.f", "", "");
     am.circleShader =
         std::make_unique<Shader>("src/graphics/shaders/circle_geom/vert.v",
-                                 "src/graphics/shaders/circle_geom/frag.f", "", "",
-                                 "src/graphics/shaders/circle_geom/geom.g");
+                                 "src/graphics/shaders/circle_geom/frag.f", "",
+                                 "", "src/graphics/shaders/circle_geom/geom.g");
 }
 
 std::unique_ptr<Texture> loadFontAtlas(int fSize,
                                        enum AM::FontSize fontSizeEnum)
 {
-    FT_Set_Char_Size(AM::face, 0, fSize * 64, 0,
-                     0);  // face, width,height in 1/64pixel, hor dpi, vert dpi
+    // face, width,height in 1/64pixel, hor dpi, vert dpi
+    FT_Set_Char_Size(AM::face, 0, fSize * 64, 0, 0);
     unsigned int maxRows = 0, widthSum = 0;
     for (char c = '!'; c <= '~'; ++c) {
         FT_UInt glyph_index = FT_Get_Char_Index(AM::face, c);
@@ -146,7 +114,6 @@ std::unique_ptr<Texture> loadFontAtlas(int fSize,
     if (widthSum <= 0 || maxRows <= 0)
         return nullptr;
 
-    // Log(widthSum << ", " << maxRows);
     unsigned char *atlas =
         (unsigned char *)calloc(maxRows * widthSum * 4, sizeof(unsigned char));
     int lastX = 0;
@@ -172,11 +139,9 @@ std::unique_ptr<Texture> loadFontAtlas(int fSize,
         AM::atlasInfo[fontSizeEnum][(unsigned int)c].width = gs->bitmap.width;
         AM::atlasInfo[fontSizeEnum][(unsigned int)c].height = gs->bitmap.rows;
         AM::atlasInfo[fontSizeEnum][(unsigned int)c].advanceX =
-            ((float)gs->advance.x) * 26.6 - gs->bitmap_left +
-            0.5;  // 26.6i is fractional pixel format. no idea what it means
+            ((float)gs->advance.x) * 26.6 - gs->bitmap_left + 0.5;
         AM::atlasInfo[fontSizeEnum][(unsigned int)c].yPos =
-            gs->bitmap_top -
-            gs->bitmap.rows;  // this should be negative // - gs->bitmap_top;
+            gs->bitmap_top - gs->bitmap.rows;
 
         for (unsigned int y = 0; y < gs->bitmap.rows; ++y) {
             for (unsigned int x = 0; x < gs->bitmap.width; ++x) {
@@ -192,26 +157,9 @@ std::unique_ptr<Texture> loadFontAtlas(int fSize,
         }
 
         lastX += gs->bitmap.width + 1;
-
-        /*
-              //Log(gs->advance.x/ 26.6);
-              //Log(gs->linearHoriAdvance);
-              for (int y = gs->bitmap.rows - 1; y > 0; --y) {
-                  for (int x = 0; x < gs->bitmap.width; ++x) {
-                      unsigned char glyphColor = gs->bitmap.buffer[x +
-           (gs->bitmap.rows - y) * gs->bitmap.width]; int atlasIndex = (y *
-           widthSum + lastX + x)*4; atlas[atlasIndex + 0] = 0; atlas[atlasIndex
-           + 1] = 0; atlas[atlasIndex + 2] = 0; atlas[atlasIndex + 3] =
-           glyphColor;
-                  }
-              }
-              lastX += gs->bitmap.width + 1;
-       */
-        // Log(c);
     }
     auto atlasT = std::make_unique<Texture>(atlas, widthSum, maxRows);
     free(atlas);
-    // return std::move(atlasT);
     return (atlasT);
 }
 

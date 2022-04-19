@@ -7,7 +7,6 @@ Unit::~Unit() {}
 
 void Unit::Update(glm::vec3 p, std::vector<glm::vec3> mvs, int soldiersCount)
 {
-    visible = true;
     if (soldiers != soldiersCount) {
         soldiers = soldiersCount;
     }
@@ -40,7 +39,7 @@ void Unit::Update(glm::vec3 p, std::vector<glm::vec3> mvs, int soldiersCount)
     }
 }
 
-void Unit::AddMove(std::vector<Move> ms)  // chyba moze byc prywatne
+void Unit::AddMove(std::vector<Move> ms)
 {
     for (std::size_t i = 0; i < ms.size(); i++) {
         float unitX = position.x;
@@ -64,9 +63,6 @@ void Unit::AddMove(std::vector<Move> ms)  // chyba moze byc prywatne
 
 void Unit::Draw(glm::mat4 matrix, bool isSelected)
 {
-    if (!visible)
-        return;
-
     model = glm::mat4(1.0);
     model = glm::translate(model, position);
 
@@ -74,60 +70,5 @@ void Unit::Draw(glm::mat4 matrix, bool isSelected)
     rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
     model = model * rotate;
     model = glm::scale(model, glm::vec3{20.0, yScale, 10.0});
-}
-
-void Unit::DrawGuiElements(bool isSelected)
-{
-    if (isSelected) {
-        for (auto& m : moves) {
-            m.arrow->Draw(false);
-        }
-    }
-}
-
-bool Unit::Click(glm::vec3 vv, glm::vec3 eye)
-{
-    if (!visible)
-        return false;
-    else {
-        return false;
-    }
-}
-
-void Unit::Kill(int amount)
-{
-    if (soldiers == 0)
-        return;
-    int m = amount / soldiers * 1000;
-    if (m < 1 && amount > 0)
-        m = 1;
-
-    morale -= m;
-    soldiers -= amount;
-
-    if (soldiers < 0)
-        soldiers = 0;
-
-    if (morale < 0)
-        morale = 0;
-}
-
-void Unit::Battle(bool is, bool attacker)
-{
-    isInBattle = is;
-    if (is) {
-    }
-}
-
-void Unit::UpdateDt(float d)
-{
-    dt += d;
-
-    if (dt > 0.5f) {
-        dt = 0.0f;
-        activeFrame++;
-        if (activeFrame > 1)
-            activeFrame = 0;
-    }
 }
 

@@ -49,6 +49,7 @@ struct GameData {
 
     void loadProvinceTexture();
 };
+
 void checkCountryNamesFade(GameData *gd);
 void updateCountryNamesFade(GameData *gd, float dt);
 void drawCountryNames(GameData *gd);

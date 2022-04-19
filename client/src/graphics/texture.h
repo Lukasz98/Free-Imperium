@@ -13,7 +13,6 @@ class Texture
     bool rgba;
 
 protected:
-    //std::vector<unsigned char> pixelsOrigin;
     unsigned char * pixelsOrigin = nullptr;
     int originW, originH;
     
@@ -43,9 +42,6 @@ public:
     GLuint GetId() { return texture; }
     const GLuint & GetIdR() { return texture; }
     virtual const unsigned char * GetPixels() { return pixelsOrigin; }
-    //virtual const unsigned char * GetPixels() { return pixelsOrigin; }
     const unsigned char * GetOriginPixels() { return pixelsOrigin; }
-    //virtual void SwapColors(Color bef, Color aft) {}//= 0;
-    //virtual void BrightenProvince(Color bef, int increase) {}
     int GetWidth() const { return originW; }
 };

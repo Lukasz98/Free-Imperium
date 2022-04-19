@@ -117,10 +117,10 @@ class Province {
     {
         return development;
     }
-    float GetTreasury() const
-    {
-        return treasury;
-    }
+    //float GetTreasury() const
+    //{
+    //    return treasury;
+    //}
     float GetMonthIncome() const
     {
         return monthIncome;
@@ -152,9 +152,7 @@ class Province {
         siegeUpdated = false;
         return tmp;
     }
-    std::unordered_map<std::string, std::string> GetValues();
 
-    void AddNeighbour(int n_id);
     void Print();
 
     bool operator==(Color c)
