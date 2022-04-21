@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 
-// namespace convert {
 
 inline std::string itos(int f)
 {

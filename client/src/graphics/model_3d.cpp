@@ -1,5 +1,7 @@
 #include "model_3d.h"
 #include <math.h>
+#define PI 3.14159265
+#define meshId 13
 
 Model3D::Model3D(const std::string& path, glm::vec3 pos) : position{pos}
 {
@@ -12,7 +14,6 @@ Model3D::Model3D(const std::string& path, glm::vec3 pos) : position{pos}
 
     Log("Werticow= " << Loader.LoadedVertices.size() << ", " << Loader.LoadedMaterials.size());
 
-#define meshId 13
     std::vector<glm::vec3> verts;
     std::vector<float> rawVerts;
 
@@ -147,7 +148,6 @@ bool Model3D::Click(const glm::mat4& ml, const glm::mat4& mlRot, const glm::vec3
 
     double model_h = realSize.y * yScale;
 
-#define PI 3.14159265
     double z = sin(rotateAngle) * model_h;
     double y = cos(rotateAngle) * z;
     top = bottom;

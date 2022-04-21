@@ -302,17 +302,6 @@ label:
     Log("deleted empty: " << deletedEmpty);
     Log("nodes size: " << nodes.size());
 
-    /*
-    for (auto& nk : nodes) {
-        auto node = nk.second;
-        f << node.x << " " << node.y << " | next : ";
-        for (auto next : node.next) {
-            f << nodes[next].x << " " << nodes[next].y << ", ";
-        }
-        f << '\n';
-    }
-    */
-
     // create polygons
     std::fstream f2;
     f2.open("generated_data/polygon.txt", std::fstream::out);
@@ -322,15 +311,6 @@ label:
 
         f2 << "id: ";
         f2 << std::to_string(pd.id) << "\n";
-        // create list
-        // int firstVert = -1;
-        // for (auto& alel : nodes) {
-        //    auto& it = alel.second;
-        //    if (std::find(it.provId.begin(), it.provId.end(), pd.id) != it.provId.end()) {
-        //        firstVert = alel.first;
-        //        break;
-        //    }
-        //}
         std::vector<std::pair<int, int>> chunks;
         std::map<int, bool> visited;
         // detect chunks
@@ -355,9 +335,6 @@ label:
                                      [pdid = pd.id](std::pair<int, int> p) { return pdid == p.first; }) ==
                         nodes[i].provId.end())
                         continue;
-                    // if (std::find_if(it->second.provId.begin(), it->second.provId.end(),
-                    //                  [pdid = pd.id](std::pair<int, int> p) { return pdid == p.first; }) !=
-                    //     it->second.provId.end())
                     {
                         key = i;
                         visited[key] = true;
@@ -366,24 +343,15 @@ label:
                     }
                 }
                 chunks.back().second = count;
-                // break;
             }
         }
 
-        // detect holes
-
-        // ~
-
-        // Log(pd.id << ", chunks: " << chunks.size());
         assert(chunks.size());
         for (auto chunk : chunks) {
             std::vector<int> verts;
-            // verts.push_back(firstVert);
             verts.push_back(chunk.first);
             int vert = chunk.first;
-            // int vert = firstVert;
             for (int j = 0; j < nodes[vert].next.size(); ++j) {
-                // Log("next size: " << nodes[vert].next.size() << ", vert: " << vert << ", j: " << j);
                 if (std::find(verts.begin(), verts.end(), nodes[vert].next[j]) != verts.end())
                     continue;
                 if (std::find_if(nodes[nodes[vert].next[j]].provId.begin(),
@@ -395,55 +363,6 @@ label:
                 vert = nodes[vert].next[j];
                 j = -1;
             }
-            // Log("Duzy TEST");
-            // Log("pid = " << pd.id << ", x:y = " << pd.x << ":" << pd.y);
-            // Log("col: " << pd.r << " " << pd.g << " " << pd.b);
-            // Log("raw:");
-            // for (auto i : verts) {
-            //    std::cout << nodes[i].x << ":" << nodes[i].y << ", ";
-            //}
-            // Log("");
-
-            // erase from list
-            /*
-            for (int j = 0; j < verts.size(); ++j) {
-                int next = j + 1;
-                if (next >= verts.size())
-                    next = 0;
-                if (next == j)
-                    break;
-                int next2 = j + 2;
-                if (next2 >= verts.size())
-                    next2 = next2 % verts.size();
-                if (next2 == j)
-                    break;
-
-                if ((nodes[verts[j]].x == nodes[verts[next]].x && nodes[verts[next]].x == nodes[verts[next2]].x) ||
-                    (nodes[verts[j]].y == nodes[verts[next]].y && nodes[verts[next]].y == nodes[verts[next2]].y))
-                {
-                    verts.erase(verts.begin() + next);
-                    j = -1;
-                }
-                else {
-                    float a1 = (float)(nodes[verts[j]].y - nodes[verts[next]].y) /
-                               (float)(nodes[verts[j]].x - nodes[verts[next]].x);
-                    float b1 = (float)nodes[verts[j]].y - a1 * (float)(nodes[verts[j]].x);
-                    float a2 = (float)(nodes[verts[j]].y - nodes[verts[next2]].y) /
-                               (float)(nodes[verts[j]].x - nodes[verts[next2]].x);
-                    float b2 = (float)nodes[verts[j]].y - a2 * (float)(nodes[verts[j]].x);
-                    if (a1 == a2 && b1 == b2) {
-                        verts.erase(verts.begin() + next);
-                        j = -1;
-                    }
-                }
-            }
-            */
-            /*
-            //Log("row2");
-            //        for (auto i : verts) {
-            //            std::cout << nodes[i].x << ":" << nodes[i].y << ", ";
-            //        }
-            */
             // check if clockwise
             int sum = 0;
             for (int j = 0; j < verts.size(); ++j) {
@@ -454,11 +373,6 @@ label:
             if (sum < 0) {  // counter clockwise
                 std::reverse(verts.begin(), verts.end());
             }
-            // for (auto i : verts) {
-            //   std::cout << nodes[i].x << ":" << nodes[i].y << ", ";
-            // }
-            // Log("");
-            // Log("verts count: " << verts.size());
             int dkd = -1;
             while (verts.size() > 3) {
                 for (int j = 0; j < verts.size() && verts.size() > 3; ++j) {
@@ -472,7 +386,6 @@ label:
                     glm::vec3 jToP{vp.x - vj.x, vp.y - vj.y, 0.0};
                     glm::vec3 jToN{vn.x - vj.x, vn.y - vj.y, 0.0};
                     glm::vec3 nToP{vp.x - vn.x, vp.y - vn.y, 0.0};
-                    // if (glm::cross(jToP, jToN)
                     if (jToP.x * jToN.y - jToP.y * jToN.x < 0.0f) {  // cross product ?
                         continue;
                     }
@@ -482,16 +395,6 @@ label:
                         if (k == j || k == prev || k == next)
                             continue;
                         glm::vec2 vk{(float)nodes[verts[k]].x, (float)nodes[verts[k]].y};
-                        // glm::vec3 jToK{vk.x - vj.x, vk.y - vj.y, 0.0};
-                        // glm::vec3 nToK{vk.x - vn.x, vk.y - vn.y, 0.0};
-                        // glm::vec3 pToK{vk.x - vp.x, vk.y - vp.y, 0.0};
-                        // float cr1 = (jToP.x * jToK.y - jToP.y * jToK.x);  // cross product ?
-                        // float cr2 = (jToN.x * nToK.y - jToN.y * nToK.x);  // cross product ?
-                        // float cr3 = (nToP.x * pToK.y - nToP.y * pToK.x);  // cross product ?
-                        // if (cr1 > 0.0f || cr2 > 0.0f || cr3 > 0.0f) {
-                        //    ok = false;
-                        //    break;
-                        //}
                         glm::vec2 ab = vj - vp;
                         glm::vec2 bc = vn - vj;
                         glm::vec2 ca = vp - vn;
@@ -515,9 +418,6 @@ label:
                     verts.erase(verts.begin() + j);
                     --j;
                 }
-                // if (pd.id == 3703) {
-                //     Log(verts.size());
-                // }
                 if (dkd == verts.size()) {
                     break;
                 }
@@ -531,12 +431,8 @@ label:
             }
             f2 << "\n";
         }
-        // Log("");
-
-        // break;
     }
     f2.close();
-    // printing borders
     std::fstream f;
     f.open("generated_data/BordersData.txt", std::fstream::out);
     int dell = 0;
@@ -565,7 +461,6 @@ void bord3(const unsigned char* pix, int x, int y, int w, int h, const std::vect
 {
     std::map<int, int> tmp;
     std::queue<int> que;
-    // int initx = x, inity = y;
     que.push(x | (y << 16));
     while (que.size()) {
         int key = que.front();
@@ -581,7 +476,6 @@ void bord3(const unsigned char* pix, int x, int y, int w, int h, const std::vect
         int rx = x + 1, ry1 = y + 1, ry2 = y;
         int bx1 = x + 1, bx2 = x, by = y - 1;
 
-        //int currI = x * 3 + y * w * 3;
 
         int nextI = lx * 3 + y * w * 3;
         if (lx < 0)
@@ -589,7 +483,6 @@ void bord3(const unsigned char* pix, int x, int y, int w, int h, const std::vect
 
         Color nc{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
         bool goL = (currCol == nc);
-        //    unsigned int phash = getHash(pixel[0], pixel[1], pixel[2]);
         bool isWater = provinces[colorToId[getHash(nc.r, nc.g, nc.b)]].water;
         if (goL == false && isWater) {
             int thash = nodeHash(lx + 1, ly1);
@@ -610,7 +503,7 @@ void bord3(const unsigned char* pix, int x, int y, int w, int h, const std::vect
         }
 
         bool goT = false;
-        if (ty < h)  // {
+        if (ty < h)
             nextI = tx1 * 3 + ty * w * 3;
 
         nc = Color{pix[nextI + 0], pix[nextI + 1], pix[nextI + 2]};
@@ -629,14 +522,10 @@ void bord3(const unsigned char* pix, int x, int y, int w, int h, const std::vect
             nodes[thash2].next.push_back(thash);
             nodes[thash].provId.push_back(std::make_pair(provId, chunkId));
             nodes[thash2].provId.push_back(std::make_pair(provId, chunkId));
-            // if (goL == false) {
-            //    nodes[nodeHash(lx, ly2)].next.push_back(thash);
-            //}
         }
         else if (isWater) {
             que.push(tx1 | (ty << 16));
         }
-        //}
 
         bool goR = false;
         if (rx < w) {
@@ -657,9 +546,6 @@ void bord3(const unsigned char* pix, int x, int y, int w, int h, const std::vect
                 nodes[thash2].provId.push_back(std::make_pair(provId, chunkId));
                 nodes[thash].next.push_back(thash2);
                 nodes[thash2].next.push_back(thash);
-                // if (goT == false) {
-                //    nodes[nodeHash(tx2, ty)].next.push_back(thash2);
-                //}
             }
             else if (isWater) {
                 que.push(rx | (ry2 << 16));
@@ -683,12 +569,6 @@ void bord3(const unsigned char* pix, int x, int y, int w, int h, const std::vect
                 nodes[thash2].next.push_back(thash);
                 nodes[thash].provId.push_back(std::make_pair(provId, chunkId));
                 nodes[thash2].provId.push_back(std::make_pair(provId, chunkId));
-                // if (goR == false) {
-                //    nodes[nodeHash(rx, ry2)].next.push_back(thash2);
-                //}
-                // if (goL == false) {
-                //    nodes[nodeHash(lx, ly1)].next.push_back(thash);
-                //}
             }
             else if (isWater) {
                 que.push(bx2 | (by << 16));
@@ -712,22 +592,15 @@ void saveSeaBorders(const unsigned char* pix, int ww, int hh, const std::vector<
 
         provId = pd.id;
         currCol = Color{(unsigned char)pd.r, (unsigned char)pd.g, (unsigned char)pd.b};
-        //Log(pd.id);
-        // bord3(pix, pd.x, pd.y, ww, hh, provD, nodes, colorToId);
         for (std::size_t i = 0; i < provPoints[pd.id].size(); ++i) {
             bord3(pix, provPoints[pd.id][i].first, provPoints[pd.id][i].second, ww, hh, provD, nodes, colorToId,
                   i);
-            // void bord3(const unsigned char* pix, int x, int y, int w, int h, std::vector<ProvData>&
-            // provinces,
-            //          std::map<int, Node>& nodes, std::map<unsigned int, int>& colorToId, int chunkId)
         }
     }
     Log("wtr cnt="<<cnt);
     delete [] provPoints;
     Log("nodes: " << nodes.size());
 
-#if 1
-    //std::size_t initialSize = nodes.size();
     for (auto& alele : nodes) {
         auto& it = alele.second;
         for (int i = 0; i < it.next.size(); ++i) {
@@ -843,7 +716,6 @@ label:
     }
     Log("deleted empty: " << deletedEmpty);
     Log("nodes size: " << nodes.size());
-#endif
     std::fstream f;
     f.open("generated_data/SeaBordersData.txt", std::fstream::out);
     int dell = 0;
@@ -865,22 +737,8 @@ label:
     f.close();
     Log("dell = " << dell);
 
-    /*
-    for (auto& nk : nodes) {
-        auto node = nk.second;
-        f << node.x << " " << node.y << " | next : ";
-        for (auto next : node.next) {
-            f << nodes[next].x << " " << nodes[next].y << ", ";
-        }
-        f << '\n';
-    }
-    */
 }
 
-// prov points
-
-// void createSaveProvPoints(const unsigned char* pix, int ww, int hh, std::vector<ProvData>& provD,
-//                          std::map<unsigned int, int>& colorToId);
 void createSaveProvPoints(const unsigned char* pix, int ww, int hh, std::vector<ProvData>& provD,
                           std::map<unsigned int, int>& colorToId)
 {

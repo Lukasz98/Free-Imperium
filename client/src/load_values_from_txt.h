@@ -7,8 +7,6 @@
 #include "log.h"
 #include "vec.h"
 
-// int lineCount = 0;
-
 int loadInt2(char* ptr);     // assumes pointer is continuation of strtok
 int loadInt(char* ptr);      // assumes pointer is continuation of strtok
 float loadFloat(char* ptr);  // assumes pointer is continuation of strtok

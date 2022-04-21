@@ -145,7 +145,6 @@ void Room::loop()
 {
     guiLast.init(gd->window, gd->settings.resolution, gd->window->GetSize());
 
-    // ojojoj atlantyda bedzie 2 razy w tej tablicy
     ctrarr.push_back("Atlantyda");
     for (auto& c : gd->countries) {
         if (c.name == "Atlantyda")

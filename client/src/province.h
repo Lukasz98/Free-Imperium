@@ -117,10 +117,6 @@ class Province {
     {
         return development;
     }
-    //float GetTreasury() const
-    //{
-    //    return treasury;
-    //}
     float GetMonthIncome() const
     {
         return monthIncome;

@@ -41,15 +41,9 @@ void saveProvinceFromImg(const unsigned char* provs, const unsigned char* water,
                     pd.water = false;
                 pmap[hash] = pd;
             }
-            else {  // sprawdz czy na pewno jest woda
-                // if (water[index + 0] == 255)
-                //    pmap[hash].water = false;
-                // else if (water[index + 0] == 68)
-                //    pmap[hash].water = true;
-            }
         }
     }
-#if 1
+    
     {  // find centered x, y (centered enough)
         bool * visited = (bool*)malloc(w * h);
         memset(visited, 0, w * h);////= {0};
@@ -60,7 +54,6 @@ void saveProvinceFromImg(const unsigned char* provs, const unsigned char* water,
             long first = (long)pd.x | ((long)(pd.y) << 32);
             std::queue<long> que;
             que.push(first);
-            //visited[index2] = true;
             int last = first;
 
             int bestsc = 0;
@@ -138,7 +131,7 @@ void saveProvinceFromImg(const unsigned char* provs, const unsigned char* water,
         }
         free(visited);
     }
-#endif
+    
     Color lastC = {0, 0, 0, 255};
     unsigned int lastHash = 0;
     for (int y = 0; y < h; ++y) {
@@ -265,105 +258,4 @@ void saveProvinceFromImg(const unsigned char* provs, const unsigned char* water,
         f << std::to_string(ctr.b) << "\n}\n";
     }
     f.close();
-/*
-    unsigned char* ctrPix = new unsigned char[w * h * 3];
-    for (int y = 0; y < h; ++y) {
-        for (int x = 0; x < w; ++x) {
-            int index = x * 3 + (w * y) * 3;
-            unsigned int hash =
-                getHash(provs[index + 0], provs[index + 1], provs[index + 2]);
-            if (pmap.find(hash) == pmap.end())
-                continue;
-            if (pmap[hash].water) {
-                ctrPix[index + 0] = 255;
-                ctrPix[index + 1] = 255;
-                ctrPix[index + 2] = 255;
-            }
-            else {
-                int ctrId = pmap[hash].ctrId;
-                Log(ctrs.size() << " " << ctrId << " " << pmap[hash].water << " " << pmap[hash].id << " " << pmap[hash].r << " " << pmap[hash].g << " " << pmap[hash].b);
-                assert(ctrId >= 0 && ctrId < ctrs.size());
-                ctrPix[index + 0] = ctrs[ctrId].r;
-                ctrPix[index + 1] = ctrs[ctrId].g;
-                ctrPix[index + 2] = ctrs[ctrId].b;
-            }
-        }
-    }
-
-    savePng(ctrPix, w, h);
-
-    delete[] ctrPix;
-    */
 }
-#if 0
-void savePng(unsigned char* pix, int w, int h)
-{
-    const char* path = "src/img/countries_map.png";
-    FILE* file = fopen(path, "wb");
-
-    if (!file) {
-        printf("Cannot open file: %s\n", path);
-        return;
-    }
-
-    png_structp pngPtr =
-        png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    if (pngPtr == NULL) {
-        printf("Error while creating png write struct\n");
-        fclose(file);
-        return;
-    }
-
-    png_infop infoPtr = png_create_info_struct(pngPtr);
-    if (infoPtr == NULL) {
-        printf("Error while creating png info struct\n");
-        fclose(file);
-        png_destroy_write_struct(&pngPtr, &infoPtr);
-        return;
-    }
-
-    /* domyslna metoda obslugi bledow, zalecana przez biblioteke libpng */
-    if (setjmp(png_jmpbuf(pngPtr))) {
-        printf("Error");
-        fclose(file);
-        png_destroy_write_struct(&pngPtr, &infoPtr);
-        return;
-    }
-
-    int pixelSize = 3;
-    int depth = 8;
-
-    /* ustawienie atrybutow obrazu */
-    png_set_IHDR(pngPtr, infoPtr, w, h, depth, PNG_COLOR_TYPE_RGB,
-                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
-                 PNG_FILTER_TYPE_DEFAULT);
-
-    png_byte** rowPointers =
-        (png_byte**)png_malloc(pngPtr, h * sizeof(png_byte*));
-    for (size_t y = 0; y < h; ++y) {
-        png_byte* row =
-            (png_byte*)png_malloc(pngPtr, sizeof(uint8_t) * w * pixelSize);
-        rowPointers[y] = row;
-        for (size_t x = 0; x < w; ++x) {
-            // unsigned char * pixel = pix + w * y + x;
-            int index = w * (h - y - 1) * pixelSize + x * pixelSize;
-            *row++ = pix[index + 0];
-            *row++ = pix[index + 1];
-            *row++ = pix[index + 2];
-        }
-    }
-
-    /* Zapis do pliku */
-    png_init_io(pngPtr, file);
-    png_set_rows(pngPtr, infoPtr, rowPointers);
-    png_write_png(pngPtr, infoPtr, PNG_TRANSFORM_IDENTITY, NULL);
-
-    for (size_t y = 0; y < h; ++y) {
-        png_free(pngPtr, rowPointers[y]);
-    }
-    png_free(pngPtr, rowPointers);
-
-    png_destroy_write_struct(&pngPtr, &infoPtr);
-    fclose(file);
-}
-#endif

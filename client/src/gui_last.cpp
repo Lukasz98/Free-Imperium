@@ -813,46 +813,7 @@ GuiLast::GuiEv GuiLast::Gui::room_startButton(int mx, int my)
         return GuiLast::GuiEv{ClickEventType::NONE};
     return GuiLast::GuiEv{ClickEventType::MISS};
 }
-/*
-GuiLast::GuiEv GuiLast::Gui::room_countryList(const std::vector<std::string>& ctrarr, int mx, int my, int scr)
-{
-    GuiLast::GuiEv ct{ClickEventType::MISS};
-    glm::vec2 offset{5.0f, 2.5f};
-    glm::vec2 wSize{res.x * 0.3f, res.y * 0.7f};
-    glm::vec3 wPos{offset.x * 2 + wSize.y, 50.0f, 0.1f};
 
-    core.drawRect(wPos, wSize, weirdBrown);
-    core.drawText(glm::vec3{wPos.x, wPos.y + wSize.y * 0.9f, wPos.z + 0.2f}, glm::vec2{wSize.x, wSize.y * 0.1f},
-                  whiteCol, "Countries", TEXT_CENTER, AM::FontSize::PX32);
-
-    glm::vec2 listSize{wSize.x, wSize.y * 0.9f};
-    glm::vec3 listPos{wPos.x, wPos.y, wPos.z + 0.1f};
-    core.drawRect(listPos, listSize, weirdBrown);
-    glm::vec2 nameSize{listSize.x, 50.0f};
-    glm::vec3 namePos{listPos.x + offset.x, listPos.y + listSize.y - offset.y - nameSize.y, listPos.z + 0.1f};
-    {  // list
-        static float sc = 0;
-        if (!core.isInRect(listPos, listSize, mx, my))
-            scr = 0;
-        listDraw(*this, listPos, listSize, offset, namePos, nameSize, sc, scr, ctrarr.size());
-        for (std::size_t i = 0; i < ctrarr.size(); ++i) {
-            core.drawRect(namePos, nameSize, brown);
-            core.drawText(namePos, nameSize, whiteCol, ctrarr[i], TEXT_LEFT, AM::FontSize::PX16);
-            if (core.isInRect(namePos, nameSize, mx, my))
-                ct = GuiLast::GuiEv{ClickEventType::ROOM_PICK_COUNTRY, (int)i};
-            namePos.y = namePos.y - nameSize.y - offset.y;
-        }
-        flush();
-        glScissor(0.0f, 0.0f, res.x, res.y);
-        start();
-    }
-    if (ct.ct != ClickEventType::MISS)
-        return ct;
-    if (core.isInRect(wPos, wSize, mx, my))
-        return GuiLast::GuiEv{ClickEventType::NONE};
-    return GuiLast::GuiEv{ClickEventType::MISS};
-}
-*/
 GuiLast::GuiEv GuiLast::Gui::room_playerList(const std::string& playerName, const std::vector<std::string>& plarr,
                                              int mx, int my, int scr)
 {
@@ -900,16 +861,6 @@ GuiLast::GuiEv GuiLast::Gui::room_playerList(const std::string& playerName, cons
         return GuiLast::GuiEv{ClickEventType::NONE};
     return GuiLast::GuiEv{ClickEventType::MISS};
 }
-
-//void GuiLast::Gui::game_drawUnitBar(const Unit& u)
-//{
-//    glm::vec2 wSize{100.0f, 50.0f};
-//    glm::vec3 wPos{u.fakePos.x, u.fakePos.y, u.fakePos.z + 0.1f};
-//
-//    core.drawRect(wPos, wSize, darkBrown);
-//    core.drawText(glm::vec3{wPos.x, wPos.y, wPos.z + 0.2f}, glm::vec2{wSize.x, wSize.y}, greenCol, "ASD",
-//                  TEXT_CENTER, AM::FontSize::PX32);
-//}
 
 void GuiLast::Gui::start()
 {

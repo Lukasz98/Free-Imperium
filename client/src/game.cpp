@@ -162,9 +162,9 @@ void Game::Play()
         glm::mat4 rotate = glm::mat4{1.0f};
         rotate = glm::rotate(glm::mat4{1.0}, rotateX, glm::vec3{1.0, 0.0, 0.0});
         for (int i = 0; i < gd->units.size(); ++i) {
-            if (abs(gd->units[i].GetFakePos().x - gd->camera.eye.x) > 400)
+            if (abs(gd->units[i].GetFakePos().x - gd->camera.eye.x) > 800)
                 continue;
-            if (abs(gd->units[i].GetFakePos().y - gd->camera.eye.y) > 200)
+            if (abs(gd->units[i].GetFakePos().y - gd->camera.eye.y) > 600)
                 continue;
             glm::mat4 unitModel = glm::mat4(1.0);
             unitModel = glm::translate(unitModel, gd->units[i].GetFakePos());
@@ -210,7 +210,6 @@ void Game::Play()
                         unitsAtPoint.back().status = 2;
                 }
             }
-            //~unitsAtPoint
         }
 
         input();
@@ -325,7 +324,6 @@ void Game::Play()
                     }
                     for (std::size_t i = 0; i < unit->movesVec.size(); ++i) {
                         glm::vec3 pos = unit->movesVec[i];
-                        Log(pos.x << " " << pos.y << " " << pos.z);
                         int ind = pos.x * 3 + pos.y * gd->map->mapWidth * 3;
                         if (ind >
                             gd->map->mapHeight * gd->map->mapWidth * 3 - 3)
@@ -448,7 +446,6 @@ void Game::Play()
                         (eheight + offsety) * unitsAtPoint[j].ctrIds.size();
                     float starty = fv.pos.y + hh * 0.5f - totalheight * 0.5f;
                     fvbg.pos.x -= (offsetx + ewidth);
-                    // for (int k = 0; k < unitsAtPoint[i].ctrIds.size(); ++k) {
                     for (auto ctrid : unitsAtPoint[j].ctrIds) {
                         fvbg.pos.y = starty;
                         fvbg.color = glm::vec4{
@@ -491,8 +488,6 @@ void Game::Play()
                         glBindVertexArray(circlevao);
                         glCreateBuffers(1, &circlevbo);
 
-                        // Enable depth testing for z-culling
-                        // glDisable(GL_DEPTH_TEST);
                         glBindBuffer(GL_ARRAY_BUFFER, circlevbo);
                         glBufferData(GL_ARRAY_BUFFER,
                                      sizeof(glm::vec3) * circleverts.size(),
@@ -564,12 +559,6 @@ void Game::Play()
                 glBindTexture(GL_TEXTURE_2D, otherTexID[i]);
             }
             for (auto i : uinds) {
-                // if (abs(gd->units[i].GetFakePos().x - gd->camera.eye.x) >
-                // 400)
-                //     continue;
-                // if (abs(gd->units[i].GetFakePos().y - gd->camera.eye.y) >
-                // 200)
-                //     continue;
                 glm::mat4 unitModel = glm::mat4(1.0);
                 unitModel =
                     glm::translate(unitModel, gd->units[i].GetFakePos());
@@ -635,7 +624,6 @@ void Game::Play()
             fpsTime = 0.0f;
             frames = 0;
         }
-        // gd->waterTime += dt;
         time = glfwGetTime();
     }
 }
@@ -1069,10 +1057,6 @@ void Game::processPacket(sf::Packet packet)
     else if (type == "Speed") {
         ProcessPacket::SetSpeed(packet);
     }
-    //else if (type == "monthly") {
-    //    ProcessPacket::MonthlyUpdate(
-    //        packet, gd->countries[myCountryId].name, gd->countries);
-    //}
     else if (type == "BotPeaceOffer") {
         ProcessPacket::BotPeaceOffer(packet, peaceOffers, gd->countries,
                                      sideBarData, &gd->countries[myCountryId]);
