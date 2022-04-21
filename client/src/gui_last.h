@@ -60,7 +60,7 @@ struct Gui {
 
     GuiEv room_playerList(const std::string& playerName, const std::vector<std::string>& plarr, int mx, int my,
                           int sc);
-    GuiEv room_countryList(const std::vector<std::string>& ctrarr, int mx, int my, int scr);
+    //GuiEv room_countryList(const std::vector<std::string>& ctrarr, int mx, int my, int scr);
     GuiEv room_startButton(int mx, int my);
 
     GuiEv game_war(const War* war, int mx, int my, bool clicked);
@@ -68,7 +68,7 @@ struct Gui {
                           const std::vector<Province>& provinces, std::vector<Country>& countries, bool clicked,
                           int scr);
 
-    void game_drawUnitBar(const Unit& u);
+    //void game_drawUnitBar(const Unit& u);
 };
 
 };  // namespace GuiLast

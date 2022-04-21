@@ -5,8 +5,6 @@
 void ProcessPacket::DailyUpdate(sf::Packet& packet, std::vector<War>& wars, std::vector<Province>& provinces,
                                 std::vector<Country>& countries, TopBarData& topBarData, Map2* map2)
 {
-    std::unordered_map<std::string, std::string> values;
-    std::string strData;
     int countryCounter = 0;
     packet >> countryCounter;
 

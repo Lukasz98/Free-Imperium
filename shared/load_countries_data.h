@@ -19,7 +19,7 @@ inline std::vector<CountryData> LoadCountriesData()
     std::vector<CountryData> countries;
     unsigned int lineCount = 0;
     lineCount = 0;
-    std::string fname{"../shared/CountryDataTest.txt"};
+    std::string fname{"../shared/generated_data/CountryDataTest.txt"};
     //std::fstream f;
     //f.open(fname, std::fstream::in);
     //if (f.is_open() == false)
@@ -79,7 +79,7 @@ inline std::vector<ProvData> LoadProvincesData(std::map<unsigned int, int>& colo
     std::vector<ProvData> provinces;
     unsigned int lineCount = 0;
     lineCount = 0;
-    std::string fname{"../shared/ProvDataTest.txt"};
+    std::string fname{"../shared/generated_data/ProvDataTest.txt"};
     //std::fstream f;
     //f.open(fname, std::fstream::in);
     //std::string line;

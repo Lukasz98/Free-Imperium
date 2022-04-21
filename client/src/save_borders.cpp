@@ -183,8 +183,8 @@ void saveBorders(const unsigned char* pix, int ww, int hh, std::vector<ProvData>
         if (provPoints[pd.id].size() > 1)
             Log(pd.id << ", chunks: " << provPoints[pd.id].size());
     }
+    delete [] provPoints;
     Log("nodes: " << nodes.size());
-    std::vector<int> toDelete;
     for (auto& alele : nodes) {
         auto& it = alele.second;
         for (int i = 0; i < it.next.size(); ++i) {
@@ -315,7 +315,7 @@ label:
 
     // create polygons
     std::fstream f2;
-    f2.open("polygon.txt", std::fstream::out);
+    f2.open("generated_data/polygon.txt", std::fstream::out);
     for (auto& pd : provD) {
         if (pd.water)
             continue;
@@ -538,7 +538,7 @@ label:
     f2.close();
     // printing borders
     std::fstream f;
-    f.open("BordersData.txt", std::fstream::out);
+    f.open("generated_data/BordersData.txt", std::fstream::out);
     int dell = 0;
     for (auto& alel : nodes) {
         auto& it = alel.second;
@@ -560,7 +560,7 @@ label:
 }
 // sea
 
-void bord3(const unsigned char* pix, int x, int y, int w, int h, std::vector<ProvData>& provinces,
+void bord3(const unsigned char* pix, int x, int y, int w, int h, const std::vector<ProvData>& provinces,
            std::map<int, Node>& nodes, std::map<unsigned int, int>& colorToId, int chunkId)
 {
     std::map<int, int> tmp;
@@ -697,19 +697,22 @@ void bord3(const unsigned char* pix, int x, int y, int w, int h, std::vector<Pro
     }
 }
 
-void saveSeaBorders(const unsigned char* pix, int ww, int hh, std::vector<ProvData>& provD,
+void saveSeaBorders(const unsigned char* pix, int ww, int hh, const std::vector<ProvData>& provD,
                     std::map<int, Node>& nodes, std::map<unsigned int, int>& colorToId)
 {
     std::vector<std::pair<int, int>>* provPoints = new std::vector<std::pair<int, int>>[provD.size()];
     loadProvPointsData(provPoints, provD.size());
 
     Log("HH = " << hh);
+    int cnt = 0;
     for (auto& pd : provD) {
-        if (!pd.water)
+        if (0 == pd.water)
             continue;
+        cnt++;
+
         provId = pd.id;
         currCol = Color{(unsigned char)pd.r, (unsigned char)pd.g, (unsigned char)pd.b};
-        Log(pd.id);
+        //Log(pd.id);
         // bord3(pix, pd.x, pd.y, ww, hh, provD, nodes, colorToId);
         for (std::size_t i = 0; i < provPoints[pd.id].size(); ++i) {
             bord3(pix, provPoints[pd.id][i].first, provPoints[pd.id][i].second, ww, hh, provD, nodes, colorToId,
@@ -719,9 +722,11 @@ void saveSeaBorders(const unsigned char* pix, int ww, int hh, std::vector<ProvDa
             //          std::map<int, Node>& nodes, std::map<unsigned int, int>& colorToId, int chunkId)
         }
     }
+    Log("wtr cnt="<<cnt);
+    delete [] provPoints;
     Log("nodes: " << nodes.size());
 
-    std::vector<int> toDelete;
+#if 1
     //std::size_t initialSize = nodes.size();
     for (auto& alele : nodes) {
         auto& it = alele.second;
@@ -756,8 +761,6 @@ label:
                 for (auto nn : nodes[n].next) {
                     if (n == nn || nn == nodeHash(it.x, it.y))
                         continue;
-                    // if (nodes[nn].next.size() > 2)
-                    //    continue;
                     if (onlyStep) {
                         if (step(it.x, it.y, nodes[n].x, nodes[n].y, nodes[nn].x, nodes[nn].y) == 0) {
                             continue;
@@ -838,11 +841,11 @@ label:
             ++it;
         }
     }
-
     Log("deleted empty: " << deletedEmpty);
     Log("nodes size: " << nodes.size());
+#endif
     std::fstream f;
-    f.open("SeaBordersData.txt", std::fstream::out);
+    f.open("generated_data/SeaBordersData.txt", std::fstream::out);
     int dell = 0;
     for (auto& alel : nodes) {
         auto& it = alel.second;
@@ -980,7 +983,7 @@ void createSaveProvPoints(const unsigned char* pix, int ww, int hh, std::vector<
     delete [] pix2;
 
     std::fstream f;
-    f.open("ProvPointsData.txt", std::fstream::out);
+    f.open("generated_data/ProvPointsData.txt", std::fstream::out);
     for (std::size_t i = 0; i < provD.size(); ++i) {
         f << "id: " << i << "\n";
         for (std::size_t j = 0; j < points[i].size(); ++j) {

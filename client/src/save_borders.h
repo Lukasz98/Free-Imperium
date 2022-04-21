@@ -16,7 +16,7 @@ struct Node {
 
 void saveBorders(const unsigned char* pix, int ww, int hh, std::vector<ProvData>& provD,
                         std::map<int, Node>& nodes);
-void saveSeaBorders(const unsigned char* pix, int ww, int hh, std::vector<ProvData>& provD,
+void saveSeaBorders(const unsigned char* pix, int ww, int hh, const std::vector<ProvData>& provD,
                            std::map<int, Node>& nodes, std::map<unsigned int, int>& colorToId);
 
 void createSaveProvPoints(const unsigned char* pix, int ww, int hh, std::vector<ProvData>& provD,

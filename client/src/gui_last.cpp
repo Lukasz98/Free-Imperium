@@ -813,7 +813,7 @@ GuiLast::GuiEv GuiLast::Gui::room_startButton(int mx, int my)
         return GuiLast::GuiEv{ClickEventType::NONE};
     return GuiLast::GuiEv{ClickEventType::MISS};
 }
-
+/*
 GuiLast::GuiEv GuiLast::Gui::room_countryList(const std::vector<std::string>& ctrarr, int mx, int my, int scr)
 {
     GuiLast::GuiEv ct{ClickEventType::MISS};
@@ -852,7 +852,7 @@ GuiLast::GuiEv GuiLast::Gui::room_countryList(const std::vector<std::string>& ct
         return GuiLast::GuiEv{ClickEventType::NONE};
     return GuiLast::GuiEv{ClickEventType::MISS};
 }
-
+*/
 GuiLast::GuiEv GuiLast::Gui::room_playerList(const std::string& playerName, const std::vector<std::string>& plarr,
                                              int mx, int my, int scr)
 {
@@ -901,15 +901,15 @@ GuiLast::GuiEv GuiLast::Gui::room_playerList(const std::string& playerName, cons
     return GuiLast::GuiEv{ClickEventType::MISS};
 }
 
-void GuiLast::Gui::game_drawUnitBar(const Unit& u)
-{
-    glm::vec2 wSize{100.0f, 50.0f};
-    glm::vec3 wPos{u.fakePos.x, u.fakePos.y, u.fakePos.z + 0.1f};
-
-    core.drawRect(wPos, wSize, darkBrown);
-    core.drawText(glm::vec3{wPos.x, wPos.y, wPos.z + 0.2f}, glm::vec2{wSize.x, wSize.y}, greenCol, "ASD",
-                  TEXT_CENTER, AM::FontSize::PX32);
-}
+//void GuiLast::Gui::game_drawUnitBar(const Unit& u)
+//{
+//    glm::vec2 wSize{100.0f, 50.0f};
+//    glm::vec3 wPos{u.fakePos.x, u.fakePos.y, u.fakePos.z + 0.1f};
+//
+//    core.drawRect(wPos, wSize, darkBrown);
+//    core.drawText(glm::vec3{wPos.x, wPos.y, wPos.z + 0.2f}, glm::vec2{wSize.x, wSize.y}, greenCol, "ASD",
+//                  TEXT_CENTER, AM::FontSize::PX32);
+//}
 
 void GuiLast::Gui::start()
 {

@@ -9,8 +9,7 @@ GLuint err = 0;
 LandBorders::LandBorders(const unsigned char* hpix, int mapWidth, int mapHeight, int scale)
 {
     std::fstream file;
-    file.open("BordersData2.txt", std::fstream::in);
-    std::string ss;
+    file.open("generated_data/BordersData2.txt", std::fstream::in);
     {
         float x1;
         while (file >> x1) {
@@ -67,7 +66,7 @@ LandBorders::LandBorders(const unsigned char* hpix, int mapWidth, int mapHeight,
 SeaBorders::SeaBorders(const unsigned char* hpix, int mapWidth, int mapHeight, int scale)
 {
     std::fstream file;
-    file.open("SeaBordersData.txt", std::fstream::in);
+    file.open("generated_data/SeaBordersData.txt", std::fstream::in);
     std::string ss;
     while (file >> ss) {
         int x1 = std::atoi(ss.data());
@@ -110,7 +109,7 @@ PolyMap::PolyMap(const unsigned char* hpix, int mapWidth, int mapHeight, const s
                  int scale)
 {
     std::fstream file;
-    file.open("polygon.txt", std::fstream::in);
+    file.open("generated_data/polygon.txt", std::fstream::in);
     std::string ss;
     int provId = -1;
     // int vertCount = 0;

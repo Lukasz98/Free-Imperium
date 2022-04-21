@@ -7,8 +7,8 @@ obj = $(src:.cpp=.o)
 dep = $(obj:.o=.d)
 
 OUT=imperium
-#COMPILER=g++
-COMPILER=clang++
+COMPILER=g++
+#COMPILER=clang++
 #COMPILER=$(CXX)
 CXX=$(COMPILER)
 WARNFLAGS=-std=c++17

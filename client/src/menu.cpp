@@ -34,7 +34,6 @@ void Menu::loop()
 
         guiLast.flush();
         if (gd->window->mouseLClicked) {
-            std::vector<sf::Packet> packets;
             switch (ctype.ct) {
                 case ClickEventType::QUIT_GAME: {
                     quit = true;

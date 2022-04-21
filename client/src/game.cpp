@@ -1303,8 +1303,6 @@ bool Game::unitClick()
     return false;
 }
 
-void Game::processGuiEvent() {}
-
 void Game::sendPackets()
 {
     for (auto &p : toSend) {

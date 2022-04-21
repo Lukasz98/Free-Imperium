@@ -14,7 +14,7 @@ void loadProvData(std::vector<ProvData>& provinces, std::map<unsigned int, int>&
 {
     unsigned int lineCount = 0;
     lineCount = 0;
-    std::string fname{"ProvDataTest.txt"};
+    std::string fname{"../shared/generated_data/ProvDataTest.txt"};
     std::fstream f;
     f.open(fname, std::fstream::in);
     std::string line;
@@ -82,7 +82,7 @@ void loadCountriesData(std::vector<CountryData>& ctrsData)
 {
     unsigned int lineCount = 0;
     lineCount = 0;
-    std::string fname{"CountryDataTest.txt"};
+    std::string fname{"../shared/generated_data/CountryDataTest.txt"};
     std::fstream f;
     f.open(fname, std::fstream::in);
     std::string line;
@@ -123,7 +123,7 @@ void loadProvPointsData(std::vector<std::pair<int, int>>* points, int size)
 {
     unsigned int lineCount = 0;
     lineCount = 0;
-    std::string fname{"ProvPointsData.txt"};
+    std::string fname{"generated_data/ProvPointsData.txt"};
     std::fstream f;
     f.open(fname, std::fstream::in);
     std::string line;

@@ -15,7 +15,7 @@ void saveProvinceFromImg(const unsigned char* provs, const unsigned char* water,
                          int w, int h)
 {
     std::fstream f;
-    f.open("ProvDataTest.txt", std::fstream::out);
+    f.open("../shared/generated_data/ProvDataTest.txt", std::fstream::out);
     std::map<unsigned int, ProvData> pmap;
     for (int y = 0; y < h; ++y) {
         for (int x = 0; x < w; ++x) {
@@ -255,7 +255,7 @@ void saveProvinceFromImg(const unsigned char* provs, const unsigned char* water,
     }
     f.close();
 
-    f.open("CountryDataTest.txt", std::fstream::out);
+    f.open("../shared/generated_data/CountryDataTest.txt", std::fstream::out);
     for (auto& ctr : ctrs) {
         f << "{\n";
         f << "id: " << ctr.id << "\n";
@@ -295,7 +295,7 @@ void saveProvinceFromImg(const unsigned char* provs, const unsigned char* water,
     delete[] ctrPix;
     */
 }
-
+#if 0
 void savePng(unsigned char* pix, int w, int h)
 {
     const char* path = "src/img/countries_map.png";
@@ -366,3 +366,4 @@ void savePng(unsigned char* pix, int w, int h)
     png_destroy_write_struct(&pngPtr, &infoPtr);
     fclose(file);
 }
+#endif

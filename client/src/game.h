@@ -66,7 +66,6 @@ class Game {
     void input();
     int provClick();
     bool unitClick();
-    void processGuiEvent();
     void sendPackets();
     void updateBattles();
 
