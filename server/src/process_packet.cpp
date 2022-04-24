@@ -31,7 +31,7 @@ void ProcessPacket::NewUnit(sf::Packet & packet, std::shared_ptr<Client> & clien
 
         auto unit = std::make_shared<Unit>(prov->GetName() + " unit", prov->GetUnitPos(), unitSize, country->GetName(), provId, ctrId, provId);
         DoTheThing::AddUnit(unit, prov, country);
-        DoTheThing::SendNewUnitInfo(unit, toSend); // tej funkcji nie powinno wolac AddUnit()?
+        DoTheThing::SendNewUnitInfo(unit, toSend);
 
         Packet pack{};
         pack.PushRecipant(ctrId);

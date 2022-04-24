@@ -72,8 +72,6 @@ void Unit::Kill(int amount)
 
 void Unit::Battle(bool is, bool attacker)
 {
-    Log(position.x << " " << position.y << " " << position.z << "\n");
-    Log(fakePos.x << " " << fakePos.y << " " << fakePos.z << "\n");
     isInBattle = is;
     if(is ) {
         fakePos = position;

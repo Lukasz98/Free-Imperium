@@ -3,6 +3,15 @@ tags
 server/build/*
 server/Makefile
 
+server/cppcheck_html/
+server/report.xml
+server/build/*
+server/imperium_server
+server/src/*.d
+server/src/*/*.d
+server/src/*.o
+server/src/*/*.o
+
 **/CMakeFiles
 **/cmake_install.cmake
 **/CMakeCache.txt
@@ -10,9 +19,6 @@ server/Makefile
 client/cppcheck_html/
 client/report.xml
 client/build/*
-client/BordersData.txt
-client/polygon.txt
-client/unused/
 client/imperium
 client/src/*.d
 client/src/*/*.d

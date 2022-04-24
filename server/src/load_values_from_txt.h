@@ -8,7 +8,6 @@
 #include "log.h"
 
 
-//int lineCount = 0;
 
 static int loadInt2(char * ptr) // assumes pointer is continuation of strtok
 {
@@ -66,14 +65,6 @@ static Vec4 loadVec4(char * ptr) // assumes pointer is continuation of strtok
     v.y = loadFloat(ptr);
     v.z = loadFloat(ptr);
     v.w = loadFloat(ptr);
-    //ptr = strtok(NULL, " ");
-    //v.x = std::stof(ptr);
-    //ptr = strtok(NULL, " ");
-    //v.y = std::stof(ptr);
-    //ptr = strtok(NULL, " ");
-    //v.z = std::stof(ptr);
-    //ptr = strtok(NULL, " ");
-    //v.w = std::stof(ptr);
     return v;
 }
 static Vec2 loadVec2(char * ptr) // assumes pointer is continuation of strtok
@@ -81,10 +72,6 @@ static Vec2 loadVec2(char * ptr) // assumes pointer is continuation of strtok
     Vec2 v; 
     v.x = loadFloat(ptr);
     v.y = loadFloat(ptr);
-    //ptr = strtok(NULL, " ");
-    //v.x = std::stof(ptr);
-    //ptr = strtok(NULL, " ");
-    //v.y = std::stof(ptr);
     return v;
 }
 

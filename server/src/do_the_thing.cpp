@@ -66,8 +66,6 @@ void DoTheThing::DeclareWar(std::vector<std::shared_ptr<Country>> & countries, i
 
         enemy->AddWar(war);
         attacker->AddWar(war);
-        // dodac jeszcze sojusznikom
-        
 
         Packet newPacket{true};
         newPacket << "NewWar";

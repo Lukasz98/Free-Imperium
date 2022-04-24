@@ -850,7 +850,6 @@ void Game::guiDraw()
                 openWarId = ctype.val;
             }
             case ClickEventType::OPEN_OFFER_PEACE: {
-                Log(openPeaceOfferId);
                 if (openPeaceOfferId == -1) {
                     int warind;
                     for (int i = peaceOffers.size() - 1; i >= 0; --i) {
@@ -866,7 +865,6 @@ void Game::guiDraw()
                             break;
                         }
                     }
-                    Log(warind);
                     int recipantId = gd->wars[warind].attackersIds[0];
                     if (recipantId == myCountryId)
                         recipantId = gd->wars[warind].defendersIds[0];
@@ -1108,7 +1106,6 @@ void Game::input()
                             if (gd->battles[i].GetProvId() == pid) {
                                 foundBattle = true;
                                 openBattleId = i;
-                                Log("openBattleId == " << openBattleId);
                                 break;
                             }
                         }
@@ -1174,7 +1171,6 @@ void Game::input()
             int pid = provClick();
             if (pid != -1) {
                 toSend.emplace_back(PreparePacket::MoveUnit(openUnitId, pid));
-                Log("Try unit move: " << openUnitId << " => topid: " << pid);
             }
         }
     }
@@ -1267,7 +1263,6 @@ bool Game::unitClick()
     for (std::size_t i = 0; i < unitsAtPoint.size(); ++i) {
         if (unitsAtPoint[i].perm != perm)
             continue;
-        Log("Unit click");
         resetGuiWindows();
         clickedUnits.clear();
         for (int j = 0; j < unitsAtPoint[i].uind.size(); ++j) {
@@ -1275,7 +1270,6 @@ bool Game::unitClick()
         }
         if (unitsAtPoint[i].uind.size() == 1) {
             openUnitId = clickedUnits[0];
-            Log(openUnitId);
         }
         else if (unitsAtPoint[i].uind.size() > 1) {
             openUnitsList = true;

@@ -74,17 +74,6 @@ void ProvinceLoader::loadFromMap(vec & provinces, const unsigned char * pixels, 
             }
         }
     }
-
-#if 0
-    for (auto & prov : provinces) {
-        std::cout << prov.GetName() << ", id: " << prov.GetId() << "\n";
-        std::cout << "Neighbours\n";
-        for (auto & n : prov.GetNeighbours())
-            std::cout << "- " << "" << getProvinceName(provinces, n) << "\n";
-        std::cout << "--------------------\n\n";
-    }
-    std::cout << "Num of provinces = " << provinces.size() << "\n\n";        
-#endif
 }
 
 void ProvinceLoader::loadNeighbours(vec & provinces, Color lastColor, Color currentColor)

@@ -189,7 +189,6 @@ void GameData::f(int ctrId)
 
 void GameData::makeCountryNames()
 {
-    Log("makecountrynames");
     if (fontVerts.size()) {
         glDeleteVertexArrays(1, &fontCtrVao);
         glDeleteBuffers(1, &fontCtrVbo);
@@ -206,7 +205,6 @@ void GameData::makeCountryNames()
     for (std::size_t i = 0; i < countries.size(); ++i) {
         f(countries[i].id);
     }
-    Log("fontVerts.size = " << fontVerts.size());
     glCreateVertexArrays(1, &fontCtrVao);
     glBindVertexArray(fontCtrVao);
     glCreateBuffers(1, &fontCtrVbo);

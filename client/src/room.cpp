@@ -84,7 +84,7 @@ void Room::guiDraw()
             case ClickEventType::START_AS_SPECTATOR: {
                 sf::Packet packet;
                 packet << "country";
-                packet << "Atlantyda";
+                packet << "Spectator";
                 toSend.emplace_back(packet);
                 break;
             }
@@ -145,9 +145,9 @@ void Room::loop()
 {
     guiLast.init(gd->window, gd->settings.resolution, gd->window->GetSize());
 
-    ctrarr.push_back("Atlantyda");
+    ctrarr.push_back("Spectator");
     for (auto& c : gd->countries) {
-        if (c.name == "Atlantyda")
+        if (c.name == "Spectator")
             continue;
         ctrarr.push_back(c.name);
     }

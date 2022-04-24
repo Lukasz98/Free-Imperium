@@ -120,11 +120,12 @@ GuiLast::GuiEv GuiLast::Gui::game_topBar(const TopBarData& td, const Country* ct
     core.drawText(ctrPos, ctrSize, whiteCol, td.ctrName, TEXT_CENTER, AM::FontSize::PX64);
 
     { // ctr bar
+        float barOffset = 30.0f;
         glm::vec2 barSize{10.0f, wSize.y};
-        glm::vec3 barPos{ctrPos.x - barSize.x, wPos.y, 0.1f};
+        glm::vec3 barPos{ctrPos.x - barSize.x - barOffset, wPos.y, 0.1f};
         core.drawRect(barPos, barSize, glm::vec4{ctr->color.r / 255.0f, ctr->color.g / 255.0f, ctr->color.b / 255.0f, 1.0f});
 
-        barPos.x = ctrPos.x + ctrSize.x;
+        barPos.x = ctrPos.x + ctrSize.x + barOffset;
         core.drawRect(barPos, barSize, glm::vec4{ctr->color.r / 255.0f, ctr->color.g / 255.0f, ctr->color.b / 255.0f, 1.0f});
     }
 
@@ -303,6 +304,31 @@ GuiLast::GuiEv GuiLast::Gui::game_prov(const Province& prov, int mx, int my, boo
     if (core.isInRect(valuePos, valueSize, mx, my))
         ct = GuiLast::GuiEv{ClickEventType::OPEN_COUNTRY, prov.GetCountryId()};
     valuePos.z -= 0.05f;
+    
+    namePos.y -= nameSize.y + offset.y;
+    core.drawText(namePos, nameSize, whiteCol, "Manpower: ", TEXT_LEFT, AM::FontSize::PX16);
+    valuePos.y -= valueSize.y + offset.y;
+    valuePos.z += 0.05f;
+    core.drawText(valuePos, valueSize, whiteCol, std::to_string(prov.manpower), TEXT_LEFT, AM::FontSize::PX16);
+    valuePos.z -= 0.05f;
+
+    if (prov.sieged) {
+        namePos.y -= nameSize.y + offset.y;
+        core.drawText(namePos, nameSize, whiteCol, "Sieged: ", TEXT_LEFT, AM::FontSize::PX16);
+        valuePos.y -= valueSize.y + offset.y;
+        valuePos.z += 0.05f;
+        core.drawText(valuePos, valueSize, whiteCol, std::to_string(prov.sieged), TEXT_LEFT, AM::FontSize::PX16);
+        valuePos.z -= 0.05f;
+
+        namePos.y -= nameSize.y + offset.y;
+        core.drawText(namePos, nameSize, whiteCol, "Siege country: ", TEXT_LEFT, AM::FontSize::PX16);
+        valuePos.y -= valueSize.y + offset.y;
+        valuePos.z += 0.05f;
+        core.drawText(valuePos, valueSize, whiteCol, prov.siegeCountry, TEXT_LEFT, AM::FontSize::PX16);
+        valuePos.z -= 0.05f;
+
+
+    }
 
     if (myProv) {
         static int unitSize = 1000;

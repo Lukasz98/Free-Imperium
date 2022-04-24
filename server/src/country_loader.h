@@ -30,7 +30,7 @@ class CountryLoader {
             int id = 0;
             if (countries.size())
                 id = countries.back()->GetId() + 1;
-            countries.emplace_back(std::make_shared<Country>(id, 0, 0, 0, "Atlantyda"));
+            countries.emplace_back(std::make_shared<Country>(id, 0, 0, 0, "Spectator"));
         }
 
         Log("ctrs size=" << countries.size());

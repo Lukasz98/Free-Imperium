@@ -77,7 +77,6 @@ void Siege::EraseUnit(std::shared_ptr<Unit> & u)
     units.erase(it);
     if (units.size() && level != 100) {
         leader = units[0]->GetCountryId();
-        // tu powinno sie ustawic w pierwszej kolejnosci kogos z tego samego obozu, co poprzedni lider
     }
     else if (units.size() == 0 && level != 100 && !unsiege) {
         leader = -1;

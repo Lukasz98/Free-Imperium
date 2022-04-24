@@ -72,7 +72,6 @@ void Country::AddWar(War * w)
 
 void Country::RemoveWar(War * w)
 {
-//    Log("RemovingWar " << name << " wid="<<w->GetId());
     LogFunkStart;
     auto tmp = w->GetAttackers();
     if (w->IsAttacker(id))
@@ -82,7 +81,6 @@ void Country::RemoveWar(War * w)
         if ((*it)->GetId() == w->GetId()) {
             for (auto & p : provinces) {
                 for (auto s : tmp) {
-                   // Log("tu " << s);
                     p->EraseSiegeUnitsCtr(s);
                 }
             } 

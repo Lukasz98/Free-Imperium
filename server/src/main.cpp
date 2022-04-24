@@ -41,7 +41,7 @@ int main()
                     Log(messg);
                     Log((int)clients.size());
                     c->SetName(messg);
-                    c->SetCountryName("Atlantyda");
+                    c->SetCountryName("Spectator");
                     
                     Log(messg);
 
@@ -70,7 +70,6 @@ int main()
                         for (auto & cLocal : clients) {
                             p << cLocal->GetName();
                             p << cLocal->GetCountryName();
-                            //Log(cLockal->GetName());
                         }
                         for (auto & cLocal : clients)
                             cLocal->send(p);

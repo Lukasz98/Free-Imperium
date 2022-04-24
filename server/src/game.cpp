@@ -4,7 +4,6 @@ Game::Game(std::vector<std::shared_ptr<Client>>& clients, std::vector<std::share
     : clients(clients), countries(_countries)
 {
     Log("Game()");
-    // -- load resources
 
     // both provs and ctr id's have to start from 0 to n;
     // id's of provs and ctrs are used are vector indexes
@@ -21,10 +20,9 @@ Game::Game(std::vector<std::shared_ptr<Client>>& clients, std::vector<std::share
     Log("countries size=" << _countries.size());
     for (auto& p : provinces) {
         if (p->GetCountryId() >= countries.size() || p->GetCountryId() < 0)
-            continue;  // pewnie to woda
+            continue;
         countries[p->GetCountryId()]->AddProvince(p);
     }
-    // ---
 
     for (auto& client : clients) {
         std::string name = client->GetCountryName();
@@ -286,7 +284,7 @@ void Game::ai_makePeace(std::shared_ptr<Country>& c)
                 }
             }
 
-            // wyszukiwanie prowincji ktore nie sa w poi
+            // search for provinces not in poi
             auto enemyProvs = enemy->GetProvs();
             for (auto& prov : enemyProvs) {
                 if (prov->GetSiegeLevel() == 100) {
@@ -351,7 +349,6 @@ void Game::ai_mergeUnits(std::shared_ptr<Country>& c)
                 DoTheThing::MergeUnits(unitsToErase, u, c, prov, toSend);
                 merged = true;
                 break;
-                //}
             }
         }
     } while (merged);
@@ -505,7 +502,6 @@ void Game::hourlyUpdate()
 
         std::vector<std::shared_ptr<Unit>> unitsToSend;
         for (auto& country : countries) {
-            // sprawdzac czy client powinnien dostac te informacje o unitach
             int ok = 0;
             if (country->GetId() == cl->GetCountry()->GetId()) {
                 ok = 1;
@@ -517,7 +513,7 @@ void Game::hourlyUpdate()
                         break;
                     }
                 }
-                if (cl->GetCountry()->GetName() == "Atlantyda")
+                if (cl->GetCountry()->GetName() == "Spectator")
                     ok = 1;
             }
 
@@ -546,7 +542,7 @@ void Game::hourlyUpdate()
                 packet << m.destiny.z;
             }
         }
-        unitsToSend.clear();  // doesnt matter, but i dont use it
+        unitsToSend.clear();
 
         std::vector<int> battlesToSend;
         for (auto& battle : battles) {
@@ -561,7 +557,7 @@ void Game::hourlyUpdate()
                     battlesToSend.push_back(battle.GetId());
                     continue;
                 }
-                else if (cl->GetCountry()->GetName() == "Atlantyda")
+                else if (cl->GetCountry()->GetName() == "Spectator")
                     battlesToSend.push_back(battle.GetId());
             }
         }
@@ -725,7 +721,6 @@ void Game::siegingUpdate()
         for (auto& u : units) {
             for (auto w : wars) {
                 if (w->ShouldTheyFight(u->GetCountryId(), prov->GetCountryId())) {
-                    //         Log(u->GetId() << " =" << w->GetId() << ", "<<prov->GetCountry());
                     prov->Sieging(u);
                     u->SetSieging(true);
                     break;
@@ -749,7 +744,7 @@ void Game::battlesUpdate()
     for (int i = toErase.size() - 1; i >= 0; i--) {
         auto it = toErase[i];
         int winnerId = it->GetWinnerId();
-        if (winnerId != -1) {  // != "none") {
+        if (winnerId != -1) {
             for (auto war : wars) {
                 if (war->GetId() == it->GetWarId()) {
                     war->AddBattleWinner(winnerId);
@@ -790,10 +785,8 @@ void Game::battlesUpdate()
 
                         auto provPos = province->GetUnitPos();
                         Battle battle{war->GetId(), provPos, province->GetId()};
-                        battle.AddAttacker(unit);  // kto atakuje i kto sie broni
-                        battle.AddDefender(uu);    // jest losowe, ale bedzie teraz mozna latwo to poprawic odkad
-                                                   // provincja trzyma ref do unitow. Wystarczt sprawdzac kto
-                                                   // pierwszy wchodzi na prowincje
+                        battle.AddAttacker(unit);
+                        battle.AddDefender(uu);
                         battles.push_back(battle);
                         break;
                     }
@@ -816,7 +809,7 @@ void Game::monthlyUpdate()
         mc.armyMaintenance = calculateArmyMaintenance(c);
         c->Cash(mc);
     }
-
+/*
     Packet packet{false};
     packet << "monthly";
     packet << (int)countries.size();
@@ -841,6 +834,7 @@ void Game::monthlyUpdate()
         }
         toSend.emplace_back(newP);
     }
+    */
     LogFunkEnd;
 }
 

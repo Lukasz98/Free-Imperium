@@ -13,7 +13,7 @@ std::vector<Country> CountryLoader::Load()
     if (countries.size())
         cd.id = countries.back().id + 1;
 
-    countries.emplace_back(Country{cd, "Atlantyda"});
+    countries.emplace_back(Country{cd, "Spectator"});
 
     std::sort(countries.begin(), countries.end(),
               [](const Country& c1, const Country& c2) { return c1.id < c2.id; });
