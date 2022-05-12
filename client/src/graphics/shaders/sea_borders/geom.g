@@ -11,8 +11,6 @@ void main()
 {
     col = Col[0];
     if (
-    //(gl_in[0].gl_Position.x == gl_in[1].gl_Position.x) ||
-    //(gl_in[0].gl_Position.y == gl_in[1].gl_Position.y)) {
     (abs(gl_in[0].gl_Position.x - gl_in[1].gl_Position.x) == 0.0f)) {
         gl_Position = gl_in[0].gl_Position + vec4(-1.1, 0.0, 0.0, 0.0);
         EmitVertex();
@@ -57,7 +55,7 @@ void main()
 
         a = (gl_in[0].gl_Position.y - gl_in[1].gl_Position.y) / (gl_in[0].gl_Position.x - gl_in[1].gl_Position.x);
         b = gl_in[0].gl_Position.y - gl_in[0].gl_Position.x * a;
-        width = 1.0f;//0.5f * a;
+        width = 1.0f;
         a1 = -1.0f / a;
         b1 = gl_in[0].gl_Position.y - (a1 * gl_in[0].gl_Position.x);
         x1 = gl_in[0].gl_Position.x + width;

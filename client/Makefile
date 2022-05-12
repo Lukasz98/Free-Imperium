@@ -11,7 +11,7 @@ COMPILER=g++
 #COMPILER=clang++
 #COMPILER=$(CXX)
 CXX=$(COMPILER)
-WARNFLAGS=-std=c++17
+WARNFLAGS=-std=c++17 -g
 #WARNFLAGS=-std=c++17 -O0 -g -Wunused-function -Wformat=2 -Wnull-dereference \
 #		 -fdelete-null-pointer-checks -Wno-if-not-aligned -Wmisleading-indentation \
 #		 -Wmissing-attributes -Wmissing-braces -Wmultistatement-macros -Wno-return-local-addr \
@@ -20,7 +20,7 @@ WARNFLAGS=-std=c++17
 INCLUDES=-I/usr/include/ -I/usr/include/freetype2/ -I../shared/ -Isrc/
 
 LDFLAGS=-L/usr/lib/
-LDLIBS=-lGL -lGLU -lglfw -lGLEW -lpng16 -lstdc++fs -lfreetype -lsfml-system \
+LDLIBS=-lGL -lglfw -lGLEW -lpng16 -lstdc++fs -lfreetype -lsfml-system \
 		-lsfml-network
 
 #-MMD generetes .d files

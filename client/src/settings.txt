@@ -1,5 +1,5 @@
 settings {
-    name: ' Mietek '
+    name: ' Gracz '
     friendIp: ' 127.0.0.1 '
     friendPort: ' 55555 '
 }
