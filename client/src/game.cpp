@@ -235,8 +235,6 @@ void Game::Play()
                                   gd->waterTime);
             }
             else {  // open offering peace mode
-                //unsigned char *nexpix =
-                //    new unsigned char[gd->map->mapWidth * 4];
                 unsigned char *nexpix =
                     new unsigned char[gd->provinces.size() * 4];
                 Color lightBlue{25, 94, 176, 255};
