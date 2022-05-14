@@ -1,0 +1,30 @@
+Zależności: Make glew glfw libpng freetype sfml - użyty do obsługi socketów sieciowych
+
+Użyty kompilator: g++
+Projekt testowany na systemie linux
+
+Kompilacja:
+1. Przejdź do folderu server/
+2. wywołaj polecenie make
+3. Przejdź do folderu client/
+4. wywołaj polecenie make
+
+Konfiguracja (zarówno tryb jedno i wieloosobowy):
+Przed uruchomieniem, należy w pliku client/src/settings.txt zdefiniować nazwę użytkownika i adres serwera. W przypadku gry w trybie  jednoosobowym, ip powinno być adresem localhost, czyli 127.0.0.1.
+
+Uruchomienie
+1. Przejdź do folderu server/
+2. ./imperium_server
+3. W osobnym terminalu przejdź do folderu client/
+4. ./imperium
+5. Serwer powinien być włączony przed włączeniem klienta
+
+Sterowanie:
+w - kamera na północ
+a - kamera na południe
+s - kamera na zachód
+d - kamera na wschód
+f/t - przechylanie kamery północ/południe
+p - pauza
+
+
